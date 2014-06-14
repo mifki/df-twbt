@@ -1,0 +1,35 @@
+# This file should be placed into data/init and allows to load additional tilesets
+# and override tile numbers for certain item/building types.
+
+# Load additional tileset if you ran out of tiles in main and text fonts
+# [TILESET:font.png:fullscreenfont.png] 
+
+# Add an override
+# [OVERRIDE:Tile:Kind:Id:Type:Subtype:Tileset:NewTile]
+# Tile is the original tile number
+# Kind is I for item or B for building
+# Id see buildings_other_id.h or items_other_id.h
+# Type see building_type.h or item_type.h, may be empty
+# Subtype is some numberical value, don't know what values correspond to what
+# Tileset is an index of tileset to use
+#   0 is the main tileset
+#   1 is a text tileset loaded by this plugin
+#   2 and so on are tilesets specified above
+# NewTile is the new tile number
+
+# Override tile if it didn't match any other rules
+# Behaviour of this may change in future
+# [OVERRIDE:Tile:Tileset:NewTile]
+
+# Examples
+
+# [OVERRIDE:177:B:WINDOW_ANY:WindowGem::0:48]
+# Will make gem windows show as coffins (why not)
+
+# [OVERRIDE:197:I:DOOR:::0:197]
+# [OVERRIDE:197:B:DOOR:::0:197]
+# [OVERRIDE:197:0:229]
+# Will make floor engraving in progess to show as anvils instead of doors
+
+# Check all values carefully as there's not error checking currently and the game will
+# crash if you specify non-existing tileset index, for example.
