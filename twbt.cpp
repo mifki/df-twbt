@@ -529,6 +529,20 @@ void renderer_cool::update_tile(int x, int y)
     write_tile_arrays(this, x, y, _fg, _bg, _tex);
 }
 
+#define ADDTILEVERT(x,y,w,h) \
+    vertex[0]  = x; \
+    vertex[1]  = y; \
+    vertex[2]  = x+w; \
+    vertex[3]  = y; \
+    vertex[4]  = x; \
+    vertex[5]  = y+h; \
+    vertex[6]  = x; \
+    vertex[7]  = y+h; \
+    vertex[8]  = x+w; \
+    vertex[9]  = y; \
+    vertex[10] = x+w; \
+    vertex[11] = y+h;
+
 void renderer_cool::draw(int vertex_count)
 {
     if (!texloaded)
@@ -580,50 +594,184 @@ for (int tile = 0; tile < gps->dimx*gps->dimy; tile++)
     if ((this->screen[tile*4+3]&0xf0))
     {
         unsigned char kk = shadows[tile];
+        int x = tile / gps->dimy;
+        int y = tile % gps->dimy;
+        GLfloat *tex = shadowtex+elemcnt*2;
+        float *vertex = shadowvert+elemcnt*2;
+        float w = 0.5+std::max<float>(0, (x - (float)(gps->dimx-32) / 2) / ((gps->dimx - 32) / 2)) * 3;
+        float w2 = 0.5+std::max<float>(0, ((float)(gps->dimx-32) / 2 - x) / ((gps->dimx - 32) / 2)) * 3;
+        float h = 0.5+std::max<float>(0, (y - (float)(gps->dimy) / 2) / ((gps->dimy) / 2)) * 3;
+        float h2 = 0.5+std::max<float>(0, ((float)(gps->dimy) / 2 - y) / ((gps->dimy) / 2)) * 3;
+        //w=w2=h=h2=3;
         if (kk & (1 << 0))
         {
-            GLfloat *tex = shadowtex+elemcnt*2;
-            memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(GLfloat));
+            ADDTILEVERT(x,y,w,1)
+
             gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
             SETTEX(0x70);
             elemcnt+=6;
+            vertex+=6*2;
         }
-/*        CHECK(0,1)
-        if (k)
+        if (kk & (1 << 1))
         {
-            /*GLfloat *tex = shadowtex+elemcnt*2;
-            memcpy(shadowvert+elemcnt*2, vertices+tile*6*2, 6*2*sizeof(GLfloat));
+            ADDTILEVERT(x,y+1-h2,1,h2)
+
             gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
             SETTEX(0x71);
-            elemcnt+=6;*
-            kk |= k<<1;
+            elemcnt+=6;
+            vertex+=6*2;            
         }
-        CHECK(0,-1)
-        if (k)
+        if (kk & (1 << 2))
         {
-            /*GLfloat *tex = shadowtex+elemcnt*2;
-            memcpy(shadowvert+elemcnt*2, vertices+tile*6*2, 6*2*sizeof(GLfloat));
+            vertex[0]  = x;   // Upper left
+            vertex[1]  = y;
+            vertex[2]  = x+1; // Upper right
+            vertex[3]  = y;
+            vertex[4]  = x;   // Lower left
+            vertex[5]  = y+h;
+            vertex[6]  = x;   // Lower left again (triangle 2)
+            vertex[7]  = y+h;
+            vertex[8]  = x+1; // Upper right
+            vertex[9]  = y;
+            vertex[10] = x+1; // Lower right
+            vertex[11] = y+h;            
+
             gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
             SETTEX(0x72);
-            elemcnt+=6;*
-            kk |= k<<2;
+            elemcnt+=6;
+            vertex+=6*2;            
         }
-        CHECK(1,0)
-        if (k)
+        if (kk & (1 << 3))
         {
-            /*GLfloat *tex = shadowtex+elemcnt*2;
-            memcpy(shadowvert+elemcnt*2, vertices+tile*6*2, 6*2*sizeof(GLfloat));
+            vertex[0]  = x+1-w2;   // Upper left
+            vertex[1]  = y;
+            vertex[2]  = x+1; // Upper right
+            vertex[3]  = y;
+            vertex[4]  = x+1-w2;   // Lower left
+            vertex[5]  = y+1;
+            vertex[6]  = x+1-w2;   // Lower left again (triangle 2)
+            vertex[7]  = y+1;
+            vertex[8]  = x+1; // Upper right
+            vertex[9]  = y;
+            vertex[10] = x+1; // Lower right
+            vertex[11] = y+1;
+
             gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
             SETTEX(0x73);
-            elemcnt+=6;*
-            kk |= k<<3;
-        }   */
+            elemcnt+=6;
+            vertex+=6*2;
+        }        
+        if (kk & (1 << 4))
+        {
+            //*out2 << "a" << std::endl;
+            vertex[0]  = x+1-w2;   // Upper left
+            vertex[1]  = y+1-h2;
+
+            vertex[2]  = x+1; // Upper right
+            vertex[3]  = y+1-h2;
+
+            vertex[4]  = x+1-w2;   // Lower left
+            vertex[5]  = y+1;
+
+            vertex[6]  = x+1-w2;   // Lower left again (triangle 2)
+            vertex[7]  = y+1;
+
+            vertex[8]  = x+1; // Upper right
+            vertex[9]  = y+1-h2;
+
+            vertex[10] = x+1; // Lower right
+            vertex[11] = y+1;            
+
+            gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
+            SETTEX(0x74);
+            elemcnt+=6;
+            vertex+=6*2;            
+        }               
+        if (kk & (1 << 5))
+        {
+            //*out2 << "a" << std::endl;
+            vertex[0]  = x;   // Upper left
+            vertex[1]  = y+1-h2;
+
+            vertex[2]  = x+w; // Upper right
+            vertex[3]  = y+1-h2;
+
+            vertex[4]  = x;   // Lower left
+            vertex[5]  = y+1;
+
+            vertex[6]  = x;   // Lower left again (triangle 2)
+            vertex[7]  = y+1;
+
+            vertex[8]  = x+w; // Upper right
+            vertex[9]  = y+1-h2;
+
+            vertex[10] = x+w; // Lower right
+            vertex[11] = y+1;            
+
+            gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
+            SETTEX(0x75);
+            elemcnt+=6;
+            vertex+=6*2;            
+        }            
+        if (kk & (1 << 6))
+        {
+            //*out2 << "a" << std::endl;
+            vertex[0]  = x;   // Upper left
+            vertex[1]  = y;
+
+            vertex[2]  = x+w; // Upper right
+            vertex[3]  = y;
+
+            vertex[4]  = x;   // Lower left
+            vertex[5]  = y+h;
+
+            vertex[6]  = x;   // Lower left again (triangle 2)
+            vertex[7]  = y+h;
+
+            vertex[8]  = x+w; // Upper right
+            vertex[9]  = y;
+
+            vertex[10] = x+w; // Lower right
+            vertex[11] = y+h;            
+
+            gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
+            SETTEX(0x76);
+            elemcnt+=6;
+            vertex+=6*2;            
+        }        
+        if (kk & (1 << 7))
+        {
+            //*out2 << "a" << std::endl;
+            vertex[0]  = x+1-w2;   // Upper left
+            vertex[1]  = y;
+
+            vertex[2]  = x+1; // Upper right
+            vertex[3]  = y;
+
+            vertex[4]  = x+1-w2;   // Lower left
+            vertex[5]  = y+h;
+
+            vertex[6]  = x+1-w2;   // Lower left again (triangle 2)
+            vertex[7]  = y+h;
+
+            vertex[8]  = x+1; // Upper right
+            vertex[9]  = y;
+
+            vertex[10] = x+1; // Lower right
+            vertex[11] = y+h;
+
+            gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
+            SETTEX(0x77);
+            elemcnt+=6;
+            vertex+=6*2;            
+        }                  
     } 
 }
 
 
     glDisable(GL_ALPHA_TEST);
-    glColor4f(0,0,0,0.7);
+    //glDisable(GL_TEXTURE_2D);
+    glColor4f(0,0,0,0.5);
     glDisableClientState(GL_COLOR_ARRAY);
     glTexCoordPointer(2, GL_FLOAT, 0, shadowtex);
     glVertexPointer(2, GL_FLOAT, 0, shadowvert);
@@ -1014,9 +1162,12 @@ struct zzz : public df::viewscreen_dwarfmodest
                         int xx = *df::global::window_x + x-1;
                         int yy = *df::global::window_y + y-1;
                         int zz = zz0 - p+1;
+                        if (xx < 0 || yy < 0)
+                            continue;
 
                         //TODO: check for z=0
                         bool e0,h,h0;
+                        //*out2 << xx << " " << world->map.x_count << " " << yy << " " << world->map.y_count << " " << *df::global::window_x << " " << *df::global::window_y << std::endl;
                         df::map_block *block0 = world->map.block_index[xx >> 4][yy >> 4][zz0];
                         h0 = block0 && block0->designation[xx&15][yy&15].bits.hidden;
                         if (h0)
@@ -1064,104 +1215,47 @@ struct zzz : public df::viewscreen_dwarfmodest
                             if (xx>0)
                             {
                                 CHECK(-1,0)
-                                if (k)  
-                                {
-                                    /*GLfloat *tex = shadowtex+elemcnt*2;
-                                    memcpy(shadowvert+elemcnt*2, vertices+tile*6*2, 6*2*sizeof(GLfloat));
-                                    gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
-                                    SETTEX(0x70);
-                                    elemcnt+=6;*/
-                                    kk |= k<<0;
-                                }
+                                kk |= k<<0;
                             }
                             if (yy < world->map.y_count-1)
                             {
                                 CHECK(0,1)
-                                if (k)
-                                {
-                                    /*GLfloat *tex = shadowtex+elemcnt*2;
-                                    memcpy(shadowvert+elemcnt*2, vertices+tile*6*2, 6*2*sizeof(GLfloat));
-                                    gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
-                                    SETTEX(0x71);
-                                    elemcnt+=6;*/
-                                    kk |= k<<1;
-                                }
+                                kk |= k<<1;
                             }
                             if (yy > 0)
                             {
                                 CHECK(0,-1)
-                                if (k)
-                                {
-                                    /*GLfloat *tex = shadowtex+elemcnt*2;
-                                    memcpy(shadowvert+elemcnt*2, vertices+tile*6*2, 6*2*sizeof(GLfloat));
-                                    gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
-                                    SETTEX(0x72);
-                                    elemcnt+=6;*/
-                                    kk |= k<<2;
-                                }
+                                kk |= k<<2;
                             }
                             if (xx < world->map.x_count-1)
                             {
                                 CHECK(1,0)
-                                if (k)
-                                {
-                                    /*GLfloat *tex = shadowtex+elemcnt*2;
-                                    memcpy(shadowvert+elemcnt*2, vertices+tile*6*2, 6*2*sizeof(GLfloat));
-                                    gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
-                                    SETTEX(0x73);
-                                    elemcnt+=6;*/
-                                    kk |= k<<3;
-                                }
+                                kk |= k<<3;
                             }
-                            shadows[tile] = kk;
-                            /*if (!(kk & (1<<1)) && !(kk & (1<<3)))
+                            if (xx < world->map.x_count-1 && yy < world->map.y_count-1 && !(kk & (1<<1)) && !(kk & (1<<3)))
                             {
                                 CHECK(1,1)
-                                if (k)
-                                {
-                                    GLfloat *tex = shadowtex+elemcnt*2;
-                                    memcpy(shadowvert+elemcnt*2, vertices+tile*6*2, 6*2*sizeof(GLfloat));
-                                    gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
-                                    SETTEX(0x74);
-                                    elemcnt+=6;
-                                }
+                                kk |= k << 4;
                             }
-                            if (!(kk & (1<<0)) && !(kk & (1<<1)))
+
+                            if (xx > 0 && yy < world->map.y_count-1 && !(kk & (1<<0)) && !(kk & (1<<1)))
                             {
                                 CHECK(-1,1)
-                                if (k)
-                                {
-                                    GLfloat *tex = shadowtex+elemcnt*2;
-                                    memcpy(shadowvert+elemcnt*2, vertices+tile*6*2, 6*2*sizeof(GLfloat));
-                                    gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
-                                    SETTEX(0x75);
-                                    elemcnt+=6;
-                                }
+                                kk |= k<<5;
                             }
-                            if (!(kk & (1<<0)) && !(kk & (1<<2)))
+                            if (xx > 0 && yy > 0 && !(kk & (1<<0)) && !(kk & (1<<2)))
                             {
                                 CHECK(-1,-1)
-                                if (k)
-                                {
-                                    GLfloat *tex = shadowtex+elemcnt*2;
-                                    memcpy(shadowvert+elemcnt*2, vertices+tile*6*2, 6*2*sizeof(GLfloat));
-                                    gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
-                                    SETTEX(0x76);
-                                    elemcnt+=6;
-                                }
+                                kk |= k<<6;
                             }
-                            if (!(kk & (1<<2)) && !(kk & (1<<3)))
+                            if (xx < world->map.x_count-1 && yy > 0 && !(kk & (1<<2)) && !(kk & (1<<3)))
                             {
                                 CHECK(1,-1)
-                                if (k)
-                                {
-                                    GLfloat *tex = shadowtex+elemcnt*2;
-                                    memcpy(shadowvert+elemcnt*2, vertices+tile*6*2, 6*2*sizeof(GLfloat));
-                                    gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
-                                    SETTEX(0x77);
-                                    elemcnt+=6;
-                                }
-                            }*/
+                                kk |= k<<7;
+                            }
+
+                            shadows[tile] = kk;
+
                         } while(0);
                         sctop[tile*4+3] = (0x10*(p)) | (sctop[tile*4+3]&0x0f);
                     }

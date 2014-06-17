@@ -1,7 +1,7 @@
 DF=/Users/vit/Desktop/Macnewbie/Dwarf\ Fortress
 
 INC=-I/Users/vit/Downloads/dfhack/library/include -I/Users/vit/Downloads/dfhack/library/proto -I/Users/vit/Downloads/dfhack/depends/protobuf -I/Users/vit/Downloads/dfhack/depends/lua/include
-LIB=-L$(DF)/hack -ldfhack
+LIB=-L$(DF)/hack -ldfhack -framework OpenGL -g
 
 all: twbt.plug.so
 
