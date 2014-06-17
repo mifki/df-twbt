@@ -598,11 +598,11 @@ for (int tile = 0; tile < gps->dimx*gps->dimy; tile++)
         int y = tile % gps->dimy;
         GLfloat *tex = shadowtex+elemcnt*2;
         float *vertex = shadowvert+elemcnt*2;
-        float w = 0.5+std::max<float>(0, (x - (float)(gps->dimx-32) / 2) / ((gps->dimx - 32) / 2)) * 3;
-        float w2 = 0.5+std::max<float>(0, ((float)(gps->dimx-32) / 2 - x) / ((gps->dimx - 32) / 2)) * 3;
-        float h = 0.5+std::max<float>(0, (y - (float)(gps->dimy) / 2) / ((gps->dimy) / 2)) * 3;
-        float h2 = 0.5+std::max<float>(0, ((float)(gps->dimy) / 2 - y) / ((gps->dimy) / 2)) * 3;
-        //w=w2=h=h2=3;
+        float w = 1+std::max<float>(0, (x - (float)(gps->dimx-32) / 2) / ((gps->dimx - 32) / 2));
+        float w2 = 1+std::max<float>(0, ((float)(gps->dimx-32) / 2 - x) / ((gps->dimx - 32) / 2));
+        float h = 1+std::max<float>(0, (y - (float)(gps->dimy) / 2) / ((gps->dimy) / 2));
+        float h2 = 1+std::max<float>(0, ((float)(gps->dimy) / 2 - y) / ((gps->dimy) / 2));
+        //w=w2=h=h2=1;
         if (kk & (1 << 0))
         {
             ADDTILEVERT(x,y,w,1)
