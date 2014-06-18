@@ -399,7 +399,7 @@ void write_tile_arrays(df::renderer *r, int x, int y, GLfloat *fg, GLfloat *bg, 
     struct texture_fullid ret;
     screen_to_texid2(r, x, y, ret);
     const int tile = x * gps->dimy + y;
-    float a = 1 + (float)((r->screen[tile*4+3]&0xf0)>>4)*0.2;
+    float a = 1;// + (float)((r->screen[tile*4+3]&0xf0)>>4)*0.2;
     for (int i = 0; i < 6; i++) {
         *(fg++) = ret.r/a;
         *(fg++) = ret.g/a;
@@ -510,7 +510,7 @@ void write_tile_arrays(df::renderer *r, int x, int y, GLfloat *fg, GLfloat *bg, 
 
 }
 
-
+float fogcoord[100*100*6];
 void renderer_cool::update_tile(int x, int y)
 {
     if (!enabled || !texloaded)
@@ -527,6 +527,19 @@ void renderer_cool::update_tile(int x, int y)
     GLfloat *_tex = tex + tile * 2 * 6;
 
     write_tile_arrays(this, x, y, _fg, _bg, _tex);
+
+    //const int tile = x * gps->dimy + y;
+    float d = (float)((screen[tile*4+3]&0xf0)>>4);
+    fogcoord[tile*6+0] = d;
+    fogcoord[tile*6+1] = d;
+    fogcoord[tile*6+2] = d;
+    fogcoord[tile*6+3] = d;
+    fogcoord[tile*6+4] = d;
+    fogcoord[tile*6+5] = d;
+
+
+
+
 }
 
 #define ADDTILEVERT(x,y,w,h) \
@@ -566,6 +579,21 @@ void renderer_cool::draw(int vertex_count)
         texloaded = true;
         gps->force_full_display_count = true;
     }
+float FogCol[3]={0.8f,0.8,0.8};
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0, gps->dimx, gps->dimy, 0, -1, 10);
+    glEnable(GL_FOG);
+    glFogfv(GL_FOG_COLOR,FogCol);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+//glTranslated(0,0,-1);
+ glFogf(GL_FOG_DENSITY,0.1f);
+ glFogi(GL_FOG_COORD_SRC, GL_FOG_COORD);
+
+ glFogCoordPointer(GL_FLOAT, 0, fogcoord);
+ glEnableClientState(GL_FOG_COORD_ARRAY);
 
     glVertexPointer(2, GL_FLOAT, 0, vertexes);
     // Render the background colors
@@ -606,6 +634,19 @@ for (int tile = 0; tile < gps->dimx*gps->dimy; tile++)
         if (kk & (1 << 0))
         {
             ADDTILEVERT(x,y,w,1)
+
+            /*vertex[0]  = x; //ul
+    vertex[1]  = y; 
+    vertex[2]  = x+w; //ur
+    vertex[3]  = y+h/4; 
+    vertex[4]  = x; //ll
+    vertex[5]  = y+1; 
+    vertex[6]  = x; //ll
+    vertex[7]  = y+1; 
+    vertex[8]  = x+w; //ur
+    vertex[9]  = y+h/4; 
+    vertex[10] = x+w; //lr
+    vertex[11] = y+1+h/4;*/
 
             gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
             SETTEX(0x70);
@@ -764,11 +805,11 @@ for (int tile = 0; tile < gps->dimx*gps->dimy; tile++)
             SETTEX(0x77);
             elemcnt+=6;
             vertex+=6*2;            
-        }                  
+        }
     } 
 }
 
-
+    glDisable(GL_FOG);
     glDisable(GL_ALPHA_TEST);
     //glDisable(GL_TEXTURE_2D);
     glColor4f(0,0,0,0.5);
