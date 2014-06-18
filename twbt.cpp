@@ -266,9 +266,9 @@ bool is_text_tile(int x, int y, bool &is_map)
 }
 
 float addcolors[][3] = { {1,0,0} };
-unsigned char shadows[100*100];
-GLfloat shadowtex[100*100*2*6];
-GLfloat shadowvert[100*100*2*6];
+unsigned char shadows[200*200];
+GLfloat shadowtex[200*200*2*6];
+GLfloat shadowvert[200*200*2*6];
 
 
 void screen_to_texid2(df::renderer *r, int x, int y, struct texture_fullid &ret) {
@@ -330,7 +330,7 @@ else
   ret.bg = enabler->ccolor[bg][1];
   ret.bb = enabler->ccolor[bg][2];
 }
-unsigned char depth[100*100*4];
+unsigned char depth[200*200*4];
 void write_tile_arrays(df::renderer *r, int x, int y, GLfloat *fg, GLfloat *bg, GLfloat *tex)
 {
     struct texture_fullid ret;
@@ -443,7 +443,7 @@ void write_tile_arrays(df::renderer *r, int x, int y, GLfloat *fg, GLfloat *bg, 
     *(tex++) = txt[ret.texpos].top;
 }
 
-float fogcoord[100*100*6];
+float fogcoord[200*200*6];
 #include "renderer.hpp"
 
 
@@ -489,12 +489,12 @@ void unhook()
     gps->force_full_display_count = true;
 }
 
-unsigned char screen2[100*100*4];
-    int32_t screentexpos2[100*100];
-    int8_t screentexpos_addcolor2[100*100];
-    uint8_t screentexpos_grayscale2[100*100];
-    uint8_t screentexpos_cf2[100*100];
-    uint8_t screentexpos_cbr2[100*100];
+unsigned char screen2[200*200*4];
+    int32_t screentexpos2[200*200];
+    int8_t screentexpos_addcolor2[200*200];
+    uint8_t screentexpos_grayscale2[200*200];
+    uint8_t screentexpos_cf2[200*200];
+    uint8_t screentexpos_cbr2[200*200];
 
 #define CHECK(dx,dy) \
 {\
@@ -531,6 +531,8 @@ struct zzz : public df::viewscreen_dwarfmodest
         gps->screentexpos_cf = screentexpos_cf2;
         gps->screentexpos_cbr = screentexpos_cbr2;
 
+        //this->*this->interpose_render.get_first_interpose(&df::viewscreen_dwarfmodest::_identity).saved_chain;
+
         bool empty_tiles_left;
         int p = 1;
         int x0 = 1;
@@ -553,11 +555,14 @@ struct zzz : public df::viewscreen_dwarfmodest
 
             empty_tiles_left = false;
             int x00 = x0;
+            int zz = zz0 - p + 1;
+
             //*out2 << p << " " << x0 << std::endl;
             
-            GLfloat *vertices = (GLfloat*)*(GLfloat**)((char*)enabler->renderer+0x40);
-            int x1 = gps->dimx-32;//std::min(gps->dimx-32, world->map.x_count);
-            int y1 = gps->dimy-1;//std::min(gps->dimy-1, world->map.y_count);
+            GLfloat *vertices = ((renderer_opengl*)enabler->renderer)->vertexes;
+            //TODO: test this
+            int x1 = std::min(gps->dimx-32, world->map.x_count-*df::global::window_x+1);
+            int y1 = std::min(gps->dimy-1, world->map.y_count-*df::global::window_y+1);
             for (int x = x0; x < x1; x++)
             {
                 for (int y = 1; y < y1; y++)
@@ -574,7 +579,6 @@ struct zzz : public df::viewscreen_dwarfmodest
 
                     int xx = *df::global::window_x + x-1;
                     int yy = *df::global::window_y + y-1;
-                    int zz = zz0 - p+1;
                     if (xx < 0 || yy < 0)
                         continue;
 
