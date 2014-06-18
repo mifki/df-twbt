@@ -8,5 +8,5 @@ all: twbt.plug.so
 inst: twbt.plug.so
 	cp twbt.plug.so $(DF)/hack/plugins
 
-twbt.plug.so: twbt.cpp
+twbt.plug.so: twbt.cpp config.hpp renderer.hpp
 	g++ twbt.cpp -o twbt.plug.so -m32 -shared -std=gnu++11 -stdlib=libstdc++ $(INC) $(LIB) -DDFHACK_VERSION=\"0.34.11-r3\" -Wno-ignored-attributes -Wno-tautological-compare
