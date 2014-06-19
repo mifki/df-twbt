@@ -155,6 +155,8 @@ bool is_text_tile(int x, int y, bool &is_map)
 
     if (IS_SCREEN(viewscreen_dwarfmodest))
     {
+        //*out2 << ((long**)ws)[0][2] << std::endl;
+        //*out2 << (long)enabler->renderer->screen << std::endl;
         uint8_t menu_width, area_map_width;
         Gui::getMenuWidth(menu_width, area_map_width);
         int32_t menu_left = w - 1, menu_right = w - 1;
@@ -533,6 +535,8 @@ struct zzz : public df::viewscreen_dwarfmodest
 
         //this->*this->interpose_render.get_first_interpose(&df::viewscreen_dwarfmodest::_identity).saved_chain;
 
+        void (*render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
+
         bool empty_tiles_left;
         int p = 1;
         int x0 = 1;
@@ -548,7 +552,8 @@ struct zzz : public df::viewscreen_dwarfmodest
             (*df::global::window_x) += x0-1;
             init->display.grid_x -= x0-1;
 
-            INTERPOSE_NEXT(render)();
+            //INTERPOSE_NEXT(render)();
+            render_map(df::global::cursor_unit_list, 1);
 
             (*df::global::window_x) -= x0-1;
             init->display.grid_x += x0-1;
