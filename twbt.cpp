@@ -700,6 +700,18 @@ IMPLEMENT_VMETHOD_INTERPOSE(zzz, render);
 
 #include "config.hpp"
 
+command_result mapshot (color_ostream &out, std::vector <std::string> & parameters)
+{
+    CoreSuspender suspend;
+
+    domapshot = 10;
+
+
+//    while(domapshot);
+
+    return CR_OK;    
+}
+
 DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCommand> &commands)
 {
     out2 = &out;
@@ -736,6 +748,13 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         hook();
 
     INTERPOSE_HOOK(zzz, render).apply(1);
+
+    commands.push_back(PluginCommand(
+        "mapshot", "Mapshot!",
+        mapshot, false, /* true means that the command can't be used from non-interactive user interface */
+        // Extended help string. Used by CR_WRONG_USAGE and the help command:
+        ""
+    ));        
 
     return CR_OK;
 }

@@ -1,3 +1,5 @@
+static volatile int domapshot = 0;
+
 // This is from g_src/renderer_opengl.hpp
 struct renderer_opengl : df::renderer
 {
@@ -90,6 +92,41 @@ void renderer_cool::draw(int vertex_count)
 
         texloaded = true;
         gps->force_full_display_count = true;
+    }
+
+    if (domapshot)
+    {
+        if (domapshot == 10)
+        {
+            grid_resize(world->map.x_count+36, world->map.y_count+2);
+            *df::global::window_x = 0;
+            *df::global::window_y = 0;
+            gps->force_full_display_count = 1;
+        }
+        domapshot--;
+    }
+
+GLuint framebuffer, renderbuffer;
+GLenum status;
+    if (domapshot==5)
+    {
+// Set the width and height appropriately for your image
+        GLuint imageWidth = gps->dimx*16,
+               imageHeight = gps->dimy*16;
+        //Set up a FBO with one renderbuffer attachment
+        glGenFramebuffersEXT(1, &framebuffer);
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer);
+        glGenRenderbuffersEXT(1, &renderbuffer);
+        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, renderbuffer);
+        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA8, imageWidth, imageHeight);
+        glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,
+                 GL_RENDERBUFFER_EXT, renderbuffer);        
+        glViewport(0,0,gps->dimx*16,gps->dimy*16);
+
+        /*glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+
+        glOrtho(0,gps->dimx,gps->dimy,0,-1,1);*/
     }
 
     float FogCol[3]={0.1f,0.1f,0.3f};
@@ -205,4 +242,26 @@ void renderer_cool::draw(int vertex_count)
     glVertexPointer(2, GL_FLOAT, 0, shadowvert);
     glDrawArrays(GL_TRIANGLES, 0, elemcnt);
     glEnableClientState(GL_COLOR_ARRAY);    
+
+
+    if (domapshot==1)
+    {
+        int w = gps->dimx*16;
+        int h = gps->dimy*16;
+
+        unsigned char *data = (unsigned char*) malloc(w*h*3);
+        
+        //glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glReadPixels(0,0,w,h,GL_RGB,GL_UNSIGNED_BYTE,data);
+*out2 << w << " "<<h<<std::endl;
+        std::ofstream img("img.data");
+        img.write((const char*)data, w*h*3);
+
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+// Delete the renderbuffer attachment
+glDeleteRenderbuffersEXT(1, &renderbuffer);
+
+
+        domapshot = 0;        
+    }
 }
