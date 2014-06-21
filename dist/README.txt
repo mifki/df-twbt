@@ -1,0 +1,9 @@
+Text Will Be Text
+
+I wrote this small plugin for myself because I was tired seeing coffins instead of zeroes and all that stuff. It allows to specify separate fonts for map tiles and for text. GRAPHICS_FONT/GRAPHICS_FULLFONT will continue to be used for map area(s), and FONT/FULLFONT will be used for everything else. Requires OpenGL PRINT_MODE (STANDARD, VBO and so on). Adventurer mode and possibly some other screens need some more work.
+
+Also it allows to override tile numbers for buildings and items, see overrides.txt for details.
+
+- Vitaly Pronkin aka mifki <pronvit@me.com>
+http://code.mifki.com/df-twbt
+http://www.bay12forums.com/smf/index.php?topic=138754.0

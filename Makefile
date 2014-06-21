@@ -1,12 +1,36 @@
-DF=/Users/vit/Desktop/Macnewbie/Dwarf\ Fortress
+DFHACKVER = 0.34.11
+DFHACKREL = r3
 
-INC=-I/Users/vit/Downloads/dfhack/library/include -I/Users/vit/Downloads/dfhack/library/proto -I/Users/vit/Downloads/dfhack/depends/protobuf -I/Users/vit/Downloads/dfhack/depends/lua/include
-LIB=-L$(DF)/hack -ldfhack
+DF = /Users/vit/Desktop/Macnewbie/Dwarf\ Fortress
+DH = /Users/vit/Downloads/dfhack
 
-all: twbt.plug.so
+OUT = twbt.plug.so
+SRC = twbt.cpp
 
-inst: twbt.plug.so
-	cp twbt.plug.so $(DF)/hack/plugins
+INC = -I$(DH)/library/include -I$(DH)/library/proto -I$(DH)/depends/protobuf -I$(DH)/depends/lua/include
+LIB = -L$(DF)/hack -ldfhack
 
-twbt.plug.so: twbt.cpp
-	g++ twbt.cpp -o twbt.plug.so -m32 -shared -std=gnu++11 -stdlib=libstdc++ $(INC) $(LIB) -DDFHACK_VERSION=\"0.34.11-r3\" -Wno-ignored-attributes -Wno-tautological-compare
+CFLAGS = $(INC) -m32 -std=gnu++11 -stdlib=libstdc++ -Wno-ignored-attributes -Wno-tautological-compare 
+LDFLAGS = $(LIB) -shared
+
+
+all: $(OUT)
+
+inst: $(OUT)
+	cp $(OUT) $(DF)/hack/plugins/
+
+$(OUT): $(SRC)
+	g++ $(SRC) -o $(OUT) -DDFHACK_VERSION=\"$(DFHACKVER)-$(DFHACKREL)\" $(CFLAGS) $(LDFLAGS)
+
+clean:
+	-rm $(OUT)
+
+
+dist: clean $(SRC)
+	-mkdir dist/dfhack-r3 dist/dfhack-r4 dist/dfhack-r5
+	DFHACKREL=r3 $(MAKE) -e
+	mv $(OUT) dist/dfhack-r3/
+	DFHACKREL=r4 $(MAKE) -e
+	mv $(OUT) dist/dfhack-r4/
+	DFHACKREL=r5 $(MAKE) -e
+	mv $(OUT) dist/dfhack-r5/
