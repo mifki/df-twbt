@@ -179,7 +179,6 @@ GLenum status;
                 if (kk & (1 << 0))
                 {
                     memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-
                     SETTEX(0x70);
                     elemcnt+=6;
                 }
@@ -246,15 +245,50 @@ GLenum status;
 
     if (domapshot==1)
     {
-        int w = gps->dimx*16;
-        int h = gps->dimy*16;
+        int w = world->map.x_count*dispx;
+        int h = world->map.y_count*dispy;
 
         unsigned char *data = (unsigned char*) malloc(w*h*3);
         
         //glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glReadPixels(0,0,w,h,GL_RGB,GL_UNSIGNED_BYTE,data);
+        glReadPixels(dispx,dispy,w,h,GL_BGR,GL_UNSIGNED_BYTE,data);
+
+
+#pragma pack(push,1)
+typedef struct _TgaHeader
+{
+  unsigned char IDLength;        /* 00h  Size of Image ID field */
+  unsigned char ColorMapType;    /* 01h  Color map type */
+  unsigned char ImageType;       /* 02h  Image type code */
+  unsigned short CMapStart;       /* 03h  Color map origin */
+  unsigned short CMapLength;      /* 05h  Color map length */
+  unsigned char CMapDepth;       /* 07h  Depth of color map entries */
+  unsigned short XOffset;         /* 08h  X origin of image */
+  unsigned short YOffset;         /* 0Ah  Y origin of image */
+  unsigned short Width;           /* 0Ch  Width of image */
+  unsigned short Height;          /* 0Eh  Height of image */
+  unsigned char PixelDepth;      /* 10h  Image pixel size */
+  unsigned char ImageDescriptor; /* 11h  Image descriptor byte */
+} TGAHEAD;
+#pragma pop
+
+TGAHEAD hdr;
+memset(&hdr, 0, sizeof(hdr));
+hdr.ImageType = 2;
+hdr.Width = w;
+hdr.Height = h;
+hdr.PixelDepth = 24;
+
+
 *out2 << w << " "<<h<<std::endl;
-        std::ofstream img("img.data");
+        std::ofstream img("img.tga");
+        img.write((const char*)&hdr, sizeof(hdr));
+/*        for (int j = 0; j<w*h*3; j++)
+        {
+            unsigned char c = data[j+0];
+            data[0] = data[j+2];
+            data[j+2] = c;
+        }*/
         img.write((const char*)data, w*h*3);
 
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);

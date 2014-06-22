@@ -262,7 +262,7 @@ bool is_text_tile(int x, int y, bool &is_map)
         return true;
     }*/
 
-    //*out2 << Core::getInstance().p->readClassName(*(void**)ws) << std::endl;
+    //*out2 << Core::getInstance().p->readClassName(*(void**)ws) << " " << (int)ws->breakdown_level << std::endl;
 
     return true;
 }
@@ -500,9 +500,13 @@ unsigned char screen2[200*200*4];
 
 #define CHECK(dx,dy) \
 {\
+    const int tile = (x+dx) * gps->dimy + (y+dy); \
+    {\
     df::map_block *block = world->map.block_index[(xx+dx) >> 4][(yy+dy) >> 4][zz]; \
-    if (block) \
-        k = block->tiletype[(xx+dx)&15][(yy+dy)&15] != df::tiletype::OpenSpace;\
+    if (block) {\
+        df::tiletype tt = block->tiletype[(xx+dx)&15][(yy+dy)&15];\
+        k = tt != df::tiletype::OpenSpace && tt != df::tiletype::RampTop;\
+    }}\
 }
 
 struct zzz : public df::viewscreen_dwarfmodest
@@ -552,8 +556,8 @@ struct zzz : public df::viewscreen_dwarfmodest
             (*df::global::window_x) += x0-1;
             init->display.grid_x -= x0-1;
 
-            //INTERPOSE_NEXT(render)();
-            render_map(df::global::cursor_unit_list, 1);
+            INTERPOSE_NEXT(render)();
+            //render_map(df::global::cursor_unit_list, 1);
 
             (*df::global::window_x) -= x0-1;
             init->display.grid_x += x0-1;
@@ -579,7 +583,7 @@ struct zzz : public df::viewscreen_dwarfmodest
                         continue;
 
                     unsigned char ch = sctop[tile*4+0];
-                    if (ch != 249 && ch != 250 && ch != 254 && ch != 32 && ch != 0 && !(ch >= '1' && ch <= '7'))
+                    if (ch != 31 && ch != 249 && ch != 250 && ch != 254 && ch != 32 && ch != 0 && !(ch >= '1' && ch <= '7'))
                         continue;
 
                     int xx = *df::global::window_x + x-1;
@@ -594,12 +598,12 @@ struct zzz : public df::viewscreen_dwarfmodest
                     h0 = block0 && block0->designation[xx&15][yy&15].bits.hidden;
                     if (h0)
                         continue;
-                    e0 = !block0 || block0->tiletype[xx&15][yy&15] == df::tiletype::OpenSpace;
+                    e0 = !block0 || (block0->tiletype[xx&15][yy&15] == df::tiletype::OpenSpace || block0->tiletype[xx&15][yy&15] == df::tiletype::RampTop);
                     if (!(e0))
                         continue;
 
                     ch = screen2[tile2*4+0];
-                    if (!(ch != 249 && ch != 250 && ch != 254 && ch != 32 && ch != 0 && !(ch >= '1' && ch <= '7')))
+                    if (!(ch!=31&&ch != 249 && ch != 250 && ch != 254 && ch != 32 && ch != 0 && !(ch >= '1' && ch <= '7')))
                     {
                         df::map_block *block1 = world->map.block_index[xx >> 4][yy >> 4][zz-1];
                         if (!block1)
@@ -611,7 +615,7 @@ struct zzz : public df::viewscreen_dwarfmodest
 
                         //TODO: check for hidden also
                         df::tiletype t1 = block1->tiletype[xx&15][yy&15];
-                        if (t1 == df::tiletype::OpenSpace)
+                        if (t1 == df::tiletype::OpenSpace || t1 == df::tiletype::RampTop)
                         {
                             empty_tiles_left = true;
                             continue;
@@ -678,8 +682,7 @@ struct zzz : public df::viewscreen_dwarfmodest
                         shadows[tile] = kk;
 
                     } while(0);
-
-                    sctop[tile*4+3] = (0x10*(p)) | (sctop[tile*4+3]&0x0f);
+                    sctop[tile*4+3] = (0x10*p) | (sctop[tile*4+3]&0x0f);
                 }
                 if (!empty_tiles_left)
                     x0 = x + 1;
