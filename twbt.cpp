@@ -34,6 +34,7 @@
 #include "df/item.h"
 #include "df/item_type.h"
 #include "df/items_other_id.h"
+#include "df/tiletype.h"
 #include "df/viewscreen_dwarfmodest.h"
 #include "df/viewscreen_setupadventurest.h"
 #include "df/viewscreen_dungeonmodest.h"
@@ -181,6 +182,7 @@ struct tileref {
 
 struct override {
     bool building;
+    bool tiletype;
     int id, type, subtype;
     struct tileref newtile;
 };
@@ -410,53 +412,65 @@ void write_tile_arrays(df::renderer *r, int x, int y, GLfloat *fg, GLfloat *bg, 
             int zz = *df::global::window_z;
             bool matched = false;
 
-            // Items
-            for (int j = 0; j < overrides[s0]->size(); j++)
+            // No block - no items/buildings/tiletype
+            df::map_block *block = Maps::getTileBlock(xx, yy, zz);
+            if (block)
             {
-                struct override &o = (*overrides[s0])[j];
+                int tiletype = block->tiletype[xx&15][yy&15];
 
-                if (o.building)
+                for (int j = 0; j < overrides[s0]->size(); j++)
                 {
-                    auto ilist = world->buildings.other[o.id];
-                    for (auto it = ilist.begin(); it != ilist.end(); it++)
+                    struct override &o = (*overrides[s0])[j];
+
+                    if (o.tiletype)
                     {
-                        df::building *bld = *it;
-
-                        if (zz != bld->z || xx < bld->x1 || xx > bld->x2 || yy < bld->y1 || yy > bld->y2)
-                            continue;
-                        if (o.type != -1 && bld->getType() != o.type)
-                            continue;
-                        if (o.subtype != -1 && bld->getSubtype() != o.subtype)
-                            continue;
-
-                        ret.texpos = enabler->fullscreen ?
-                            tilesets[o.newtile.tilesetidx].large_texpos[o.newtile.tile] :
-                            tilesets[o.newtile.tilesetidx].small_texpos[o.newtile.tile];
-
-                        matched = true;
-                        break;
+                        if (tiletype == o.type)
+                            matched = true;
                     }
-                }
-                else
-                {
-                    auto ilist = world->items.other[o.id];
-                    for (auto it = ilist.begin(); it != ilist.end(); it++)
+                    else if (o.building)
                     {
-                        df::item *item = *it;
-                        if (!(zz == item->pos.z && xx == item->pos.x && yy == item->pos.y))
-                            continue;
-                        if (item->flags.whole & bad_item_flags.whole)
-                            continue;
-                        if (o.type != -1 && item->getType() != o.type)
-                            continue;
-                        if (o.subtype != -1 && item->getSubtype() != o.subtype)
-                            continue;
+                        auto ilist = world->buildings.other[o.id];
+                        for (auto it = ilist.begin(); it != ilist.end(); it++)
+                        {
+                            df::building *bld = *it;
 
+                            if (zz != bld->z || xx < bld->x1 || xx > bld->x2 || yy < bld->y1 || yy > bld->y2)
+                                continue;
+                            if (o.type != -1 && bld->getType() != o.type)
+                                continue;
+                            if (o.subtype != -1 && bld->getSubtype() != o.subtype)
+                                continue;
+
+                            matched = true;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        auto ilist = world->items.other[o.id];
+                        for (auto it = ilist.begin(); it != ilist.end(); it++)
+                        {
+                            df::item *item = *it;
+                            if (!(zz == item->pos.z && xx == item->pos.x && yy == item->pos.y))
+                                continue;
+                            if (item->flags.whole & bad_item_flags.whole)
+                                continue;
+                            if (o.type != -1 && item->getType() != o.type)
+                                continue;
+                            if (o.subtype != -1 && item->getSubtype() != o.subtype)
+                                continue;
+
+                            matched = true;
+                            break;                            
+                        }
+                    }
+
+                    if (matched)
+                    {
                         ret.texpos = enabler->fullscreen ?
                             tilesets[o.newtile.tilesetidx].large_texpos[o.newtile.tile] :
                             tilesets[o.newtile.tilesetidx].small_texpos[o.newtile.tile];
 
-                        matched = true;
                         break;
                     }
                 }
@@ -708,11 +722,34 @@ bool load_overrides()
             
             if (tokens[0] == "OVERRIDE")
             {
-                if (tokens.size() == 8)
+                if (tokens.size() == 6)
+                {
+                    int tile = atoi(tokens[1].c_str());
+                    if (tokens[2] != "T")
+                        continue;
+
+                    struct override o;
+                    o.tiletype = true;
+
+                    tiletype::tiletype type;
+                    if (find_enum_item(&type, tokens[3]))
+                        o.type = type;
+                    else
+                        continue;
+
+                    o.newtile.tilesetidx = atoi(tokens[4].c_str());
+                    o.newtile.tile = atoi(tokens[5].c_str());
+
+                    if (!overrides[tile])
+                        overrides[tile] = new vector< struct override >;
+                    overrides[tile]->push_back(o);
+                }
+                else if (tokens.size() == 8)
                 {
                     int tile = atoi(tokens[1].c_str());
 
                     struct override o;
+                    o.tiletype = false;
                     o.building = (tokens[2] == "B");
                     if (o.building)
                     {
