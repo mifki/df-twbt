@@ -1,46 +1,31 @@
-## Text Will Be Text
+## Text Will Be Text ##
 
-I wrote this small plugin for myself because I was tired seeing coffins instead of zeroes and all that stuff. It allows to specify separate fonts for map tiles and for text. GRAPHICS_FONT/GRAPHICS_FULLFONT will continue to be used for map area(s), and FONT/FULLFONT will be used for everything else. Requires OpenGL PRINT_MODE (STANDARD, VBO and so on). Adventurer mode and possibly some other screens need some more work. Non-fullscreen dfhack overlays turn entire screen to ASCII, sorry. Just press eg. ESC twice to restore.
+This is a plugin for [Dwarf Fortress](http://bay12games.com) / [DFHack](http://github.com/dfhack/dfhack) that improves various aspects of rendering.
 
-Also it allows to override tile numbers for buildings and items, see overrides.txt for details.
+I wrote this small plugin because I was tired seeing coffins instead of zeroes and all that stuff. It allows to specify separate fonts for map tiles and for text. GRAPHICS_FONT / GRAPHICS_FULLFONT will continue to be used for map area(s), and FONT / FULLFONT will be used for everything else. Requires OpenGL PRINT_MODE (STANDARD, VBO and so on). Adventurer mode and possibly some other screens need some more work. Non-fullscreen dfhack overlays turn entire screen to ASCII, sorry. Just press eg. ESC twice to restore.
 
-?Also
+### Overrides ###
 
-Also it divides trade screen evenly on wide resolutions to see full item names.
+Allows to override tile numbers for buildings and items, see overrides.txt for details.
 
-- Vitaly Pronkin aka mifki <pronvit@me.com>
+### Multi-Level Rendering ###
 
-## Version History
+`multilevel` command, 10 levels fixed depth for now.
 
-**3.00**
+### Additional Colours ###
 
-* ?colors
-* ?hauling
-* ?macro
-* ?designations
-* ?cursor tile
-* fix for movie player screens
-* making trade screen divide evenly on wide resolutions (OS X only)
-* crash on plugin unload fixed
+Not yet.
 
-**2.01**
+### Mapshot! ###
 
-* binaries for dfhack-r4
+`mapshot` command saves an image of entire map in full size to mapshot.tga in DF folder.
 
-**2.00**
+### Other Improvements ###
 
-* overrides
+Trade screen divided equally on OS X.
 
-**1.21**
+### Authors and Links ###
 
-* show dwarves on the overall status (z) screen in graphics
+Vitaly Pronkin aka mifki <pronvit@me.com>
 
-**1.20**
-
-* fixes for various screens and modes
-* including slightly modified font from Shizzle tileset in case you don't * have nice ASCII font handy
-
-**1.00**
-
-* initial release
-
+[Home Page / Sources](https://github.com/mifki/df-twbt) -- [Latest Release](https://github.com/mifki/df-twbt/releases) -- [Discussion](http://www.bay12forums.com/smf/index.php?topic=138754.0) -- [Report an Issue](https://github.com/mifki/df-twbt/issues)

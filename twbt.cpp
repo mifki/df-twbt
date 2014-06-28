@@ -6,17 +6,26 @@
 //  Copyright (c) 2014 mifki. All rights reserved.
 //
 
+#include <sys/stat.h>
 #include <stdint.h>
 #include <iostream>
 #include <map>
 #include <vector>
 
-#ifdef WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#if defined(WIN32)
+    #define WIN32_LEAN_AND_MEAN
+    #define NOMINMAX
+    #include <windows.h>
+    #define GLEW_STATIC
+    #include "glew/glew.h"
+    #include "glew/wglew.h"
+#elif defined(__APPLE__)
+    #include <OpenGL/gl.h>
+#else
+    #define GL_GLEXT_PROTOTYPES
+    #include <GL/gl.h>
+    #include <GL/glext.h>
 #endif
-
-#include <OpenGL/gl.h>
 
 #include "Core.h"
 #include "Console.h"
@@ -87,8 +96,8 @@ __declspec(naked) void load_multi_pdim_x(void *tex, const string &filename, long
 
         push disp_y
         push disp_x
-        push 10h
-        push 10h
+        push dimy
+        push dimx
         mov ecx, tex_pos
         push tex
         mov edx, filename
@@ -271,7 +280,8 @@ float addcolors[][3] = { {1,0,0} };
 unsigned char shadows[200*200];
 GLfloat shadowtex[200*200*2*6];
 GLfloat shadowvert[200*200*2*6];
-
+long shadow_texpos[8];
+bool shadowsloaded;
 
 void screen_to_texid2(df::renderer *r, int x, int y, struct texture_fullid &ret) {
     const int tile = x * gps->dimy + y;
@@ -463,19 +473,42 @@ void hook()
     long **vtable_old = (long **)oldr;
     long **vtable_new = (long **)newr;
 
-    long draw_new = vtable_new[0][14];
+#ifdef WIN32
+    long draw_new = vtable_new[0][13];//14 on osx
+#else
+    long draw_new = vtable_new[0][14];//14 on osx
+#endif
     long update_tile_new = vtable_new[0][0];
 
-    memcpy(vtable_new[0], vtable_old[0], sizeof(void*)*16);
+    /*for (int i = 0; i < 20; i++)
+        *out2 << "$ " << i << " " << (long)vtable_old[0][i] << std::endl;
+    for (int i = 0; i < 24; i++)
+        *out2 << "$ " << i << " " << (long)vtable_new[0][i] << std::endl;*/
+
+#ifdef WIN32
+    HANDLE process = ::GetCurrentProcess();
+    DWORD protection = PAGE_READWRITE;
+    DWORD oldProtection;
+    if ( ::VirtualProtectEx( process, vtable_new[0], 18*sizeof(void*), protection, &oldProtection ) )
+    {
+        memcpy(vtable_new[0], vtable_old[0], sizeof(void*)*16);
+        vtable_new[0][13] = draw_new;
+        vtable_new[0][0] = update_tile_new;
+        vtable_new[0][16] = vtable_old[0][0];
+        VirtualProtectEx( process, vtable_new[0], 18*sizeof(void*), oldProtection, &oldProtection );
+    }
+#else
+    memcpy(vtable_new[0], vtable_old[0], sizeof(void*)*17);
     vtable_new[0][14] = draw_new;
     vtable_new[0][0] = update_tile_new;
     vtable_new[0][17] = vtable_old[0][0];
-
+#endif
+    
     memcpy(&newr->screen, &oldr->screen, (char*)&newr->dummy-(char*)&newr->screen);
     enabler->renderer = newr;
-    free(oldr);
+    //free(oldr);
 
-    *out2 << (char*)&newr->vertexes-(char*)newr << std::endl;
+    //*out2 << (char*)&newr->vertexes-(char*)newr << std::endl;
 
     enabled = true;   
 }
@@ -509,6 +542,11 @@ unsigned char screen2[200*200*4];
     }}\
 }
 
+static int _min(int a, int b)
+{
+    return (a < b) ? a : b;
+}
+
 struct zzz : public df::viewscreen_dwarfmodest
 {
     typedef df::viewscreen_dwarfmodest interpose_base;
@@ -517,11 +555,33 @@ struct zzz : public df::viewscreen_dwarfmodest
     {
         INTERPOSE_NEXT(render)();
 
-        render_more_layers();
+        if (shadowsloaded)
+            render_more_layers();
     }
 
     void render_more_layers()
     {
+        int32_t w = gps->dimx, h = gps->dimy;
+        uint8_t menu_width, area_map_width;
+        Gui::getMenuWidth(menu_width, area_map_width);
+        int32_t menu_left = w - 1;
+
+        bool menuforced = (ui->main.mode != df::ui_sidebar_mode::Default || df::global::cursor->x != -30000);
+
+        if ((menuforced || menu_width == 1) && area_map_width == 2) // Menu + area map
+        {
+            menu_left = w - 56;
+        }
+        else if (menu_width == 2 && area_map_width == 2) // Area map only
+        {
+            menu_left = w - 25;
+        }
+        else if (menu_width == 1) // Wide menu
+            menu_left = w - 56;
+        else if (menuforced || (menu_width == 2 && area_map_width == 3)) // Menu only
+            menu_left = w - 32; 
+
+
         uint8_t *sctop = enabler->renderer->screen;
         int32_t *screentexpostop = enabler->renderer->screentexpos;
         int8_t *screentexpos_addcolortop = enabler->renderer->screentexpos_addcolor;
@@ -570,8 +630,8 @@ struct zzz : public df::viewscreen_dwarfmodest
             
             GLfloat *vertices = ((renderer_opengl*)enabler->renderer)->vertexes;
             //TODO: test this
-            int x1 = std::min(gps->dimx-32, world->map.x_count-*df::global::window_x+1);
-            int y1 = std::min(gps->dimy-1, world->map.y_count-*df::global::window_y+1);
+            int x1 = _min(menu_left, world->map.x_count-*df::global::window_x+1);
+            int y1 = _min(h-1, world->map.y_count-*df::global::window_y+1);
             for (int x = x0; x < x1; x++)
             {
                 for (int y = 1; y < y1; y++)
@@ -704,6 +764,7 @@ struct zzz : public df::viewscreen_dwarfmodest
     }    
 };
 
+//TODO: Priority?
 IMPLEMENT_VMETHOD_INTERPOSE(zzz, render);
 
 #include "config.hpp"
@@ -714,14 +775,32 @@ command_result mapshot (color_ostream &out, std::vector <std::string> & paramete
 
     domapshot = 10;
 
-
-//    while(domapshot);
-
     return CR_OK;    
 }
 
 DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCommand> &commands)
 {
+    auto dflags = init->display.flag;
+    if (!dflags.is_set(init_display_flags::USE_GRAPHICS))
+    {
+        out.color(COLOR_RED);
+        out << "TWBT: GRAPHICS is not enabled in init.txt" << std::endl;
+        out.color(COLOR_RESET);
+        return CR_OK;
+    }
+    if (dflags.is_set(init_display_flags::RENDER_2D) ||
+        dflags.is_set(init_display_flags::ACCUM_BUFFER) ||
+        dflags.is_set(init_display_flags::FRAME_BUFFER) ||
+        dflags.is_set(init_display_flags::TEXT) ||
+        dflags.is_set(init_display_flags::VBO) ||
+        dflags.is_set(init_display_flags::PARTIAL_PRINT))
+    {
+        out.color(COLOR_RED);
+        out << "TWBT: PRINT_MODE must be set to STANDARD in init.txt" << std::endl;
+        out.color(COLOR_RESET);
+        return CR_OK;        
+    }
+
     out2 = &out;
     
 #ifdef WIN32
@@ -731,6 +810,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     load_multi_pdim = (void (*)(void *tex, const string &filename, long *tex_pos, long dimx,
         long dimy, bool convert_magenta, long *disp_x, long *disp_y)) 0x00cfbbb0;    
 #endif
+    //_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_
 
     bad_item_flags.whole = 0;
     bad_item_flags.bits.in_building = true;

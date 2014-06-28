@@ -72,6 +72,20 @@ void renderer_cool::update_tile(int x, int y)
 
 void renderer_cool::draw(int vertex_count)
 {
+#ifdef WIN32
+    static bool glew_init = false;
+    if (!glew_init)
+    {
+        glew_init = true;
+        GLenum err = glewInit();
+        if (GLEW_OK != err)
+        {
+          /* Problem: glewInit failed, something is seriously wrong. */
+          *out2 << glewGetErrorString(err);
+        }
+    }
+#endif
+
     if (!texloaded)
     {
         long dx, dy;
@@ -90,14 +104,34 @@ void renderer_cool::draw(int vertex_count)
                 memcpy(ts.large_texpos, ts.small_texpos, sizeof(ts.large_texpos));
         }
 
+        // Load shadows
+        struct stat buf;
+        if (stat("data/art/shadows.png", &buf) == 0)
+        {
+            load_multi_pdim_x(t, "data/art/shadows.png", shadow_texpos, 8, 1, false, &dx, &dy);        
+            shadowsloaded = true;
+        }
+        else
+        {
+            out2->color(COLOR_RED);
+            *out2 << "TWBT: shadows.png not found in data/art folder" << std::endl;
+            out2->color(COLOR_RESET);
+        }
+
         texloaded = true;
         gps->force_full_display_count = true;
     }
 
+    static int old_dimx, old_dimy, old_winx, old_winy;
     if (domapshot)
     {
         if (domapshot == 10)
         {
+            old_dimx = gps->dimx;
+            old_dimy = gps->dimy;
+            old_winx = *df::global::window_x;
+            old_winy = *df::global::window_y;
+
             grid_resize(world->map.x_count+36, world->map.y_count+2);
             *df::global::window_x = 0;
             *df::global::window_y = 0;
@@ -111,17 +145,17 @@ GLenum status;
     if (domapshot==5)
     {
 // Set the width and height appropriately for your image
-        GLuint imageWidth = gps->dimx*16,
-               imageHeight = gps->dimy*16;
+        GLuint imageWidth = gps->dimx*dispx,
+               imageHeight = gps->dimy*dispy;
         //Set up a FBO with one renderbuffer attachment
-        glGenFramebuffersEXT(1, &framebuffer);
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer);
-        glGenRenderbuffersEXT(1, &renderbuffer);
-        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, renderbuffer);
-        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA8, imageWidth, imageHeight);
-        glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,
-                 GL_RENDERBUFFER_EXT, renderbuffer);        
-        glViewport(0,0,gps->dimx*16,gps->dimy*16);
+        glGenFramebuffers(1, &framebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        glGenRenderbuffers(1, &renderbuffer);
+        glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, imageWidth, imageHeight);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                 GL_RENDERBUFFER, renderbuffer);        
+        glViewport(0,0,gps->dimx*dispx,gps->dimy*dispy);
 
         /*glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
@@ -133,7 +167,6 @@ GLenum status;
     //float FogCol[3]={0.8f,0.8f,0.8f};
     glEnable(GL_FOG);
     glFogfv(GL_FOG_COLOR,FogCol);
-
     glFogf(GL_FOG_DENSITY,0.15f);
     //glFogi(GL_FOG_MODE, GL_LINEAR);
     glFogf(GL_FOG_END, 20);
@@ -144,7 +177,7 @@ GLenum status;
 
     glVertexPointer(2, GL_FLOAT, 0, vertexes);
 
-    // Render background color
+    // Render background colors
     glDisable(GL_TEXTURE_2D);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     glDisable(GL_BLEND);
@@ -152,7 +185,7 @@ GLenum status;
     glDrawArrays(GL_TRIANGLES, 0, vertex_count);
 
     // Render foreground
-    glAlphaFunc(GL_NOTEQUAL, 0);
+    //glAlphaFunc(GL_NOTEQUAL, 0);
     glEnable(GL_TEXTURE_2D);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnable(GL_BLEND);
@@ -179,64 +212,67 @@ GLenum status;
                 if (kk & (1 << 0))
                 {
                     memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-                    SETTEX(0x70);
+                    SETTEX(shadow_texpos[0]);
                     elemcnt+=6;
                 }
                 if (kk & (1 << 1))
                 {
                     memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
 
-                    SETTEX(0x71);
+                    SETTEX(shadow_texpos[1]);
                     elemcnt+=6;
                 }
                 if (kk & (1 << 2))
                 {
                     memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
 
-                    SETTEX(0x72);
+                    SETTEX(shadow_texpos[2]);
                     elemcnt+=6;
                 }
                 if (kk & (1 << 3))
                 {
                     memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
 
-                    SETTEX(0x73);
+                    SETTEX(shadow_texpos[3]);
                     elemcnt+=6;
                 }        
                 if (kk & (1 << 4))
                 {
                     memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
 
-                    SETTEX(0x74);
+                    SETTEX(shadow_texpos[4]);
                     elemcnt+=6;
                 }               
                 if (kk & (1 << 5))
                 {
                     memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
 
-                    SETTEX(0x75);
+                    SETTEX(shadow_texpos[5]);
                     elemcnt+=6;
                 }            
                 if (kk & (1 << 6))
                 {
                     memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
 
-                    SETTEX(0x76);
+                    SETTEX(shadow_texpos[6]);
                     elemcnt+=6;
                 }        
                 if (kk & (1 << 7))
                 {
                     memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
 
-                    SETTEX(0x77);
+                    SETTEX(shadow_texpos[7]);
                     elemcnt+=6;
                 }
             } 
         }
     }
 
-    glColor4f(0, 0, 0.0, 0.4);
     glDisableClientState(GL_COLOR_ARRAY);
+    glColor4f(0, 0, 0, 0.4f);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
     glTexCoordPointer(2, GL_FLOAT, 0, shadowtex);
     glVertexPointer(2, GL_FLOAT, 0, shadowvert);
     glDrawArrays(GL_TRIANGLES, 0, elemcnt);
@@ -250,7 +286,8 @@ GLenum status;
 
         unsigned char *data = (unsigned char*) malloc(w*h*3);
         
-        //glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glPixelStorei(GL_PACK_ROW_LENGTH, 0);
         glReadPixels(dispx,dispy,w,h,GL_BGR,GL_UNSIGNED_BYTE,data);
 
 
@@ -281,7 +318,7 @@ hdr.PixelDepth = 24;
 
 
 *out2 << w << " "<<h<<std::endl;
-        std::ofstream img("img.tga");
+        std::ofstream img("mapshot.tga");
         img.write((const char*)&hdr, sizeof(hdr));
 /*        for (int j = 0; j<w*h*3; j++)
         {
@@ -291,11 +328,14 @@ hdr.PixelDepth = 24;
         }*/
         img.write((const char*)data, w*h*3);
 
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 // Delete the renderbuffer attachment
-glDeleteRenderbuffersEXT(1, &renderbuffer);
+glDeleteRenderbuffers(1, &renderbuffer);
 
-
+        grid_resize(old_dimx, old_dimy);
+        *df::global::window_x = old_winx;
+        *df::global::window_y = old_winy;
+        gps->force_full_display_count = 1;
         domapshot = 0;        
     }
 }
