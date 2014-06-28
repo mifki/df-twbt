@@ -47,6 +47,9 @@
 #include "df/viewscreen_petst.h"
 #include "df/viewscreen_movieplayerst.h"
 #include "df/ui_sidebar_mode.h"
+#include "df/init.h"
+#include "df/init_display.h"
+#include "df/init_display_flags.h"
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -205,11 +208,8 @@ bool is_text_tile(int x, int y, bool &is_map)
 
     is_map = false;
 
-    if (!has_textfont)
-        return false;    
-
     if (!x || !y || x == w - 1 || y == h - 1)
-       return true;
+       return has_textfont;
 
 #define IS_SCREEN(_sc) df::_sc::_identity.is_direct_instance(ws) 
 
@@ -241,17 +241,20 @@ bool is_text_tile(int x, int y, bool &is_map)
             {
                 // Make burrow symbols use graphics font
                 if ((y != 12 && y != 13 && !(x == menu_left + 2 && y == 2)) || x == menu_left || x == menu_right) 
-                    return true;
+                    return has_textfont;
             }
             else
-                return true;
+                return has_textfont;
         }
 
         is_map = (x > 0 && x < menu_left);
 
         return false;
     }
-    
+
+    if (!has_textfont)
+        return false;    
+
     if (IS_SCREEN(viewscreen_setupadventurest))
     {
         df::viewscreen_setupadventurest *s = static_cast<df::viewscreen_setupadventurest*>(ws);
@@ -601,6 +604,8 @@ void unhook()
     if (!enabled)
         return;
 
+    enabled = false;
+
     df::renderer* renderer = enabler->renderer;
     long **rVtable = (long **)enabler->renderer;
 
@@ -618,7 +623,6 @@ void unhook()
     }
 #endif
 
-    enabled = false;
     gps->force_full_display_count = true;
 }
 
@@ -809,7 +813,7 @@ bool load_overrides()
     return found;
 }
 
-#ifndef WIN32
+#ifdef __APPLE__
 //0x0079cb2a+4 0x14 - item name length
 //0x0079cb18+3 0x14 - item name length
 
@@ -913,6 +917,26 @@ IMPLEMENT_VMETHOD_INTERPOSE(traderesize_hook, render);
 
 DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCommand> &commands)
 {
+    auto dflags = init->display.flag;
+    if (!dflags.is_set(init_display_flags::USE_GRAPHICS))
+    {
+        out.color(COLOR_RED);
+        out << "TWBT: GRAPHICS is not enabled in init.txt" << std::endl;
+        out.color(COLOR_RESET);
+        return CR_OK;
+    }
+    if (dflags.is_set(init_display_flags::RENDER_2D) ||
+        dflags.is_set(init_display_flags::ACCUM_BUFFER) ||
+        dflags.is_set(init_display_flags::FRAME_BUFFER) ||
+        dflags.is_set(init_display_flags::TEXT) ||
+        dflags.is_set(init_display_flags::PARTIAL_PRINT))
+    {
+        out.color(COLOR_RED);
+        out << "TWBT: PRINT_MODE must be set to STANDARD or VBO in init.txt" << std::endl;
+        out.color(COLOR_RESET);
+        return CR_OK;        
+    }
+
     out2 = &out;
     
 #ifdef WIN32
@@ -945,8 +969,14 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     has_overrides |= load_overrides();
     if (has_textfont || has_overrides)
         hook();
+    if (!has_textfont)
+    {
+        out.color(COLOR_YELLOW);
+        out << "TWBT: FONT and GRAPHICS_FONT are the same" << std::endl;
+        out.color(COLOR_RESET);        
+    }
 
-#ifndef WIN32
+#ifdef __APPLE__
     INTERPOSE_HOOK(traderesize_hook, render).apply(true);
 #endif
 
@@ -958,7 +988,7 @@ DFhackCExport command_result plugin_shutdown ( color_ostream &out )
     if (enabled)
         unhook();
 
-#ifndef WIN32
+#ifdef __APPLE__
     INTERPOSE_HOOK(traderesize_hook, render).apply(false);
 #endif    
 
