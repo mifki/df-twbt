@@ -68,7 +68,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>DFHACK_VERSION="0.34.11-$(dfhackrel)";WIN32;NDEBUG;_WINDOWS;_USRDLL;TWBT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>c:\dfhack\depends\protobuf;c:\dfhack\depends\lua\include;c:\dfhack\library\proto;c:\dfhack\library\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(dfhack)\depends\protobuf;$(dfhack)\depends\lua\include;$(dfhack)\library\proto;$(dfhack)\library\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CallingConvention>Cdecl</CallingConvention>
     </ClCompile>
     <Link>
@@ -86,7 +86,7 @@
     <ClCompile Include="twbt.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="c:\dfhack\build\VC2010\library\Release\SDL.lib" />
+    <Library Include="$(dfhack)\build\VC2010\library\Release\SDL.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
