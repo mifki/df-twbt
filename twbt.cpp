@@ -8,6 +8,7 @@
 
 #include <sys/stat.h>
 #include <stdint.h>
+#include <math.h>
 #include <iostream>
 #include <map>
 #include <vector>
@@ -143,10 +144,50 @@ static vector< struct override > *overrides[256];
 static struct tileref override_defs[256];
 static df::item_flags bad_item_flags;
 
-df::viewscreen *sepview = 0;
+bool needs_reshape = false;
+
+// This is from g_src/renderer_opengl.hpp
+struct renderer_opengl : df::renderer
+{
+    void *sdlscreen;
+    int dispx, dispy;
+    GLfloat *vertexes, *fg, *bg, *tex;
+    int zoom_steps, forced_steps;
+    int natural_w, natural_h;
+    int off_x, off_y, size_x, size_y;
+
+    virtual void allocate(int tiles) {};
+    virtual void init_opengl() {};
+    virtual void uninit_opengl() {};
+    virtual void draw(int vertex_count) {};
+    virtual void opengl_renderer_destructor() {};
+    virtual void reshape_gl() {};
+};
+
+struct renderer_cool : renderer_opengl
+{
+    // To know the size of renderer_opengl's fields
+    void *dummy;
+    GLfloat *gvertexes=0, *gfg=0, *gbg=0, *gtex=0;
+    int gdimx=0, gdimy=0;
+    int gdispx=0, gdispy=0;
+    bool gupdate = 0;
+    float goff_x=0, goff_y=0, gsize_x=0, gsize_y=0;
+
+    void reshape_graphics();
+
+    virtual void update_tile(int x, int y);
+    virtual void draw(int vertex_count);
+    virtual void reshape_gl();
+
+    virtual void update_tile_old(int x, int y) {}; //17
+    virtual void reshape_gl_old() {}; //18
+};
 
 bool is_text_tile(int x, int y, bool &is_map)
 {
+    return !((renderer_cool*)enabler->renderer)->gupdate && has_textfont;
+
     const int tile = x * gps->dimy + y;
     df::viewscreen * ws = Gui::getCurViewscreen();
 
@@ -283,8 +324,8 @@ GLfloat shadowvert[200*200*2*6];
 long shadow_texpos[8];
 bool shadowsloaded;
 
-void screen_to_texid2(df::renderer *r, int x, int y, struct texture_fullid &ret) {
-    const int tile = x * gps->dimy + y;
+void screen_to_texid2(renderer_cool *r, int x, int y, struct texture_fullid &ret) {
+    const int tile = x * (r->gupdate ? r->gdimy : gps->dimy) + y;
     const unsigned char *s = r->screen + tile*4;
 
     int ch;
@@ -321,6 +362,9 @@ void screen_to_texid2(df::renderer *r, int x, int y, struct texture_fullid &ret)
       return;
     }
   
+  if (r->gupdate)
+            ret.texpos = enabler->fullscreen ? tilesets[1].large_texpos[s[0]] : tilesets[1].small_texpos[s[0]];
+else
   ret.texpos = enabler->fullscreen ?
     init->font.large_font_texpos[ch] :
     init->font.small_font_texpos[ch];
@@ -343,33 +387,41 @@ else
   ret.bb = enabler->ccolor[bg][2];
 }
 unsigned char depth[200*200*4];
-void write_tile_arrays(df::renderer *r, int x, int y, GLfloat *fg, GLfloat *bg, GLfloat *tex)
+void write_tile_arrays(renderer_cool *r, int x, int y, GLfloat *fg, GLfloat *bg, GLfloat *tex)
 {
     struct texture_fullid ret;
     screen_to_texid2(r, x, y, ret);
-    const int tile = x * gps->dimy + y;
+    const int tile = x * (r->gupdate ? r->gdimy : gps->dimy) + y;
     float a = 1;//+(((r->screen[tile*4+3]&0xf0)>>4))*0.2;
+    const unsigned char *s = r->screen + tile*4;
+    int s0 = s[0];
+    if (!r->gupdate && s0 == 0 && df::viewscreen_dwarfmodest::_identity.is_direct_instance(Gui::getCurViewscreen()))
+        a = 0;
+
     for (int i = 0; i < 6; i++) {
-        *(fg++) = ret.r/a;
-        *(fg++) = ret.g/a;
-        *(fg++) = ret.b/a;
-        *(fg++) = 1;
+        *(fg++) = ret.r;
+        *(fg++) = ret.g;
+        *(fg++) = ret.b;
+        *(fg++) = a;
         
-        *(bg++) = ret.br/a;
-        *(bg++) = ret.bg/a;
-        *(bg++) = ret.bb/a;
-        *(bg++) = 1;
+        *(bg++) = ret.br;
+        *(bg++) = ret.bg;
+        *(bg++) = ret.bb;
+        *(bg++) = a;
     }
     
     bool is_map;
     if (is_text_tile(x, y, is_map))
     {
-        const int tile = x * gps->dimy + y;
-        const unsigned char *s = r->screen + tile*4;
-        ret.texpos = enabler->fullscreen ? tilesets[1].large_texpos[s[0]] : tilesets[1].small_texpos[s[0]];
+        //const int tile = x * (r->gupdate ? r->gdimy : gps->dimy) + y;
+        //const unsigned char *s = r->screen + tile*4;
+        //ret.texpos = enabler->fullscreen ? tilesets[0].large_texpos[s[0]] : tilesets[0].small_texpos[s[0]];
     }
-    else if (is_map && has_overrides)
+    //if (is_map && !r->gupdate)
+    //    ret.texpos = enabler->fullscreen ? tilesets[0].large_texpos[0] : tilesets[0].small_texpos[0];
+    if (is_map && has_overrides)
     {
+
         const unsigned char *s = r->screen + tile*4;
         int s0 = s[0];
         if (overrides[s0])
@@ -456,6 +508,13 @@ void write_tile_arrays(df::renderer *r, int x, int y, GLfloat *fg, GLfloat *bg, 
 }
 
 float fogcoord[200*200*6];
+unsigned char screen2[200*200*4];
+    int32_t screentexpos2[200*200];
+    int8_t screentexpos_addcolor2[200*200];
+    uint8_t screentexpos_grayscale2[200*200];
+    uint8_t screentexpos_cf2[200*200];
+    uint8_t screentexpos_cbr2[200*200];
+
 #include "renderer.hpp"
 
 
@@ -479,11 +538,12 @@ void hook()
     long draw_new = vtable_new[0][14];//14 on osx
 #endif
     long update_tile_new = vtable_new[0][0];
+    long reshape_gl_new = vtable_new[0][16];
 
-    /*for (int i = 0; i < 20; i++)
+    for (int i = 0; i < 20; i++)
         *out2 << "$ " << i << " " << (long)vtable_old[0][i] << std::endl;
     for (int i = 0; i < 24; i++)
-        *out2 << "$ " << i << " " << (long)vtable_new[0][i] << std::endl;*/
+        *out2 << "$ " << i << " " << (long)vtable_new[0][i] << std::endl;
 
 #ifdef WIN32
     HANDLE process = ::GetCurrentProcess();
@@ -502,13 +562,25 @@ void hook()
     vtable_new[0][14] = draw_new;
     vtable_new[0][0] = update_tile_new;
     vtable_new[0][17] = vtable_old[0][0];
+    vtable_new[0][15] = reshape_gl_new;
+    vtable_new[0][18] = vtable_old[0][15];
 #endif
     
     memcpy(&newr->screen, &oldr->screen, (char*)&newr->dummy-(char*)&newr->screen);
+    //newr->reshape_gl();
     enabler->renderer = newr;
+
+    //init->font.small_font_dispx = 12;
+    //init->font.large_font_dispx = 12;
+    //newr->gdispx = newr->gdispy = 16;
+    //newr->dispx = 10;
+
     //free(oldr);
 
     //*out2 << (char*)&newr->vertexes-(char*)newr << std::endl;
+
+    unsigned char t1[] = { 0x90,0x90,0x90,0x90,0x90 };
+    Core::getInstance().p->patchMemory((void*)(0x002e0e0a), t1, sizeof(t1));
 
     enabled = true;   
 }
@@ -524,12 +596,6 @@ void unhook()
     gps->force_full_display_count = true;
 }
 
-unsigned char screen2[200*200*4];
-    int32_t screentexpos2[200*200];
-    int8_t screentexpos_addcolor2[200*200];
-    uint8_t screentexpos_grayscale2[200*200];
-    uint8_t screentexpos_cf2[200*200];
-    uint8_t screentexpos_cbr2[200*200];
 
 #define CHECK(dx,dy) \
 {\
@@ -551,12 +617,101 @@ struct zzz : public df::viewscreen_dwarfmodest
 {
     typedef df::viewscreen_dwarfmodest interpose_base;
 
+    DEFINE_VMETHOD_INTERPOSE(void, feed, (std::set<df::interface_key> *input))
+    {
+renderer_cool *r = (renderer_cool*)enabler->renderer;
+
+        int oldgridx = init->display.grid_x;
+        int oldgridy = init->display.grid_y;
+
+
+        int32_t w = gps->dimx, h = gps->dimy;
+        uint8_t menu_width, area_map_width;
+        Gui::getMenuWidth(menu_width, area_map_width);
+        int32_t menu_w = 0;
+
+        bool menuforced = (ui->main.mode != df::ui_sidebar_mode::Default || df::global::cursor->x != -30000);
+
+        if ((menuforced || menu_width == 1) && area_map_width == 2) // Menu + area map
+        {
+            menu_w = 55;
+        }
+        else if (menu_width == 2 && area_map_width == 2) // Area map only
+        {
+            menu_w = 24;
+        }
+        else if (menu_width == 1) // Wide menu
+            menu_w = 55;
+        else if (menuforced || (menu_width == 2 && area_map_width == 3)) // Menu only
+            menu_w = 31; 
+
+
+        init->display.grid_x = r->gdimx+menu_w+2;
+        init->display.grid_y = r->gdimy+2;
+        gps->dimx = r->gdimx+menu_w+2;
+        gps->dimy = r->gdimy+2;        
+
+
+        INTERPOSE_NEXT(feed)(input);
+        init->display.grid_x = gps->dimx = oldgridx;
+        init->display.grid_y = gps->dimy = oldgridy;
+
+        uint8_t menu_width_new, area_map_width_new;
+        Gui::getMenuWidth(menu_width_new, area_map_width_new);
+        bool menuforced_new = (ui->main.mode != df::ui_sidebar_mode::Default || df::global::cursor->x != -30000);
+        if (menu_width != menu_width_new || area_map_width != area_map_width_new || menuforced != menuforced_new)
+            needs_reshape = true;
+
+    }
+
     DEFINE_VMETHOD_INTERPOSE(void, render, ())
     {
         INTERPOSE_NEXT(render)();
 
-        if (shadowsloaded)
-            render_more_layers();
+        void (*render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
+
+renderer_cool *r = (renderer_cool*)enabler->renderer;
+
+        uint8_t *sctop = enabler->renderer->screen;
+        int32_t *screentexpostop = enabler->renderer->screentexpos;
+        int8_t *screentexpos_addcolortop = enabler->renderer->screentexpos_addcolor;
+        uint8_t *screentexpos_grayscaletop = enabler->renderer->screentexpos_grayscale;
+        uint8_t *screentexpos_cftop = enabler->renderer->screentexpos_cf;
+        uint8_t *screentexpos_cbrtop = enabler->renderer->screentexpos_cbr;
+
+        gps->screen = enabler->renderer->screen = screen2;
+        gps->screen_limit = gps->screen + r->gdimx * r->gdimy * 4;
+        gps->screentexpos = enabler->renderer->screentexpos = screentexpos2;
+        gps->screentexpos_addcolor = enabler->renderer->screentexpos_addcolor = screentexpos_addcolor2;
+        gps->screentexpos_grayscale = enabler->renderer->screentexpos_grayscale = screentexpos_grayscale2;
+        gps->screentexpos_cf = enabler->renderer->screentexpos_cf = screentexpos_cf2;
+        gps->screentexpos_cbr = enabler->renderer->screentexpos_cbr = screentexpos_cbr2;
+
+        int oldgridx = init->display.grid_x;
+        int oldgridy = init->display.grid_y;
+
+        init->display.grid_x = r->gdimx;
+        init->display.grid_y = r->gdimy;
+        gps->dimx = r->gdimx;
+        gps->dimy = r->gdimy;
+
+        render_map(df::global::cursor_unit_list, 1);
+
+        init->display.grid_x = gps->dimx = oldgridx;
+        init->display.grid_y = gps->dimy = oldgridy;
+
+
+        gps->screen = enabler->renderer->screen = sctop;
+        gps->screen_limit = gps->screen + gps->dimx * gps->dimy * 4;
+        gps->screentexpos = enabler->renderer->screentexpos = screentexpostop;
+        gps->screentexpos_addcolor = enabler->renderer->screentexpos_addcolor = screentexpos_addcolortop;
+        gps->screentexpos_grayscale = enabler->renderer->screentexpos_grayscale = screentexpos_grayscaletop;
+        gps->screentexpos_cf = enabler->renderer->screentexpos_cf = screentexpos_cftop;
+        gps->screentexpos_cbr = enabler->renderer->screentexpos_cbr = screentexpos_cbrtop;
+
+
+        //if (shadowsloaded)
+        //    render_more_layers();
     }
 
     void render_more_layers()
@@ -766,6 +921,7 @@ struct zzz : public df::viewscreen_dwarfmodest
 
 //TODO: Priority?
 IMPLEMENT_VMETHOD_INTERPOSE(zzz, render);
+IMPLEMENT_VMETHOD_INTERPOSE(zzz, feed);
 
 #include "config.hpp"
 
@@ -781,7 +937,7 @@ command_result mapshot (color_ostream &out, std::vector <std::string> & paramete
 DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCommand> &commands)
 {
     auto dflags = init->display.flag;
-    if (!dflags.is_set(init_display_flags::USE_GRAPHICS))
+    if (0&&!dflags.is_set(init_display_flags::USE_GRAPHICS))
     {
         out.color(COLOR_RED);
         out << "TWBT: GRAPHICS is not enabled in init.txt" << std::endl;
@@ -804,6 +960,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     out2 = &out;
     
 #ifdef WIN32
+#error Windows not supported yet
     load_multi_pdim = (void (*)(void *tex, const string &filename, long *tex_pos, long dimx,
         long dimy, bool convert_magenta, long *disp_x, long *disp_y)) (0x00a52670+(Core::getInstance().vinfo->getRebaseDelta()));    
 #else
@@ -836,6 +993,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         hook();
 
     INTERPOSE_HOOK(zzz, render).apply(1);
+    INTERPOSE_HOOK(zzz, feed).apply(1);
 
     commands.push_back(PluginCommand(
         "mapshot", "Mapshot!",
