@@ -52,13 +52,11 @@
 #include "df/init_display_flags.h"
 
 #ifdef WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
-{
-    return TRUE;
-}
+    #define WIN32_LEAN_AND_MEAN
+    #include <windows.h>
+#elif defined(__APPLE__)
+#else
+    #include <dlfcn.h>
 #endif
 
 typedef float GLfloat;
@@ -942,9 +940,12 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 #ifdef WIN32
     load_multi_pdim = (void (*)(void *tex, const string &filename, long *tex_pos, long dimx,
         long dimy, bool convert_magenta, long *disp_x, long *disp_y)) (0x00a52670+(Core::getInstance().vinfo->getRebaseDelta()));    
-#else
+#elif defined(__APPLE__)
     load_multi_pdim = (void (*)(void *tex, const string &filename, long *tex_pos, long dimx,
         long dimy, bool convert_magenta, long *disp_x, long *disp_y)) 0x00cfbbb0;    
+#else
+    load_multi_pdim = (void (*)(void *tex, const string &filename, long *tex_pos, long dimx,
+        long dimy, bool convert_magenta, long *disp_x, long *disp_y)) dlsym(RTLD_DEFAULT,"_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");    
 #endif
 
     bad_item_flags.whole = 0;
