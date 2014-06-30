@@ -2,7 +2,11 @@
 
 This is a plugin for [Dwarf Fortress](http://bay12games.com) / [DFHack](http://github.com/dfhack/dfhack) that improves various aspects of rendering.
 
-I wrote this small plugin because I was tired seeing coffins instead of zeroes and all that stuff. It allows to specify separate fonts for map tiles and for text. GRAPHICS\_FONT / GRAPHICS\_FULLFONT will continue to be used for map area(s), and FONT / FULLFONT will be used for everything else. Requires OpenGL PRINT_MODE (STANDARD, VBO and so on). Adventurer mode and possibly some other screens need some more work. Non-fullscreen dfhack overlays turn entire screen to ASCII, sorry. Just press eg. ESC twice to restore.
+Originally I wrote a small plugin because I was tired seeing coffins instead of zeroes and all that stuff. It has greately evolved since then. Requires OpenGL PRINT_MODE (STANDARD or VBO).
+
+### Text and Map Tilesets ###
+
+Main function is to use separate fonts (tilesets) for map tiles in Fortress Mode and for text. These fonts may have different tile size, usually square for the map and non-square for text.
 
 ### Overrides ###
 
@@ -18,7 +22,7 @@ Not yet.
 
 ### Mapshot! ###
 
-`mapshot` command saves an image of entire map in full size to mapshot.tga in DF folder.
+`mapshot` command saves an image of entire map in full size to `mapshot.tga` in your DF folder.
 
 ### Other Improvements ###
 
