@@ -22,6 +22,7 @@
 #elif defined(__APPLE__)
     #include <OpenGL/gl.h>
 #else
+    #include <dlfcn.h>
     #define GL_GLEXT_PROTOTYPES
     #include <GL/gl.h>
     #include <GL/glext.h>
@@ -498,6 +499,8 @@ void hook()
         VirtualProtectEx( process, vtable_new[0], 18*sizeof(void*), oldProtection, &oldProtection );
     }
 #else
+    MemoryPatcher p(Core::getInstance().p);
+    p.verifyAccess(vtable_new[0], sizeof(void*)*17, true);
     memcpy(vtable_new[0], vtable_old[0], sizeof(void*)*17);
     vtable_new[0][14] = draw_new;
     vtable_new[0][0] = update_tile_new;
@@ -806,11 +809,13 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 #ifdef WIN32
     load_multi_pdim = (void (*)(void *tex, const string &filename, long *tex_pos, long dimx,
         long dimy, bool convert_magenta, long *disp_x, long *disp_y)) (0x00a52670+(Core::getInstance().vinfo->getRebaseDelta()));    
+#elif defined(__APPLE__)
+    load_multi_pdim = (void (*)(void *tex, const string &filename, long *tex_pos, long dimx,
+        long dimy, bool convert_magenta, long *disp_x, long *disp_y)) 0x00cfbbb0;
 #else
     load_multi_pdim = (void (*)(void *tex, const string &filename, long *tex_pos, long dimx,
-        long dimy, bool convert_magenta, long *disp_x, long *disp_y)) 0x00cfbbb0;    
+        long dimy, bool convert_magenta, long *disp_x, long *disp_y)) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
 #endif
-    //_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_
 
     bad_item_flags.whole = 0;
     bad_item_flags.bits.in_building = true;

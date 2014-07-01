@@ -1,7 +1,7 @@
 static volatile int domapshot = 0;
 
 // This is from g_src/renderer_opengl.hpp
-struct renderer_opengl : df::renderer
+struct renderer_opengl_noconflict : df::renderer
 {
     void *sdlscreen;
     int dispx, dispy;
@@ -17,6 +17,7 @@ struct renderer_opengl : df::renderer
     virtual void opengl_renderer_destructor() {};
     virtual void reshape_gl() {};
 };
+typedef renderer_opengl_noconflict renderer_opengl; // This is to make Linux happy
 
 struct renderer_cool : renderer_opengl
 {
