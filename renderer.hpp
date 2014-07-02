@@ -100,18 +100,30 @@ else
             menu_w = 31; 
 
 
+        int cx = *df::global::window_x + gdimx / 2;
+        int cy = *df::global::window_y + gdimy / 2;
+
+
         gsize_x = (size_x-tsx*(menu_w+1+1));
         gsize_y = (size_y-tsy*2);
 *out2 << tsx << " " << gsize_x << std::endl;
-        gdimx = gsize_x / gdispx;
-        gdimy = gsize_y / gdispy;
+        float dimx = gsize_x / gdispx;
+        float dimy = gsize_y / gdispy;
+        gdimx = ceilf(dimx);
+        gdimy = ceilf(dimy);
+        gdimxfull = floorf(dimx);
+        gdimyfull = floorf(dimy);
+        *out2 << gdispx << " " << gdispy << "   " << gdimx << " " << gdimy << "   " << gdimxfull << " " << gdimyfull << " " << (gsize_x-gdispx*gdimxfull) << " " << (gsize_y-gdispy*gdimyfull) << std::endl;
+
+        *df::global::window_x = cx - gdimx/2;
+        *df::global::window_y = cy - gdimy/2;
 
         int tiles = gdimx * gdimy;
         gvertexes = static_cast<GLfloat*>(realloc(gvertexes, sizeof(GLfloat) * tiles * 2 * 6));
         gfg = static_cast<GLfloat*>(realloc(gfg, sizeof(GLfloat) * tiles * 4 * 6));
         gbg = static_cast<GLfloat*>(realloc(gbg, sizeof(GLfloat) * tiles * 4 * 6));
         gtex = static_cast<GLfloat*>(realloc(gtex, sizeof(GLfloat) * tiles * 2 * 6));
-
+*out2 << gvertexes << " " << gfg << " " << gbg << " " << gtex << std::endl;
         int tile = 0;
         for (GLfloat x = 0; x < gdimx; x++)
           for (GLfloat y = 0; y < gdimy; y++, tile++)
@@ -133,11 +145,7 @@ else
 
 void renderer_cool::draw(int vertex_count)
 {
-    if (needs_reshape)
-    {
-        needs_reshape = false;
-        reshape_graphics();
-    }
+
     if (gvertexes)
     {
 
@@ -194,18 +202,26 @@ void renderer_cool::draw(int vertex_count)
             if (!ts.small_font_path.length())
                 continue;
 
-            load_multi_pdim_x(t, ts.small_font_path, tilesets[j].small_texpos, 16, 16, true, &dx, &dy);
+            long buf[256];
+            //load_multi_pdim_x(t, ts.small_font_path, tilesets[j].small_texpos, 16, 16, true, &dx, &dy);
 
+            gdispx = init->font.small_font_dispx;
+            gdispy = init->font.small_font_dispy;
+            memcpy(tilesets[j].small_texpos, init->font.small_font_texpos, sizeof(long)*256);
+            load_multi_pdim_x(t, ts.small_font_path, (long*)init->font.small_font_texpos, 16, 16, true, (long*)&init->font.small_font_dispx, (long*)&init->font.small_font_dispy);
+            dispx = init->font.small_font_dispx;
+            dispy = init->font.small_font_dispy;
+            *out2 << "**" << gdispx << std::endl;
             //init->font.small_font_dispx = 12;
             //init->font.large_font_dispx = 12;
-            gdispx = dx;
-            gdispy = dy;
 
 
             if (ts.large_font_path != ts.small_font_path)
                 load_multi_pdim_x(t, ts.large_font_path, tilesets[j].large_texpos, 16, 16, true, &dx, &dy);
             else
                 memcpy(ts.large_texpos, ts.small_texpos, sizeof(ts.large_texpos));
+            //grid_resize(80,25);
+            resize((size_x/dispx)*dispx, (size_y/dispy)*dispy);
         }
 
         /*struct tileset ts;
@@ -272,7 +288,7 @@ GLenum status;
         glOrtho(0,gps->dimx,gps->dimy,0,-1,1);*/
     }
 
-    //// Text
+
     static df::viewscreen *prevws = NULL;
     df::viewscreen *ws = Gui::getCurViewscreen();
     if (ws != prevws)
@@ -288,15 +304,17 @@ GLenum status;
     }
 {
     /////
-    glViewport(off_x+ceilf((float)size_x/gps->dimx), off_y+(float)size_y/gps->dimy, gdimx*gdispx, gdimy*gdispy);
+    glViewport(off_x+roundf((float)size_x/gps->dimx), off_y+roundf((float)size_y/gps->dimy)-(gdimy==gdimyfull?0:roundf(gdispy-(gsize_y-gdispy*gdimyfull))), gdimx*gdispx, gdimy*gdispy);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(0, gdimx, gdimy, 0,-1,1);
+    //glTranslatef(1,-1,0);
 
-    glScissor(off_x+(float)size_x/gps->dimx, off_y+(float)size_y/gps->dimy, gsize_x, gsize_y);
-    glEnable(GL_SCISSOR_TEST);
-    glClear(GL_COLOR_BUFFER_BIT);
+    //glScissor(off_x+(float)size_x/gps->dimx, off_y+(float)size_y/gps->dimy, gsize_x, gsize_y);
+    //glEnable(GL_SCISSOR_TEST);
+    //glClearColor(1,0,0,1);
+    //glClear(GL_COLOR_BUFFER_BIT);
 
     float FogCol[3]={0.1f,0.1f,0.3f};
     //float FogCol[3]={0.8f,0.8f,0.8f};

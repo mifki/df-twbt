@@ -20,6 +20,12 @@
     #define GLEW_STATIC
     #include "glew/glew.h"
     #include "glew/wglew.h"
+
+    float roundf(float x)
+    {
+       return x >= 0.0f ? floorf(x + 0.5f) : ceilf(x - 0.5f);
+    }
+
 #elif defined(__APPLE__)
     #include <OpenGL/gl.h>
 #else
@@ -144,7 +150,6 @@ static vector< struct override > *overrides[256];
 static struct tileref override_defs[256];
 static df::item_flags bad_item_flags;
 
-bool needs_reshape = false;
 
 // This is from g_src/renderer_opengl.hpp
 struct renderer_opengl : df::renderer
@@ -155,6 +160,8 @@ struct renderer_opengl : df::renderer
     int zoom_steps, forced_steps;
     int natural_w, natural_h;
     int off_x, off_y, size_x, size_y;
+bool needs_reshape;
+int needs_zoom;
 
     virtual void allocate(int tiles) {};
     virtual void init_opengl() {};
@@ -168,11 +175,22 @@ struct renderer_cool : renderer_opengl
 {
     // To know the size of renderer_opengl's fields
     void *dummy;
-    GLfloat *gvertexes=0, *gfg=0, *gbg=0, *gtex=0;
-    int gdimx=0, gdimy=0;
-    int gdispx=0, gdispy=0;
-    bool gupdate = 0;
-    float goff_x=0, goff_y=0, gsize_x=0, gsize_y=0;
+    GLfloat *gvertexes, *gfg, *gbg, *gtex;
+    int gdimx, gdimy, gdimxfull, gdimyfull;
+    int gdispx, gdispy;
+    bool gupdate;
+    float goff_x, goff_y, gsize_x, gsize_y;
+
+    renderer_cool()
+    {
+    gvertexes=0, gfg=0, gbg=0, gtex=0;
+    gdimx=0, gdimy=0;
+    gdispx=0, gdispy=0;
+    gupdate = 0;
+    goff_x=0, goff_y=0, gsize_x=0, gsize_y=0;
+    needs_reshape = needs_zoom = 0;
+
+    }
 
     void reshape_graphics();
 
@@ -507,13 +525,13 @@ void write_tile_arrays(renderer_cool *r, int x, int y, GLfloat *fg, GLfloat *bg,
     *(tex++) = txt[ret.texpos].top;
 }
 
-float fogcoord[200*200*6];
-unsigned char screen2[200*200*4];
-    int32_t screentexpos2[200*200];
-    int8_t screentexpos_addcolor2[200*200];
-    uint8_t screentexpos_grayscale2[200*200];
-    uint8_t screentexpos_cf2[200*200];
-    uint8_t screentexpos_cbr2[200*200];
+float fogcoord[2000*2000*6];
+unsigned char screen2[2000*2000*4];
+    int32_t screentexpos2[2000*2000];
+    int8_t screentexpos_addcolor2[2000*2000];
+    uint8_t screentexpos_grayscale2[2000*2000];
+    uint8_t screentexpos_cf2[2000*2000];
+    uint8_t screentexpos_cbr2[2000*2000];
 
 #include "renderer.hpp"
 
@@ -579,8 +597,13 @@ void hook()
 
     //*out2 << (char*)&newr->vertexes-(char*)newr << std::endl;
 
+#ifdef WIN32
     unsigned char t1[] = { 0x90,0x90,0x90,0x90,0x90 };
-    Core::getInstance().p->patchMemory((void*)(0x002e0e0a), t1, sizeof(t1));
+    Core::getInstance().p->patchMemory((void*)(0x0058eac0+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+#else
+    unsigned char t1[] = { 0x90,0x90,0x90,0x90,0x90 };
+    Core::getInstance().p->patchMemory((void*)0x002e0e0a, t1, sizeof(t1));
+#endif
 
     enabled = true;   
 }
@@ -625,12 +648,24 @@ renderer_cool *r = (renderer_cool*)enabler->renderer;
         int oldgridy = init->display.grid_y;
 
 
+        static uint8_t menu_width_last, area_map_width_last;
+        static bool menuforced_last=0;
+
         int32_t w = gps->dimx, h = gps->dimy;
         uint8_t menu_width, area_map_width;
         Gui::getMenuWidth(menu_width, area_map_width);
         int32_t menu_w = 0;
 
         bool menuforced = (ui->main.mode != df::ui_sidebar_mode::Default || df::global::cursor->x != -30000);
+
+        /*if (menu_width != menu_width_last || area_map_width != area_map_width_last || menuforced != menuforced_last)
+        {
+            needs_reshape = true;
+            menu_width_last = menu_width;
+            area_map_width_last = area_map_width;
+            menuforced_last = menuforced;
+        }*/
+
 
         if ((menuforced || menu_width == 1) && area_map_width == 2) // Menu + area map
         {
@@ -646,10 +681,10 @@ renderer_cool *r = (renderer_cool*)enabler->renderer;
             menu_w = 31; 
 
 
-        init->display.grid_x = r->gdimx+menu_w+2;
-        init->display.grid_y = r->gdimy+2;
-        gps->dimx = r->gdimx+menu_w+2;
-        gps->dimy = r->gdimy+2;        
+        init->display.grid_x = r->gdimxfull+menu_w+2;
+        init->display.grid_y = r->gdimyfull+2;
+        gps->dimx = r->gdimxfull+menu_w+2;
+        gps->dimy = r->gdimyfull+2;
 
 
         INTERPOSE_NEXT(feed)(input);
@@ -660,7 +695,7 @@ renderer_cool *r = (renderer_cool*)enabler->renderer;
         Gui::getMenuWidth(menu_width_new, area_map_width_new);
         bool menuforced_new = (ui->main.mode != df::ui_sidebar_mode::Default || df::global::cursor->x != -30000);
         if (menu_width != menu_width_new || area_map_width != area_map_width_new || menuforced != menuforced_new)
-            needs_reshape = true;
+            r->needs_reshape = true;
 
     }
 
@@ -668,9 +703,43 @@ renderer_cool *r = (renderer_cool*)enabler->renderer;
     {
         INTERPOSE_NEXT(render)();
 
-        void (*render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
-
 renderer_cool *r = (renderer_cool*)enabler->renderer;
+
+    if (r->needs_reshape)
+    {
+        if (r->needs_zoom)
+        {
+        if (r->needs_zoom > 0)
+        {
+            r->gdispx++;
+            r->gdispy++;
+        }
+        else
+        {
+            r->gdispx--;
+            r->gdispy--;
+
+            if (r->gsize_x / r->gdispx > world->map.x_count)
+                r->gdispx = r->gdispy = r->gsize_x / world->map.x_count;
+            else if (r->gsize_y / r->gdispy > world->map.y_count)
+                r->gdispx = r->gdispy = r->gsize_y / world->map.y_count;
+        }
+        r->needs_zoom = 0;
+    }
+        r->needs_reshape = false;
+        r->reshape_graphics();
+    }
+
+
+#ifdef WIN32
+        void (*render_map)(void *, int) = (void (*)(void *, int))(0x008f65c0+(Core::getInstance().vinfo->getRebaseDelta()));
+#else
+        void (*render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
+#endif
+
+
+
+    
 
         uint8_t *sctop = enabler->renderer->screen;
         int32_t *screentexpostop = enabler->renderer->screentexpos;
@@ -687,6 +756,24 @@ renderer_cool *r = (renderer_cool*)enabler->renderer;
         gps->screentexpos_cf = enabler->renderer->screentexpos_cf = screentexpos_cf2;
         gps->screentexpos_cbr = enabler->renderer->screentexpos_cbr = screentexpos_cbr2;
 
+        long *z = (long*)r->screen;
+        for (int y = 0; y < r->gdimy; y++)
+        {
+            for (int x = world->map.x_count-*df::global::window_x; x < r->gdimx; x++)
+            {
+                z[x*r->gdimy+y] = 0;
+            }
+        }
+        for (int x = 0; x < r->gdimx; x++)
+        {
+            for (int y = world->map.y_count-*df::global::window_y; y < r->gdimy; y++)
+            {
+                z[x*r->gdimy+y] = 0;
+            }
+        }
+
+
+
         int oldgridx = init->display.grid_x;
         int oldgridy = init->display.grid_y;
 
@@ -694,11 +781,15 @@ renderer_cool *r = (renderer_cool*)enabler->renderer;
         init->display.grid_y = r->gdimy;
         gps->dimx = r->gdimx;
         gps->dimy = r->gdimy;
+        gps->clipx[1] = r->gdimx-1;
+        gps->clipy[1] = r->gdimy-1;
 
         render_map(df::global::cursor_unit_list, 1);
 
         init->display.grid_x = gps->dimx = oldgridx;
         init->display.grid_y = gps->dimy = oldgridy;
+        gps->clipx[1] = gps->dimx-1;
+        gps->clipy[1] = gps->dimy-1;
 
 
         gps->screen = enabler->renderer->screen = sctop;
@@ -960,7 +1051,6 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     out2 = &out;
     
 #ifdef WIN32
-#error Windows not supported yet
     load_multi_pdim = (void (*)(void *tex, const string &filename, long *tex_pos, long dimx,
         long dimy, bool convert_magenta, long *disp_x, long *disp_y)) (0x00a52670+(Core::getInstance().vinfo->getRebaseDelta()));    
 #else
