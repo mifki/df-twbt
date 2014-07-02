@@ -203,24 +203,23 @@ void renderer_cool::draw(int vertex_count)
                 continue;
 
             long buf[256];
-            //load_multi_pdim_x(t, ts.small_font_path, tilesets[j].small_texpos, 16, 16, true, &dx, &dy);
-
-            gdispx = init->font.small_font_dispx;
-            gdispy = init->font.small_font_dispy;
-            memcpy(tilesets[j].small_texpos, init->font.small_font_texpos, sizeof(long)*256);
-            load_multi_pdim_x(t, ts.small_font_path, (long*)init->font.small_font_texpos, 16, 16, true, (long*)&init->font.small_font_dispx, (long*)&init->font.small_font_dispy);
-            dispx = init->font.small_font_dispx;
-            dispy = init->font.small_font_dispy;
-            *out2 << "**" << gdispx << std::endl;
-            //init->font.small_font_dispx = 12;
-            //init->font.large_font_dispx = 12;
-
+            if (j > 1)
+                load_multi_pdim_x(t, ts.small_font_path, tilesets[j].small_texpos, 16, 16, true, &dx, &dy);
+            else
+            {
+                gdispx = init->font.small_font_dispx;
+                gdispy = init->font.small_font_dispy;
+                memcpy(tilesets[j].small_texpos, init->font.small_font_texpos, sizeof(long)*256);
+                load_multi_pdim_x(t, ts.small_font_path, (long*)init->font.small_font_texpos, 16, 16, true, (long*)&init->font.small_font_dispx, (long*)&init->font.small_font_dispy);
+                dispx = init->font.small_font_dispx;
+                dispy = init->font.small_font_dispy;
+            }
 
             if (ts.large_font_path != ts.small_font_path)
                 load_multi_pdim_x(t, ts.large_font_path, tilesets[j].large_texpos, 16, 16, true, &dx, &dy);
             else
                 memcpy(ts.large_texpos, ts.small_texpos, sizeof(ts.large_texpos));
-            //grid_resize(80,25);
+
             resize((size_x/dispx)*dispx, (size_y/dispy)*dispy);
         }
 

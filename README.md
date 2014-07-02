@@ -8,7 +8,7 @@ Originally I wrote a small plugin because I was tired seeing coffins instead of 
 
 Main function is to use separate fonts (tilesets) for map tiles in Fortress Mode and for text. These fonts may have different tile size, usually square for the map and non-square for text.
 
-In your `init.txt` set FONT and FULLFONT to the font you want to use for **map tiles**, and GRAPHICS\_FONT and GRAPHICS\_FULLFONT to the font for **text**. This will change to the other way round in future.
+In your `init.txt` set FONT and FULLFONT to the font you want to use for **text**, and GRAPHICS\_FONT and GRAPHICS\_FULLFONT to the font for **map tiles**.
 
 ### Overrides ###
 
