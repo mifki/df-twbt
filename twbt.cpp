@@ -160,8 +160,6 @@ struct renderer_opengl : df::renderer
     int zoom_steps, forced_steps;
     int natural_w, natural_h;
     int off_x, off_y, size_x, size_y;
-bool needs_reshape;
-int needs_zoom;
 
     virtual void allocate(int tiles) {};
     virtual void init_opengl() {};
@@ -180,11 +178,13 @@ struct renderer_cool : renderer_opengl
     int gdispx, gdispy;
     bool gupdate;
     float goff_x, goff_y, gsize_x, gsize_y;
+	bool needs_reshape;
+    int needs_zoom;
 
     renderer_cool()
     {
     gvertexes=0, gfg=0, gbg=0, gtex=0;
-    gdimx=0, gdimy=0;
+    gdimx=0, gdimy=0, gdimxfull=0, gdimyfull=0;
     gdispx=0, gdispy=0;
     gupdate = 0;
     goff_x=0, goff_y=0, gsize_x=0, gsize_y=0;
@@ -551,12 +551,13 @@ void hook()
     long **vtable_new = (long **)newr;
 
 #ifdef WIN32
-    long draw_new = vtable_new[0][13];//14 on osx
+    long draw_new = vtable_new[0][13];
+    long reshape_gl_new = vtable_new[0][15];
 #else
-    long draw_new = vtable_new[0][14];//14 on osx
+    long draw_new = vtable_new[0][14];
+    long reshape_gl_new = vtable_new[0][16];
 #endif
     long update_tile_new = vtable_new[0][0];
-    long reshape_gl_new = vtable_new[0][16];
 
     for (int i = 0; i < 20; i++)
         *out2 << "$ " << i << " " << (long)vtable_old[0][i] << std::endl;
@@ -573,6 +574,9 @@ void hook()
         vtable_new[0][13] = draw_new;
         vtable_new[0][0] = update_tile_new;
         vtable_new[0][16] = vtable_old[0][0];
+	    vtable_new[0][14] = reshape_gl_new;
+		vtable_new[0][17] = vtable_old[0][14];
+
         VirtualProtectEx( process, vtable_new[0], 18*sizeof(void*), oldProtection, &oldProtection );
     }
 #else
@@ -598,8 +602,8 @@ void hook()
     //*out2 << (char*)&newr->vertexes-(char*)newr << std::endl;
 
 #ifdef WIN32
-    unsigned char t1[] = { 0x90,0x90,0x90,0x90,0x90 };
-    Core::getInstance().p->patchMemory((void*)(0x0058eac0+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+    //unsigned char t1[] = { 0x90,0x90,0x90,0x90,0x90 };
+    //Core::getInstance().p->patchMemory((void*)(0x0058eac0+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
 #else
     unsigned char t1[] = { 0x90,0x90,0x90,0x90,0x90 };
     Core::getInstance().p->patchMemory((void*)0x002e0e0a, t1, sizeof(t1));
@@ -631,18 +635,13 @@ void unhook()
     }}\
 }
 
-static int _min(int a, int b)
-{
-    return (a < b) ? a : b;
-}
-
 struct zzz : public df::viewscreen_dwarfmodest
 {
     typedef df::viewscreen_dwarfmodest interpose_base;
 
     DEFINE_VMETHOD_INTERPOSE(void, feed, (std::set<df::interface_key> *input))
     {
-renderer_cool *r = (renderer_cool*)enabler->renderer;
+        renderer_cool *r = (renderer_cool*)enabler->renderer;
 
         int oldgridx = init->display.grid_x;
         int oldgridy = init->display.grid_y;
@@ -696,50 +695,57 @@ renderer_cool *r = (renderer_cool*)enabler->renderer;
         bool menuforced_new = (ui->main.mode != df::ui_sidebar_mode::Default || df::global::cursor->x != -30000);
         if (menu_width != menu_width_new || area_map_width != area_map_width_new || menuforced != menuforced_new)
             r->needs_reshape = true;
-
     }
 
     DEFINE_VMETHOD_INTERPOSE(void, render, ())
     {
         INTERPOSE_NEXT(render)();
 
-renderer_cool *r = (renderer_cool*)enabler->renderer;
+#ifdef WIN32
+        static bool patched = false;
+        if (!patched)
+        {
+        unsigned char t1[] = {  0x90,0x90, 0x90, 0x90,0x90,0x90,0x90,0x90 };
+        Core::getInstance().p->patchMemory((void*)(0x0058eabd+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
 
-    if (r->needs_reshape)
-    {
-        if (r->needs_zoom)
-        {
-        if (r->needs_zoom > 0)
-        {
-            r->gdispx++;
-            r->gdispy++;
+//    	    unsigned char t1[] = { 0x90,0x90,0x90,0x90,0x90 };
+//            Core::getInstance().p->patchMemory((void*)(0x0058eac0+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+            patched = true;
         }
-        else
-        {
-            r->gdispx--;
-            r->gdispy--;
+#endif
 
-            if (r->gsize_x / r->gdispx > world->map.x_count)
-                r->gdispx = r->gdispy = r->gsize_x / world->map.x_count;
-            else if (r->gsize_y / r->gdispy > world->map.y_count)
-                r->gdispx = r->gdispy = r->gsize_y / world->map.y_count;
+    	renderer_cool *r = (renderer_cool*)enabler->renderer;
+
+        if (r->needs_reshape)
+        {
+            if (r->needs_zoom)
+            {
+            if (r->needs_zoom > 0)
+            {
+                r->gdispx++;
+                r->gdispy++;
+            }
+            else
+            {
+                r->gdispx--;
+                r->gdispy--;
+
+                if (r->gsize_x / r->gdispx > world->map.x_count)
+                    r->gdispx = r->gdispy = r->gsize_x / world->map.x_count;
+                else if (r->gsize_y / r->gdispy > world->map.y_count)
+                    r->gdispx = r->gdispy = r->gsize_y / world->map.y_count;
+            }
+            r->needs_zoom = 0;
         }
-        r->needs_zoom = 0;
-    }
         r->needs_reshape = false;
         r->reshape_graphics();
     }
 
-
 #ifdef WIN32
-        void (*render_map)(void *, int) = (void (*)(void *, int))(0x008f65c0+(Core::getInstance().vinfo->getRebaseDelta()));
+        void (*render_map)(int) = (void (*)(int))(0x008f65c0+(Core::getInstance().vinfo->getRebaseDelta()));
 #else
         void (*render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
 #endif
-
-
-
-    
 
         uint8_t *sctop = enabler->renderer->screen;
         int32_t *screentexpostop = enabler->renderer->screentexpos;
@@ -772,8 +778,6 @@ renderer_cool *r = (renderer_cool*)enabler->renderer;
             }
         }
 
-
-
         int oldgridx = init->display.grid_x;
         int oldgridy = init->display.grid_y;
 
@@ -784,7 +788,11 @@ renderer_cool *r = (renderer_cool*)enabler->renderer;
         gps->clipx[1] = r->gdimx-1;
         gps->clipy[1] = r->gdimy-1;
 
-        render_map(df::global::cursor_unit_list, 1);
+#ifdef WIN32
+        render_map(1);
+#else
+        render_map(df::global::cursor_unit_list, 1);        
+#endif
 
         init->display.grid_x = gps->dimx = oldgridx;
         init->display.grid_y = gps->dimy = oldgridy;
@@ -876,8 +884,8 @@ renderer_cool *r = (renderer_cool*)enabler->renderer;
             
             GLfloat *vertices = ((renderer_opengl*)enabler->renderer)->vertexes;
             //TODO: test this
-            int x1 = _min(menu_left, world->map.x_count-*df::global::window_x+1);
-            int y1 = _min(h-1, world->map.y_count-*df::global::window_y+1);
+            int x1 = std::min(menu_left, world->map.x_count-*df::global::window_x+1);
+            int y1 = std::min(h-1, world->map.y_count-*df::global::window_y+1);
             for (int x = x0; x < x1; x++)
             {
                 for (int y = 1; y < y1; y++)
@@ -1053,9 +1061,11 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 #ifdef WIN32
     load_multi_pdim = (void (*)(void *tex, const string &filename, long *tex_pos, long dimx,
         long dimy, bool convert_magenta, long *disp_x, long *disp_y)) (0x00a52670+(Core::getInstance().vinfo->getRebaseDelta()));    
-#else
+#elif defined(__APPLE__)
     load_multi_pdim = (void (*)(void *tex, const string &filename, long *tex_pos, long dimx,
         long dimy, bool convert_magenta, long *disp_x, long *disp_y)) 0x00cfbbb0;    
+#else
+    #error Linux not supported yet
 #endif
     //_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_
 

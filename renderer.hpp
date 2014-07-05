@@ -297,10 +297,8 @@ GLenum status;
     }
     if (df::viewscreen_dwarfmodest::_identity.is_direct_instance(ws))
     {
-    if (!gvertexes)
-    {
-        reshape_graphics();
-    }
+        if (!gvertexes)
+            reshape_graphics();
 {
     /////
     glViewport(off_x+roundf((float)size_x/gps->dimx), off_y+roundf((float)size_y/gps->dimy)-(gdimy==gdimyfull?0:roundf(gdispy-(gsize_y-gdispy*gdimyfull))), gdimx*gdispx, gdimy*gdispy);
