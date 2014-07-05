@@ -690,7 +690,7 @@ struct zzz : public df::viewscreen_dwarfmodest
                     }
 
                     *((int*)sctop+tile) = *((int*)screen2+tile2);
-                    if (*(screentexpos2+tile))
+                    if (*(screentexpos2+tile2))
                     {
                         *(screentexpostop+tile) = *(screentexpos2+tile2);
                         *(screentexpos_addcolortop+tile) = *(screentexpos_addcolor2+tile2);
