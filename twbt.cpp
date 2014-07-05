@@ -956,7 +956,7 @@ DFhackCExport command_result plugin_shutdown ( color_ostream &out )
     if (enabled)
         unhook();
 
-#ifndef WIN32
+#ifdef __APPLE__
     INTERPOSE_HOOK(traderesize_hook, render).apply(false);
 #endif        
 
