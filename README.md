@@ -12,13 +12,15 @@ Allows to override tile numbers for buildings and items, see overrides.txt for d
 
 Copy `shadows.png` to `data/art` folder.
 
+`multilevel` command controls the number of additional levels rendered. Possible parameters are `more`, `less` or number `0-15`.
+
 ### Additional Colours ###
 
 Not yet.
 
 ### Mapshot! ###
 
-`mapshot` command saves an image of entire map in full size to mapshot.tga in DF folder.
+`mapshot` command saves an image of entire map in full size to `mapshot.tga` in DF folder.
 
 ### Other Improvements ###
 
