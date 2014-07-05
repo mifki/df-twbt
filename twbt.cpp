@@ -668,27 +668,26 @@ struct zzz : public df::viewscreen_dwarfmodest
                                 else
                                     d = p+1;
                             }
-
-                            //TODO: check for hidden also
-                            df::tiletype t1 = block1->tiletype[xx&15][yy&15];
-                            if (t1 == df::tiletype::OpenSpace || t1 == df::tiletype::RampTop)
+                            else
                             {
-                                if (p < maxlevels)
+                                //TODO: check for hidden also
+                                df::tiletype t1 = block1->tiletype[xx&15][yy&15];
+                                if (t1 == df::tiletype::OpenSpace || t1 == df::tiletype::RampTop)
                                 {
-                                    empty_tiles_left = true;
-                                    continue;
-                                }
-                                else
-                                {
-                                    if (t1 != df::tiletype::RampTop)
-                                        d = p+1;
+                                    if (p < maxlevels)
+                                    {
+                                        empty_tiles_left = true;
+                                        continue;
+                                    }
+                                    else
+                                    {
+                                        if (t1 != df::tiletype::RampTop)
+                                            d = p+1;
+                                    }
                                 }
                             }
                         }
-
                     }
-                    //else
-                        //d = p+1;
 
                     *((int*)sctop+tile) = *((int*)screen2+tile2);
                     if (*(screentexpos2+tile))
