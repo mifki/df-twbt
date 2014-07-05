@@ -791,7 +791,11 @@ struct zzz : public df::viewscreen_dwarfmodest
 #ifdef WIN32
         render_map(1);
 #else
-        render_map(df::global::cursor_unit_list, 1);        
+#ifdef DFHACK_r5
+        render_map(df::global::map_renderer, 1);
+#else
+        render_map(df::global::cursor_unit_list, 1);
+#endif
 #endif
 
         init->display.grid_x = gps->dimx = oldgridx;
