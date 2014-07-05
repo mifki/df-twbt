@@ -144,7 +144,7 @@ static vector< struct override > *overrides[256];
 static struct tileref override_defs[256];
 static df::item_flags bad_item_flags;
 
-df::viewscreen *sepview = 0;
+static int maxlevels = 10;
 
 bool is_text_tile(int x, int y, bool &is_map)
 {
@@ -278,9 +278,9 @@ bool is_text_tile(int x, int y, bool &is_map)
 }
 
 float addcolors[][3] = { {1,0,0} };
-unsigned char shadows[200*200];
-GLfloat shadowtex[200*200*2*6];
-GLfloat shadowvert[200*200*2*6];
+unsigned char depth[256*256];
+GLfloat shadowtex[256*256*2*6];
+GLfloat shadowvert[256*256*2*6];
 long shadow_texpos[8];
 bool shadowsloaded;
 
@@ -343,7 +343,7 @@ else
   ret.bg = enabler->ccolor[bg][1];
   ret.bb = enabler->ccolor[bg][2];
 }
-unsigned char depth[200*200*4];
+
 void write_tile_arrays(df::renderer *r, int x, int y, GLfloat *fg, GLfloat *bg, GLfloat *tex)
 {
     struct texture_fullid ret;
@@ -456,7 +456,7 @@ void write_tile_arrays(df::renderer *r, int x, int y, GLfloat *fg, GLfloat *bg, 
     *(tex++) = txt[ret.texpos].top;
 }
 
-float fogcoord[200*200*6];
+float fogcoord[256*256*6];
 #include "renderer.hpp"
 
 
@@ -527,28 +527,12 @@ void unhook()
     gps->force_full_display_count = true;
 }
 
-unsigned char screen2[200*200*4];
-    int32_t screentexpos2[200*200];
-    int8_t screentexpos_addcolor2[200*200];
-    uint8_t screentexpos_grayscale2[200*200];
-    uint8_t screentexpos_cf2[200*200];
-    uint8_t screentexpos_cbr2[200*200];
-
-#define CHECK(dx,dy) \
-{\
-    const int tile = (x+dx) * gps->dimy + (y+dy); \
-    {\
-    df::map_block *block = world->map.block_index[(xx+dx) >> 4][(yy+dy) >> 4][zz]; \
-    if (block) {\
-        df::tiletype tt = block->tiletype[(xx+dx)&15][(yy+dy)&15];\
-        k = tt != df::tiletype::OpenSpace && tt != df::tiletype::RampTop;\
-    }}\
-}
-
-static int _min(int a, int b)
-{
-    return (a < b) ? a : b;
-}
+unsigned char screen2[256*256*4];
+    int32_t screentexpos2[256*256];
+    int8_t screentexpos_addcolor2[256*256];
+    uint8_t screentexpos_grayscale2[256*256];
+    uint8_t screentexpos_cf2[256*256];
+    uint8_t screentexpos_cbr2[256*256];
 
 struct zzz : public df::viewscreen_dwarfmodest
 {
@@ -558,7 +542,7 @@ struct zzz : public df::viewscreen_dwarfmodest
     {
         INTERPOSE_NEXT(render)();
 
-        if (shadowsloaded)
+        if (shadowsloaded && maxlevels)
             render_more_layers();
     }
 
@@ -633,8 +617,8 @@ struct zzz : public df::viewscreen_dwarfmodest
             
             GLfloat *vertices = ((renderer_opengl*)enabler->renderer)->vertexes;
             //TODO: test this
-            int x1 = _min(menu_left, world->map.x_count-*df::global::window_x+1);
-            int y1 = _min(h-1, world->map.y_count-*df::global::window_y+1);
+            int x1 = std::min(menu_left, world->map.x_count-*df::global::window_x+1);
+            int y1 = std::min(h-1, world->map.y_count-*df::global::window_y+1);
             for (int x = x0; x < x1; x++)
             {
                 for (int y = 1; y < y1; y++)
@@ -665,27 +649,46 @@ struct zzz : public df::viewscreen_dwarfmodest
                     if (!(e0))
                         continue;
 
-                    ch = screen2[tile2*4+0];
-                    if (!(ch!=31&&ch != 249 && ch != 250 && ch != 254 && ch != 32 && ch != 0 && !(ch >= '1' && ch <= '7')))
+                    int d=p;
+                    //if (p < maxlevels)
                     {
-                        df::map_block *block1 = world->map.block_index[xx >> 4][yy >> 4][zz-1];
-                        if (!block1)
+                        ch = screen2[tile2*4+0];
+                        if (!(ch!=31&&ch != 249 && ch != 250 && ch != 254 && ch != 32 && ch != 0 && !(ch >= '1' && ch <= '7')))
                         {
-                            //TODO: skip all other y's in this block
-                            empty_tiles_left = true;
-                            continue;
+                            df::map_block *block1 = world->map.block_index[xx >> 4][yy >> 4][zz-1];
+                            if (!block1)
+                            {
+                                //TODO: skip all other y's in this block
+                                if (p < maxlevels)
+                                {
+                                    empty_tiles_left = true;
+                                    continue;
+                                }
+                                else
+                                    d = p+1;
+                            }
+
+                            //TODO: check for hidden also
+                            df::tiletype t1 = block1->tiletype[xx&15][yy&15];
+                            if (t1 == df::tiletype::OpenSpace || t1 == df::tiletype::RampTop)
+                            {
+                                if (p < maxlevels)
+                                {
+                                    empty_tiles_left = true;
+                                    continue;
+                                }
+                                else
+                                {
+                                    if (t1 != df::tiletype::RampTop)
+                                        d = p+1;
+                                }
+                            }
                         }
 
-                        //TODO: check for hidden also
-                        df::tiletype t1 = block1->tiletype[xx&15][yy&15];
-                        if (t1 == df::tiletype::OpenSpace || t1 == df::tiletype::RampTop)
-                        {
-                            empty_tiles_left = true;
-                            continue;
-                        }
                     }
+                    //else
+                        //d = p+1;
 
-                    //*out2 << p << " !" << std::endl;
                     *((int*)sctop+tile) = *((int*)screen2+tile2);
                     if (*(screentexpos2+tile))
                     {
@@ -695,63 +698,13 @@ struct zzz : public df::viewscreen_dwarfmodest
                         *(screentexpos_cftop+tile) = *(screentexpos_cf2+tile2);
                         *(screentexpos_cbrtop+tile) = *(screentexpos_cbr2+tile2);
                     }
-
-                    int k = false;
-                    int kk = 0;
-                    do
-                    {
-                        if (xx>0)
-                        {
-                            CHECK(-1,0)
-                            kk |= k<<0;
-                        }
-                        if (yy < world->map.y_count-1)
-                        {
-                            CHECK(0,1)
-                            kk |= k<<1;
-                        }
-                        if (yy > 0)
-                        {
-                            CHECK(0,-1)
-                            kk |= k<<2;
-                        }
-                        if (xx < world->map.x_count-1)
-                        {
-                            CHECK(1,0)
-                            kk |= k<<3;
-                        }
-                        if (xx < world->map.x_count-1 && yy < world->map.y_count-1 && !(kk & (1<<1)) && !(kk & (1<<3)))
-                        {
-                            CHECK(1,1)
-                            kk |= k << 4;
-                        }
-
-                        if (xx > 0 && yy < world->map.y_count-1 && !(kk & (1<<0)) && !(kk & (1<<1)))
-                        {
-                            CHECK(-1,1)
-                            kk |= k<<5;
-                        }
-                        if (xx > 0 && yy > 0 && !(kk & (1<<0)) && !(kk & (1<<2)))
-                        {
-                            CHECK(-1,-1)
-                            kk |= k<<6;
-                        }
-                        if (xx < world->map.x_count-1 && yy > 0 && !(kk & (1<<2)) && !(kk & (1<<3)))
-                        {
-                            CHECK(1,-1)
-                            kk |= k<<7;
-                        }
-
-                        shadows[tile] = kk;
-
-                    } while(0);
-                    sctop[tile*4+3] = (0x10*p) | (sctop[tile*4+3]&0x0f);
+                    sctop[tile*4+3] = (0x10*d) | (sctop[tile*4+3]&0x0f);                                        
                 }
                 if (!empty_tiles_left)
                     x0 = x + 1;
             }
 
-            if (p++ >= 10)
+            if (p++ >= maxlevels)
                 break;
         } while(empty_tiles_left);
 
@@ -772,11 +725,41 @@ IMPLEMENT_VMETHOD_INTERPOSE(zzz, render);
 
 #include "config.hpp"
 
-command_result mapshot (color_ostream &out, std::vector <std::string> & parameters)
+command_result mapshot_cmd (color_ostream &out, std::vector <std::string> & parameters)
 {
     CoreSuspender suspend;
 
     domapshot = 10;
+
+    return CR_OK;    
+}
+
+command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & parameters)
+{
+    CoreSuspender suspend;
+
+    if (parameters.size() > 0)
+    {
+        std::string &param1 = parameters[0];
+
+        if (param1 == "more")
+        {
+            if (maxlevels < 15)
+                maxlevels++;
+        }
+        else if (param1 == "less")
+        {
+            if (maxlevels > 0)
+                maxlevels--;
+        }
+        else 
+        {
+            char *e;
+            int l = (int)strtol(param1.c_str(), &e, 10);
+            if (*e == 0)
+                maxlevels = l;
+        }
+    }
 
     return CR_OK;    
 }
@@ -844,11 +827,16 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 
     commands.push_back(PluginCommand(
         "mapshot", "Mapshot!",
-        mapshot, false, /* true means that the command can't be used from non-interactive user interface */
+        mapshot_cmd, false, /* true means that the command can't be used from non-interactive user interface */
         // Extended help string. Used by CR_WRONG_USAGE and the help command:
         ""
     ));        
-
+    commands.push_back(PluginCommand(
+        "multilevel", "Multilivel rendering",
+        multilevel_cmd, false, /* true means that the command can't be used from non-interactive user interface */
+        // Extended help string. Used by CR_WRONG_USAGE and the help command:
+        ""
+    ));   
     return CR_OK;
 }
 

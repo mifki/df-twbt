@@ -48,6 +48,7 @@ void renderer_cool::update_tile(int x, int y)
 
     //const int tile = x * gps->dimy + y;
     float d = (float)((screen[tile*4+3]&0xf0)>>4);
+    depth[tile] = d;
     fogcoord[tile*6+0] = d;
     fogcoord[tile*6+1] = d;
     fogcoord[tile*6+2] = d;
@@ -205,67 +206,69 @@ GLenum status;
 
         for (int tile = 0; tile < gps->dimx*gps->dimy; tile++)
         {
-            if ((screen[tile*4+3]&0xf0))
+            int xx = tile / gps->dimy;
+            int yy = tile % gps->dimy;
+
+            int d = depth[tile];
+            if (d)
             {
                 GLfloat *tex = shadowtex+elemcnt*2;
-                unsigned char kk = shadows[tile];
 
-                if (kk & (1 << 0))
+                bool top=false, left=false, btm=false, right=false;
+                if (xx > 0 && (depth[((xx-1)*gps->dimy + yy)]) < d)
                 {
                     memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
                     SETTEX(shadow_texpos[0]);
                     elemcnt+=6;
+                    left = true;
                 }
-                if (kk & (1 << 1))
+                if (yy < world->map.y_count-1 && (depth[((xx)*gps->dimy + yy+1)]) < d)
                 {
                     memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-
                     SETTEX(shadow_texpos[1]);
                     elemcnt+=6;
+                    btm = true;
                 }
-                if (kk & (1 << 2))
+                if (yy > 0 && (depth[((xx)*gps->dimy + yy-1)]) < d)
                 {
                     memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-
                     SETTEX(shadow_texpos[2]);
                     elemcnt+=6;
+                    top = true;
                 }
-                if (kk & (1 << 3))
+                if (xx < world->map.x_count-1 && (depth[((xx+1)*gps->dimy + yy)]) < d)
                 {
                     memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-
                     SETTEX(shadow_texpos[3]);
                     elemcnt+=6;
-                }        
-                if (kk & (1 << 4))
+                    right = true;
+                }
+
+                if (!right && !btm && xx < world->map.x_count-1 && yy < world->map.y_count-1 && (depth[((xx+1)*gps->dimy + yy+1)]) < d)
                 {
                     memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-
                     SETTEX(shadow_texpos[4]);
                     elemcnt+=6;
-                }               
-                if (kk & (1 << 5))
+                }
+                if (!left && !btm && xx > 0 && yy < world->map.y_count-1 && (depth[((xx-1)*gps->dimy + yy+1)]) < d)
                 {
                     memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-
                     SETTEX(shadow_texpos[5]);
                     elemcnt+=6;
-                }            
-                if (kk & (1 << 6))
+                }
+                if (!left && !top && xx > 0 && yy > 0 && (depth[((xx-1)*gps->dimy + yy-1)]) < d)
                 {
                     memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-
                     SETTEX(shadow_texpos[6]);
                     elemcnt+=6;
-                }        
-                if (kk & (1 << 7))
+                }
+                if (!top && !right && xx < world->map.x_count-1 && yy > 0 && (depth[((xx+1)*gps->dimy + yy-1)]) < d)
                 {
                     memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-
                     SETTEX(shadow_texpos[7]);
                     elemcnt+=6;
                 }
-            } 
+            }            
         }
     }
 
