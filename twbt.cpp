@@ -46,6 +46,7 @@
 #include "df/tiletype.h"
 #include "df/graphic.h"
 #include "df/enabler.h"
+#include "df/d_init.h"
 #include "df/renderer.h"
 #include "df/building.h"
 #include "df/building_type.h"
@@ -74,6 +75,7 @@ using df::global::enabler;
 using df::global::gps;
 using df::global::ui;
 using df::global::init;
+using df::global::d_init;
 
 struct texture_fullid {
     int texpos;
@@ -529,11 +531,13 @@ void unhook()
 }
 
 unsigned char screen2[256*256*4];
-    int32_t screentexpos2[256*256];
-    int8_t screentexpos_addcolor2[256*256];
-    uint8_t screentexpos_grayscale2[256*256];
-    uint8_t screentexpos_cf2[256*256];
-    uint8_t screentexpos_cbr2[256*256];
+int32_t screentexpos2[256*256];
+int8_t screentexpos_addcolor2[256*256];
+uint8_t screentexpos_grayscale2[256*256];
+uint8_t screentexpos_cf2[256*256];
+uint8_t screentexpos_cbr2[256*256];
+uint8_t skytile;
+uint8_t chasmtile;
 
 struct zzz : public df::viewscreen_dwarfmodest
 {
@@ -593,6 +597,7 @@ struct zzz : public df::viewscreen_dwarfmodest
         int p = 1;
         int x0 = 1;
         int zz0 = *df::global::window_z;        
+
         do
         {
             //TODO: if z=0 should just render and use for all tiles always
@@ -631,7 +636,7 @@ struct zzz : public df::viewscreen_dwarfmodest
                         continue;
 
                     unsigned char ch = sctop[tile*4+0];
-                    if (ch != 31 && ch != 249 && ch != 250 && ch != 254 && ch != 32 && ch != 0 && !(ch >= '1' && ch <= '7'))
+                    if (ch != 31 && ch != 249 && ch != 250 && ch != 254 && ch != skytile && ch != chasmtile && !(ch >= '1' && ch <= '7'))
                         continue;
 
                     int xx = *df::global::window_x + x-1;
@@ -654,7 +659,7 @@ struct zzz : public df::viewscreen_dwarfmodest
                     //if (p < maxlevels)
                     {
                         ch = screen2[tile2*4+0];
-                        if (!(ch!=31&&ch != 249 && ch != 250 && ch != 254 && ch != 32 && ch != 0 && !(ch >= '1' && ch <= '7')))
+                        if (!(ch!=31&&ch != 249 && ch != 250 && ch != 254 && ch != skytile && ch != chasmtile && !(ch >= '1' && ch <= '7')))
                         {
                             df::map_block *block1 = world->map.block_index[xx >> 4][yy >> 4][zz-1];
                             if (!block1)
@@ -915,6 +920,9 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     bad_item_flags.bits.construction = true;
     bad_item_flags.bits.in_inventory = true;
     bad_item_flags.bits.in_chest = true;
+
+    skytile = d_init->sky_tile;
+    chasmtile = d_init->chasm_tile;
 
     //Main tileset
     struct tileset ts;
