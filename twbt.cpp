@@ -378,7 +378,7 @@ void write_tile_arrays(df::renderer *r, int x, int y, GLfloat *fg, GLfloat *bg, 
         {
             int xx = *df::global::window_x + x-1;
             int yy = *df::global::window_y + y-1;
-            int zz = *df::global::window_z;
+            int zz = *df::global::window_z - ((s[3]&0xf0)>>4);
             bool matched = false;
 
             // Items
