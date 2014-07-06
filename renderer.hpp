@@ -22,6 +22,7 @@ void renderer_cool::update_tile(int x, int y)
 
         //const int tile = x * gps->dimy + y;
         float d = (float)((screen2[tile*4+3]&0xf0)>>4);
+        depth[tile] = d;
         fogcoord[tile*6+0] = d;
         fogcoord[tile*6+1] = d;
         fogcoord[tile*6+2] = d;
@@ -140,8 +141,6 @@ else
     //if (!gvertexes)
     reshape_graphics();
   }
-
-
 
 void renderer_cool::draw(int vertex_count)
 {
@@ -315,7 +314,7 @@ GLenum status;
 
     float FogCol[3]={0.1f,0.1f,0.3f};
     //float FogCol[3]={0.8f,0.8f,0.8f};
-    //glEnable(GL_FOG);
+    glEnable(GL_FOG);
     glFogfv(GL_FOG_COLOR,FogCol);
     glFogf(GL_FOG_DENSITY,0.15f);
     //glFogi(GL_FOG_MODE, GL_LINEAR);
@@ -345,6 +344,103 @@ GLenum status;
     glDrawArrays(GL_TRIANGLES, 0, gdimx*gdimy*6);
 
     glDisable(GL_FOG);    
+
+
+
+
+
+  // Prepare and render shadows
+    short elemcnt = 0;
+    //TODO: don't do this if view not moved and tiles with shadows not changed
+    {
+        gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
+
+        for (int tile = 0; tile < gdimx*gdimy; tile++)
+        {
+            int xx = tile / gdimy;
+            int yy = tile % gdimy;
+
+            int d = depth[tile];
+            if (d)
+            {
+                GLfloat *tex = shadowtex+elemcnt*2;
+
+                bool top=false, left=false, btm=false, right=false;
+                if (xx > 0 && (depth[((xx-1)*gdimy + yy)]) < d)
+                {
+                    memcpy(shadowvert+elemcnt*2, gvertexes+tile*6*2, 6*2*sizeof(float));
+                    SETTEX(shadow_texpos[0]);
+                    elemcnt+=6;
+                    left = true;
+                }
+                if (yy < gdimy-1 && (depth[((xx)*gdimy + yy+1)]) < d)
+                {
+                    memcpy(shadowvert+elemcnt*2, gvertexes+tile*6*2, 6*2*sizeof(float));
+                    SETTEX(shadow_texpos[1]);
+                    elemcnt+=6;
+                    btm = true;
+                }
+                if (yy > 0 && (depth[((xx)*gdimy + yy-1)]) < d)
+                {
+                    memcpy(shadowvert+elemcnt*2, gvertexes+tile*6*2, 6*2*sizeof(float));
+                    SETTEX(shadow_texpos[2]);
+                    elemcnt+=6;
+                    top = true;
+                }
+                if (xx < gdimx-1 && (depth[((xx+1)*gdimy + yy)]) < d)
+                {
+                    memcpy(shadowvert+elemcnt*2, gvertexes+tile*6*2, 6*2*sizeof(float));
+                    SETTEX(shadow_texpos[3]);
+                    elemcnt+=6;
+                    right = true;
+                }
+
+                if (!right && !btm && xx < gdimx-1 && yy < gdimy-1 && (depth[((xx+1)*gdimy + yy+1)]) < d)
+                {
+                    memcpy(shadowvert+elemcnt*2, gvertexes+tile*6*2, 6*2*sizeof(float));
+                    SETTEX(shadow_texpos[4]);
+                    elemcnt+=6;
+                }
+                if (!left && !btm && xx > 0 && yy < gdimy-1 && (depth[((xx-1)*gdimy + yy+1)]) < d)
+                {
+                    memcpy(shadowvert+elemcnt*2, gvertexes+tile*6*2, 6*2*sizeof(float));
+                    SETTEX(shadow_texpos[5]);
+                    elemcnt+=6;
+                }
+                if (!left && !top && xx > 0 && yy > 0 && (depth[((xx-1)*gdimy + yy-1)]) < d)
+                {
+                    memcpy(shadowvert+elemcnt*2, gvertexes+tile*6*2, 6*2*sizeof(float));
+                    SETTEX(shadow_texpos[6]);
+                    elemcnt+=6;
+                }
+                if (!top && !right && xx < gdimx-1 && yy > 0 && (depth[((xx+1)*gdimy + yy-1)]) < d)
+                {
+                    memcpy(shadowvert+elemcnt*2, gvertexes+tile*6*2, 6*2*sizeof(float));
+                    SETTEX(shadow_texpos[7]);
+                    elemcnt+=6;
+                }
+            }            
+        }
+    }
+
+    glDisableClientState(GL_COLOR_ARRAY);
+    glColor4f(0, 0, 0, 0.4f);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
+    glTexCoordPointer(2, GL_FLOAT, 0, shadowtex);
+    glVertexPointer(2, GL_FLOAT, 0, shadowvert);
+    glDrawArrays(GL_TRIANGLES, 0, elemcnt);
+    glEnableClientState(GL_COLOR_ARRAY);    
+
+
+
+
+
+
+
+
+
     glDisable(GL_SCISSOR_TEST);
 }
 }
@@ -373,90 +469,8 @@ glViewport(off_x, off_y, size_x, size_y);
     glColorPointer(4, GL_FLOAT, 0, fg);
     glDrawArrays(GL_TRIANGLES, 0, vertex_count);    
 }
-    return;
-    // Prepare and render shadows
-    short elemcnt = 0;
-    //TODO: don't do this if view not moved and tiles with shadows not changed
-    {
-        gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
 
-        for (int tile = 0; tile < gps->dimx*gps->dimy; tile++)
-        {
-            if ((screen[tile*4+3]&0xf0))
-            {
-                GLfloat *tex = shadowtex+elemcnt*2;
-                unsigned char kk = shadows[tile];
-
-                if (kk & (1 << 0))
-                {
-                    memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-                    SETTEX(shadow_texpos[0]);
-                    elemcnt+=6;
-                }
-                if (kk & (1 << 1))
-                {
-                    memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-
-                    SETTEX(shadow_texpos[1]);
-                    elemcnt+=6;
-                }
-                if (kk & (1 << 2))
-                {
-                    memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-
-                    SETTEX(shadow_texpos[2]);
-                    elemcnt+=6;
-                }
-                if (kk & (1 << 3))
-                {
-                    memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-
-                    SETTEX(shadow_texpos[3]);
-                    elemcnt+=6;
-                }        
-                if (kk & (1 << 4))
-                {
-                    memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-
-                    SETTEX(shadow_texpos[4]);
-                    elemcnt+=6;
-                }               
-                if (kk & (1 << 5))
-                {
-                    memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-
-                    SETTEX(shadow_texpos[5]);
-                    elemcnt+=6;
-                }            
-                if (kk & (1 << 6))
-                {
-                    memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-
-                    SETTEX(shadow_texpos[6]);
-                    elemcnt+=6;
-                }        
-                if (kk & (1 << 7))
-                {
-                    memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-
-                    SETTEX(shadow_texpos[7]);
-                    elemcnt+=6;
-                }
-            } 
-        }
-    }
-
-    glDisableClientState(GL_COLOR_ARRAY);
-    glColor4f(0, 0, 0, 0.4f);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    //glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
-    glTexCoordPointer(2, GL_FLOAT, 0, shadowtex);
-    glVertexPointer(2, GL_FLOAT, 0, shadowvert);
-    glDrawArrays(GL_TRIANGLES, 0, elemcnt);
-    glEnableClientState(GL_COLOR_ARRAY);    
-
-
+  
     if (domapshot==1)
     {
         int w = world->map.x_count*dispx;

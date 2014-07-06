@@ -52,6 +52,7 @@
 #include "df/tiletype.h"
 #include "df/graphic.h"
 #include "df/enabler.h"
+#include "df/d_init.h"
 #include "df/renderer.h"
 #include "df/building.h"
 #include "df/building_type.h"
@@ -71,6 +72,7 @@
 #include "df/viewscreen_movieplayerst.h"
 #include "df/ui_sidebar_mode.h"
 #include "df/viewscreen_layer_militaryst.h"
+#include "df/viewscreen_tradegoodsst.h"
 
 using df::global::world;
 using std::string;
@@ -79,6 +81,7 @@ using df::global::enabler;
 using df::global::gps;
 using df::global::ui;
 using df::global::init;
+using df::global::d_init;
 
 struct texture_fullid {
     int texpos;
@@ -150,6 +153,7 @@ static vector< struct override > *overrides[256];
 static struct tileref override_defs[256];
 static df::item_flags bad_item_flags;
 
+static int maxlevels = 10;
 
 // This is from g_src/renderer_opengl.hpp
 struct renderer_opengl : df::renderer
@@ -336,9 +340,9 @@ bool is_text_tile(int x, int y, bool &is_map)
 }
 
 float addcolors[][3] = { {1,0,0} };
-unsigned char shadows[200*200];
-GLfloat shadowtex[200*200*2*6];
-GLfloat shadowvert[200*200*2*6];
+unsigned char depth[256*256];
+GLfloat shadowtex[256*256*2*6];
+GLfloat shadowvert[256*256*2*6];
 long shadow_texpos[8];
 bool shadowsloaded;
 
@@ -404,7 +408,7 @@ else
   ret.bg = enabler->ccolor[bg][1];
   ret.bb = enabler->ccolor[bg][2];
 }
-unsigned char depth[200*200*4];
+
 void write_tile_arrays(renderer_cool *r, int x, int y, GLfloat *fg, GLfloat *bg, GLfloat *tex)
 {
     struct texture_fullid ret;
@@ -439,14 +443,13 @@ void write_tile_arrays(renderer_cool *r, int x, int y, GLfloat *fg, GLfloat *bg,
     //    ret.texpos = enabler->fullscreen ? tilesets[0].large_texpos[0] : tilesets[0].small_texpos[0];
     if (is_map && has_overrides)
     {
-
         const unsigned char *s = r->screen + tile*4;
         int s0 = s[0];
         if (overrides[s0])
         {
             int xx = *df::global::window_x + x-1;
             int yy = *df::global::window_y + y-1;
-            int zz = *df::global::window_z;
+            int zz = *df::global::window_z - ((s[3]&0xf0)>>4);
             bool matched = false;
 
             // Items
@@ -527,11 +530,19 @@ void write_tile_arrays(renderer_cool *r, int x, int y, GLfloat *fg, GLfloat *bg,
 
 float fogcoord[2000*2000*6];
 unsigned char screen2[2000*2000*4];
-    int32_t screentexpos2[2000*2000];
-    int8_t screentexpos_addcolor2[2000*2000];
-    uint8_t screentexpos_grayscale2[2000*2000];
-    uint8_t screentexpos_cf2[2000*2000];
-    uint8_t screentexpos_cbr2[2000*2000];
+int32_t screentexpos2[2000*2000];
+int8_t screentexpos_addcolor2[2000*2000];
+uint8_t screentexpos_grayscale2[2000*2000];
+uint8_t screentexpos_cf2[2000*2000];
+uint8_t screentexpos_cbr2[2000*2000];
+unsigned char screen3[2000*2000*4];
+int32_t screentexpos3[2000*2000];
+int8_t screentexpos_addcolor3[2000*2000];
+uint8_t screentexpos_grayscale3[2000*2000];
+uint8_t screentexpos_cf3[2000*2000];
+uint8_t screentexpos_cbr3[2000*2000];
+uint8_t skytile;
+uint8_t chasmtile;
 
 #include "renderer.hpp"
 
@@ -665,7 +676,6 @@ struct zzz : public df::viewscreen_dwarfmodest
             menuforced_last = menuforced;
         }*/
 
-
         if ((menuforced || menu_width == 1) && area_map_width == 2) // Menu + area map
         {
             menu_w = 55;
@@ -798,6 +808,175 @@ struct zzz : public df::viewscreen_dwarfmodest
 #endif
 #endif
 
+
+
+
+
+        {
+
+
+
+
+        uint8_t *sctop = enabler->renderer->screen;
+        int32_t *screentexpostop = enabler->renderer->screentexpos;
+        int8_t *screentexpos_addcolortop = enabler->renderer->screentexpos_addcolor;
+        uint8_t *screentexpos_grayscaletop = enabler->renderer->screentexpos_grayscale;
+        uint8_t *screentexpos_cftop = enabler->renderer->screentexpos_cf;
+        uint8_t *screentexpos_cbrtop = enabler->renderer->screentexpos_cbr;
+
+        gps->screen = screen3;
+        gps->screen_limit = gps->screen + r->gdimx * r->gdimy * 4;
+        gps->screentexpos = screentexpos3;
+        gps->screentexpos_addcolor = screentexpos_addcolor3;
+        gps->screentexpos_grayscale = screentexpos_grayscale3;
+        gps->screentexpos_cf = screentexpos_cf3;
+        gps->screentexpos_cbr = screentexpos_cbr3;
+
+        //this->*this->interpose_render.get_first_interpose(&df::viewscreen_dwarfmodest::_identity).saved_chain;
+
+        //void (*render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
+
+        bool empty_tiles_left;
+        int p = 1;
+        int x0 = 0;
+        int zz0 = *df::global::window_z;        
+        do
+        {
+            //TODO: if z=0 should just render and use for all tiles always
+            if (*df::global::window_z == 0)
+                break;
+
+            (*df::global::window_z)--;
+
+            (*df::global::window_x) += x0;
+            //init->display.grid_x -= x0-1;
+
+#ifdef WIN32
+        render_map(1);
+#else
+#ifdef DFHACK_r5
+        render_map(df::global::map_renderer, 1);
+#else
+        render_map(df::global::cursor_unit_list, 1);
+#endif
+#endif
+        
+            (*df::global::window_x) -= x0;
+            //init->display.grid_x += x0-1;
+
+            empty_tiles_left = false;
+            int x00 = x0;
+            int zz = zz0 - p + 1;
+
+            //*out2 << p << " " << x0 << std::endl;
+            
+            GLfloat *vertices = ((renderer_opengl*)enabler->renderer)->vertexes;
+            //TODO: test this
+            int x1 = std::min(r->gdimx, world->map.x_count-*df::global::window_x);
+            int y1 = std::min(r->gdimy, world->map.y_count-*df::global::window_y);
+            for (int x = x0; x < x1; x++)
+            {
+                for (int y = 0; y < y1; y++)
+                {
+                    const int tile = x * r->gdimy + y;
+                    const int tile2 = (x-(x00)) * r->gdimy + y;
+
+                    if ((sctop[tile*4+3]&0xf0))
+                        continue;
+
+                    unsigned char ch = sctop[tile*4+0];
+                    if (ch != 31 && ch != 249 && ch != 250 && ch != 254 && ch != skytile && ch != chasmtile && !(ch >= '1' && ch <= '7'))
+                        continue;
+
+                    int xx = *df::global::window_x + x;
+                    int yy = *df::global::window_y + y;
+                    if (xx < 0 || yy < 0)
+                        continue;
+
+                    //TODO: check for z=0
+                    bool e0,h,h0;
+                    //*out2 << xx << " " << world->map.x_count << " " << yy << " " << world->map.y_count << " " << *df::global::window_x << " " << *df::global::window_y << std::endl;
+                    df::map_block *block0 = world->map.block_index[xx >> 4][yy >> 4][zz0];
+                    h0 = block0 && block0->designation[xx&15][yy&15].bits.hidden;
+                    if (h0)
+                        continue;
+                    e0 = !block0 || (block0->tiletype[xx&15][yy&15] == df::tiletype::OpenSpace || block0->tiletype[xx&15][yy&15] == df::tiletype::RampTop);
+                    if (!(e0))
+                        continue;
+
+                    int d=p;
+                    ch = screen3[tile2*4+0];
+                    if (!(ch!=31&&ch != 249 && ch != 250 && ch != 254 && ch != skytile && ch != chasmtile && !(ch >= '1' && ch <= '7')))
+                    {
+                        df::map_block *block1 = world->map.block_index[xx >> 4][yy >> 4][zz-1];
+                        if (!block1)
+                        {
+                            //TODO: skip all other y's in this block
+                            if (p < maxlevels)
+                            {
+                                empty_tiles_left = true;
+                                continue;
+                            }
+                            else
+                                d = p+1;
+                        }
+                        else
+                        {
+                            //TODO: check for hidden also
+                            df::tiletype t1 = block1->tiletype[xx&15][yy&15];
+                            if (t1 == df::tiletype::OpenSpace || t1 == df::tiletype::RampTop)
+                            {
+                                if (p < maxlevels)
+                                {
+                                    empty_tiles_left = true;
+                                    continue;
+                                }
+                                else
+                                {
+                                    if (t1 != df::tiletype::RampTop)
+                                        d = p+1;
+                                }
+                            }
+                        }
+                    }
+
+                    //*out2 << p << " !" << std::endl;
+                    *((int*)screen2+tile) = *((int*)screen3+tile2);
+                    if (*(screentexpos3+tile2))
+                    {
+                        *(screentexpostop+tile) = *(screentexpos3+tile2);
+                        *(screentexpos_addcolortop+tile) = *(screentexpos_addcolor3+tile2);
+                        *(screentexpos_grayscaletop+tile) = *(screentexpos_grayscale3+tile2);
+                        *(screentexpos_cftop+tile) = *(screentexpos_cf3+tile2);
+                        *(screentexpos_cbrtop+tile) = *(screentexpos_cbr3+tile2);
+                    }
+                    sctop[tile*4+3] = (0x10*d) | (sctop[tile*4+3]&0x0f);
+                }
+                if (!empty_tiles_left)
+                    x0 = x + 1;
+            }
+
+            if (p++ >= 10)
+                break;
+        } while(empty_tiles_left);
+
+        (*df::global::window_z) = zz0;
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
         init->display.grid_x = gps->dimx = oldgridx;
         init->display.grid_y = gps->dimy = oldgridy;
         gps->clipx[1] = gps->dimx-1;
@@ -817,7 +996,7 @@ struct zzz : public df::viewscreen_dwarfmodest
         //    render_more_layers();
     }
 
-    void render_more_layers()
+/*    void render_more_layers()
     {
         int32_t w = gps->dimx, h = gps->dimy;
         uint8_t menu_width, area_map_width;
@@ -1019,20 +1198,153 @@ struct zzz : public df::viewscreen_dwarfmodest
         gps->screentexpos_grayscale = screentexpos_grayscaletop;
         gps->screentexpos_cf = screentexpos_cftop;
         gps->screentexpos_cbr = screentexpos_cbrtop;
-    }    
+    }    */
 };
 
 //TODO: Priority?
 IMPLEMENT_VMETHOD_INTERPOSE(zzz, render);
 IMPLEMENT_VMETHOD_INTERPOSE(zzz, feed);
 
+
+#ifdef __APPLE__
+//0x0079cb2a+4 0x14 - item name length
+//0x0079cb18+3 0x14 - item name length
+
+//0x0079e04e+3 0x1a - price, affects both sides
+//0x0079cbd1+2 0x1f - weight, affects both sides
+//0x0079ccbc+2 0x21 - [T], affects both sides
+
+//0x0079ef96+2 0x29 - "Value:"
+//0x0079d84d+2 0x39 - "Max weight"
+//0x0079d779+2 0x2a - "offer marked"
+//0x0079d07c+2 0x2a - "view good"
+
+//0x0079c314+1 0x3b - our side name (center)
+//0x0079cd6b+7 0x28 - our item name (+2)
+
+//0x002e04cf+2 0x27 - border left
+//0x002e0540+2 XXXX - border right
+
+struct traderesize_hook : public df::viewscreen_tradegoodsst
+{
+    typedef df::viewscreen_tradegoodsst interpose_base;
+
+    DEFINE_VMETHOD_INTERPOSE(void, render, ())
+    {
+        static bool checked = false, ok = false;
+
+        if (!checked)
+        {
+            checked = true;
+
+            //check only some of the addresses
+            ok =
+                *(unsigned char*)(0x002e04cf+2) == 0x27 &&
+                *(unsigned char*)(0x0079ef96+2) == 0x29 &&
+                *(unsigned char*)(0x0079cbd1+2) == 0x1f &&
+                *(unsigned char*)(0x0079cb2a+4) == 0x14;
+
+            if (ok)
+            {
+                //fixing drawing of the right border
+                unsigned char t1[] = { 0x6b, 0xd1, 0x00 }; //imul edx, ecx, XXX
+                Core::getInstance().p->patchMemory((void*)(0x002e0540), t1, sizeof(t1));
+
+                unsigned char t2[] = { 0x01, 0xf2, 0x90 }; //add edx, esi; nop
+                Core::getInstance().p->patchMemory((void*)(0x002e0545), t2, sizeof(t2));
+            }
+        }
+
+        if (ok)
+        {
+            static int lastw = -1;
+            if (gps->dimx != lastw)
+            {
+                lastw = gps->dimx;
+
+                unsigned char x1 = lastw/2-1, x;
+
+                //border
+                x = x1;
+                Core::getInstance().p->patchMemory((void*)(0x002e04cf+2), &x, 1);
+                x = x1 + 1;
+                Core::getInstance().p->patchMemory((void*)(0x002e0540+2), &x, 1);
+
+                x = x1 + 1 + 2;
+                Core::getInstance().p->patchMemory((void*)(0x0079d07c+2), &x, 1); //view good
+                Core::getInstance().p->patchMemory((void*)(0x0079d779+2), &x, 1); //offer marked
+
+                x = x1 + 1 + 1;
+                Core::getInstance().p->patchMemory((void*)(0x0079ef96+2), &x, 1); //value
+
+                x = x1 + 1 + 1 + 16;
+                Core::getInstance().p->patchMemory((void*)(0x0079d84d+2), &x, 1); //max weight            
+
+                x = x1 + 1 + 2 - 2;
+                Core::getInstance().p->patchMemory((void*)(0x0079cd6b+7), &x, 1); //item name
+
+                x = x1 - 2 - 3;
+                Core::getInstance().p->patchMemory((void*)(0x0079ccbc+2), &x, 1); //[T]
+
+                x = x1 - 2 - 3;
+                Core::getInstance().p->patchMemory((void*)(0x0079cbd1+2), &x, 1); //item weight
+
+                x = x1 - 2 - 3 - 5;
+                Core::getInstance().p->patchMemory((void*)(0x0079e04e + 3), &x, 1); //item price
+
+                x = x1 - 2 - 3 - 5 - 5;
+                Core::getInstance().p->patchMemory((void*)(0x0079cb2a+4), &x, 1); //item name len
+                Core::getInstance().p->patchMemory((void*)(0x0079cb18+3), &x, 1); //item name len
+
+                x = (x1 + 2 + lastw) / 2;
+                Core::getInstance().p->patchMemory((void*)(0x0079c314+1), &x, 1); //our side name
+            }
+        }
+
+        INTERPOSE_NEXT(render)();
+    }
+};
+
+IMPLEMENT_VMETHOD_INTERPOSE(traderesize_hook, render);
+#endif
+
 #include "config.hpp"
 
-command_result mapshot (color_ostream &out, std::vector <std::string> & parameters)
+command_result mapshot_cmd (color_ostream &out, std::vector <std::string> & parameters)
 {
     CoreSuspender suspend;
 
     domapshot = 10;
+
+    return CR_OK;    
+}
+
+command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & parameters)
+{
+    CoreSuspender suspend;
+
+    if (parameters.size() > 0)
+    {
+        std::string &param1 = parameters[0];
+
+        if (param1 == "more")
+        {
+            if (maxlevels < 15)
+                maxlevels++;
+        }
+        else if (param1 == "less")
+        {
+            if (maxlevels > 0)
+                maxlevels--;
+        }
+        else 
+        {
+            char *e;
+            int l = (int)strtol(param1.c_str(), &e, 10);
+            if (*e == 0)
+                maxlevels = l;
+        }
+    }
 
     return CR_OK;    
 }
@@ -1083,6 +1395,9 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     bad_item_flags.bits.in_inventory = true;
     bad_item_flags.bits.in_chest = true;
 
+    skytile = d_init->sky_tile;
+    chasmtile = d_init->chasm_tile;    
+
     //Main tileset
     struct tileset ts;
     memcpy(ts.small_texpos, df::global::init->font.small_font_texpos, sizeof(ts.small_texpos));
@@ -1099,12 +1414,22 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     INTERPOSE_HOOK(zzz, render).apply(1);
     INTERPOSE_HOOK(zzz, feed).apply(1);
 
+#ifdef __APPLE__
+    INTERPOSE_HOOK(traderesize_hook, render).apply(true);
+#endif    
+
     commands.push_back(PluginCommand(
         "mapshot", "Mapshot!",
-        mapshot, false, /* true means that the command can't be used from non-interactive user interface */
+        mapshot_cmd, false, /* true means that the command can't be used from non-interactive user interface */
         // Extended help string. Used by CR_WRONG_USAGE and the help command:
         ""
     ));        
+    commands.push_back(PluginCommand(
+        "multilevel", "Multilivel rendering",
+        multilevel_cmd, false, /* true means that the command can't be used from non-interactive user interface */
+        // Extended help string. Used by CR_WRONG_USAGE and the help command:
+        ""
+    ));       
 
     return CR_OK;
 }
@@ -1113,6 +1438,10 @@ DFhackCExport command_result plugin_shutdown ( color_ostream &out )
 {
     if (enabled)
         unhook();
+
+#ifdef __APPLE__
+    INTERPOSE_HOOK(traderesize_hook, render).apply(false);
+#endif            
 
     return CR_OK;
 }

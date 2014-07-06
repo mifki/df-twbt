@@ -18,6 +18,8 @@ Allows to override tile numbers for buildings and items, see `overrides.txt` for
 
 Copy `shadows.png` to `data/art` folder.
 
+`multilevel` command controls the number of additional levels rendered. Possible parameters are `more`, `less` or number `0-15`.
+
 ### Additional Colours ###
 
 Not yet.
