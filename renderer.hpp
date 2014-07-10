@@ -134,7 +134,27 @@ void renderer_cool::draw(int vertex_count)
             old_winx = *df::global::window_x;
             old_winy = *df::global::window_y;
 
-            grid_resize(world->map.x_count+36, world->map.y_count+2);
+            uint8_t menu_width, area_map_width;
+            Gui::getMenuWidth(menu_width, area_map_width);
+            int32_t menu_w = 0;
+
+            bool menuforced = (ui->main.mode != df::ui_sidebar_mode::Default || df::global::cursor->x != -30000);
+
+            if ((menuforced || menu_width == 1) && area_map_width == 2) // Menu + area map
+            {
+                menu_w = 55;
+            }
+            else if (menu_width == 2 && area_map_width == 2) // Area map only
+            {
+                menu_w = 24;
+            }
+            else if (menu_width == 1) // Wide menu
+                menu_w = 55;
+            else if (menuforced || (menu_width == 2 && area_map_width == 3)) // Menu only
+                menu_w = 31; 
+
+
+            grid_resize(world->map.x_count+menu_w+2, world->map.y_count+2);
             *df::global::window_x = 0;
             *df::global::window_y = 0;
             gps->force_full_display_count = 1;
@@ -352,7 +372,7 @@ hdr.PixelDepth = 24;
 
 
 *out2 << w << " "<<h<<std::endl;
-        std::ofstream img("mapshot.tga");
+        std::ofstream img("mapshot.tga", std::ofstream::binary);
         img.write((const char*)&hdr, sizeof(hdr));
 /*        for (int j = 0; j<w*h*3; j++)
         {

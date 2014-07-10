@@ -478,9 +478,9 @@ void hook()
     long **vtable_new = (long **)newr;
 
 #ifdef WIN32
-    long draw_new = vtable_new[0][13];//14 on osx
+    long draw_new = vtable_new[0][13];
 #else
-    long draw_new = vtable_new[0][14];//14 on osx
+    long draw_new = vtable_new[0][14];
 #endif
     long update_tile_new = vtable_new[0][0];
 
@@ -656,39 +656,36 @@ struct zzz : public df::viewscreen_dwarfmodest
                         continue;
 
                     int d=p;
-                    //if (p < maxlevels)
+                    ch = screen2[tile2*4+0];
+                    if (!(ch!=31&&ch != 249 && ch != 250 && ch != 254 && ch != skytile && ch != chasmtile && !(ch >= '1' && ch <= '7')))
                     {
-                        ch = screen2[tile2*4+0];
-                        if (!(ch!=31&&ch != 249 && ch != 250 && ch != 254 && ch != skytile && ch != chasmtile && !(ch >= '1' && ch <= '7')))
+                        df::map_block *block1 = world->map.block_index[xx >> 4][yy >> 4][zz-1];
+                        if (!block1)
                         {
-                            df::map_block *block1 = world->map.block_index[xx >> 4][yy >> 4][zz-1];
-                            if (!block1)
+                            //TODO: skip all other y's in this block
+                            if (p < maxlevels)
                             {
-                                //TODO: skip all other y's in this block
+                                empty_tiles_left = true;
+                                continue;
+                            }
+                            else
+                                d = p+1;
+                        }
+                        else
+                        {
+                            //TODO: check for hidden also
+                            df::tiletype t1 = block1->tiletype[xx&15][yy&15];
+                            if (t1 == df::tiletype::OpenSpace || t1 == df::tiletype::RampTop)
+                            {
                                 if (p < maxlevels)
                                 {
                                     empty_tiles_left = true;
                                     continue;
                                 }
                                 else
-                                    d = p+1;
-                            }
-                            else
-                            {
-                                //TODO: check for hidden also
-                                df::tiletype t1 = block1->tiletype[xx&15][yy&15];
-                                if (t1 == df::tiletype::OpenSpace || t1 == df::tiletype::RampTop)
                                 {
-                                    if (p < maxlevels)
-                                    {
-                                        empty_tiles_left = true;
-                                        continue;
-                                    }
-                                    else
-                                    {
-                                        if (t1 != df::tiletype::RampTop)
-                                            d = p+1;
-                                    }
+                                    if (t1 != df::tiletype::RampTop)
+                                        d = p+1;
                                 }
                             }
                         }
@@ -955,6 +952,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         // Extended help string. Used by CR_WRONG_USAGE and the help command:
         ""
     ));   
+
     return CR_OK;
 }
 
