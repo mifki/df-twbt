@@ -218,119 +218,122 @@ GLenum status;
 
     glDisable(GL_FOG);    
 
-    // Prepare and render shadows
-    short elemcnt = 0;
-    //TODO: don't do this if view not moved and tiles with shadows not changed
-    static df::viewscreen *prevws = NULL;
-    df::viewscreen *ws = Gui::getCurViewscreen();
-    if (ws != prevws)
+    if (maxlevels)
     {
-        gps->force_full_display_count = true;
-        prevws = ws;
-    }
-    if (df::viewscreen_dwarfmodest::_identity.is_direct_instance(ws))
-    {
-        int32_t w = gps->dimx, h = gps->dimy;
-        uint8_t menu_width, area_map_width;
-        Gui::getMenuWidth(menu_width, area_map_width);
-        int32_t menu_left = w - 1;
-
-        bool menuforced = (ui->main.mode != df::ui_sidebar_mode::Default || df::global::cursor->x != -30000);
-
-        if ((menuforced || menu_width == 1) && area_map_width == 2) // Menu + area map
+        // Prepare and render shadows
+        short elemcnt = 0;
+        //TODO: don't do this if view not moved and tiles with shadows not changed
+        static df::viewscreen *prevws = NULL;
+        df::viewscreen *ws = Gui::getCurViewscreen();
+        if (ws != prevws)
         {
-            menu_left = w - 56;
+            gps->force_full_display_count = true;
+            prevws = ws;
         }
-        else if (menu_width == 2 && area_map_width == 2) // Area map only
+        if (df::viewscreen_dwarfmodest::_identity.is_direct_instance(ws))
         {
-            menu_left = w - 25;
-        }
-        else if (menu_width == 1) // Wide menu
-            menu_left = w - 56;
-        else if (menuforced || (menu_width == 2 && area_map_width == 3)) // Menu only
-            menu_left = w - 32; 
+            int32_t w = gps->dimx, h = gps->dimy;
+            uint8_t menu_width, area_map_width;
+            Gui::getMenuWidth(menu_width, area_map_width);
+            int32_t menu_left = w - 1;
 
-        gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
+            bool menuforced = (ui->main.mode != df::ui_sidebar_mode::Default || df::global::cursor->x != -30000);
 
-        for (int tile = 0; tile < gps->dimx*gps->dimy; tile++)
-        {
-            int xx = tile / gps->dimy;
-            int yy = tile % gps->dimy;
-
-            int d = depth[tile];
-            if (d)
+            if ((menuforced || menu_width == 1) && area_map_width == 2) // Menu + area map
             {
-                GLfloat *tex = shadowtex+elemcnt*2;
+                menu_left = w - 56;
+            }
+            else if (menu_width == 2 && area_map_width == 2) // Area map only
+            {
+                menu_left = w - 25;
+            }
+            else if (menu_width == 1) // Wide menu
+                menu_left = w - 56;
+            else if (menuforced || (menu_width == 2 && area_map_width == 3)) // Menu only
+                menu_left = w - 32; 
 
-                bool top=false, left=false, btm=false, right=false;
-                if (xx > 1 && (depth[((xx-1)*gps->dimy + yy)]) < d)
-                {
-                    memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-                    SETTEX(shadow_texpos[0]);
-                    elemcnt+=6;
-                    left = true;
-                }
-                if (yy < h-2 && (depth[((xx)*gps->dimy + yy+1)]) < d)
-                {
-                    memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-                    SETTEX(shadow_texpos[1]);
-                    elemcnt+=6;
-                    btm = true;
-                }
-                if (yy > 1 && (depth[((xx)*gps->dimy + yy-1)]) < d)
-                {
-                    memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-                    SETTEX(shadow_texpos[2]);
-                    elemcnt+=6;
-                    top = true;
-                }
-                if (xx < menu_left-1 && (depth[((xx+1)*gps->dimy + yy)]) < d)
-                {
-                    memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-                    SETTEX(shadow_texpos[3]);
-                    elemcnt+=6;
-                    right = true;
-                }
+            gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
 
-                if (!right && !btm && xx < menu_left-1 && yy < h-2 && (depth[((xx+1)*gps->dimy + yy+1)]) < d)
+            for (int tile = 0; tile < gps->dimx*gps->dimy; tile++)
+            {
+                int xx = tile / gps->dimy;
+                int yy = tile % gps->dimy;
+
+                int d = depth[tile];
+                if (d)
                 {
-                    memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-                    SETTEX(shadow_texpos[4]);
-                    elemcnt+=6;
-                }
-                if (!left && !btm && xx > 1 && yy < h-2 && (depth[((xx-1)*gps->dimy + yy+1)]) < d)
-                {
-                    memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-                    SETTEX(shadow_texpos[5]);
-                    elemcnt+=6;
-                }
-                if (!left && !top && xx > 1 && yy > 1 && (depth[((xx-1)*gps->dimy + yy-1)]) < d)
-                {
-                    memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-                    SETTEX(shadow_texpos[6]);
-                    elemcnt+=6;
-                }
-                if (!top && !right && xx < menu_left-1 && yy > 1 && (depth[((xx+1)*gps->dimy + yy-1)]) < d)
-                {
-                    memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
-                    SETTEX(shadow_texpos[7]);
-                    elemcnt+=6;
-                }
-            }            
+                    GLfloat *tex = shadowtex+elemcnt*2;
+
+                    bool top=false, left=false, btm=false, right=false;
+                    if (xx > 1 && (depth[((xx-1)*gps->dimy + yy)]) < d)
+                    {
+                        memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
+                        SETTEX(shadow_texpos[0]);
+                        elemcnt+=6;
+                        left = true;
+                    }
+                    if (yy < h-2 && (depth[((xx)*gps->dimy + yy+1)]) < d)
+                    {
+                        memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
+                        SETTEX(shadow_texpos[1]);
+                        elemcnt+=6;
+                        btm = true;
+                    }
+                    if (yy > 1 && (depth[((xx)*gps->dimy + yy-1)]) < d)
+                    {
+                        memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
+                        SETTEX(shadow_texpos[2]);
+                        elemcnt+=6;
+                        top = true;
+                    }
+                    if (xx < menu_left-1 && (depth[((xx+1)*gps->dimy + yy)]) < d)
+                    {
+                        memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
+                        SETTEX(shadow_texpos[3]);
+                        elemcnt+=6;
+                        right = true;
+                    }
+
+                    if (!right && !btm && xx < menu_left-1 && yy < h-2 && (depth[((xx+1)*gps->dimy + yy+1)]) < d)
+                    {
+                        memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
+                        SETTEX(shadow_texpos[4]);
+                        elemcnt+=6;
+                    }
+                    if (!left && !btm && xx > 1 && yy < h-2 && (depth[((xx-1)*gps->dimy + yy+1)]) < d)
+                    {
+                        memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
+                        SETTEX(shadow_texpos[5]);
+                        elemcnt+=6;
+                    }
+                    if (!left && !top && xx > 1 && yy > 1 && (depth[((xx-1)*gps->dimy + yy-1)]) < d)
+                    {
+                        memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
+                        SETTEX(shadow_texpos[6]);
+                        elemcnt+=6;
+                    }
+                    if (!top && !right && xx < menu_left-1 && yy > 1 && (depth[((xx+1)*gps->dimy + yy-1)]) < d)
+                    {
+                        memcpy(shadowvert+elemcnt*2, vertexes+tile*6*2, 6*2*sizeof(float));
+                        SETTEX(shadow_texpos[7]);
+                        elemcnt+=6;
+                    }
+                }            
+            }
         }
-    }
 
-    if (elemcnt)
-    {
-        glDisableClientState(GL_COLOR_ARRAY);
-        glColor4f(0, 0, 0, 0.4f);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        //glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
-        glTexCoordPointer(2, GL_FLOAT, 0, shadowtex);
-        glVertexPointer(2, GL_FLOAT, 0, shadowvert);
-        glDrawArrays(GL_TRIANGLES, 0, elemcnt);
-        glEnableClientState(GL_COLOR_ARRAY);    
+        if (elemcnt)
+        {
+            glDisableClientState(GL_COLOR_ARRAY);
+            glColor4f(0, 0, 0, 0.4f);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            //glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
+            glTexCoordPointer(2, GL_FLOAT, 0, shadowtex);
+            glVertexPointer(2, GL_FLOAT, 0, shadowvert);
+            glDrawArrays(GL_TRIANGLES, 0, elemcnt);
+            glEnableClientState(GL_COLOR_ARRAY);    
+        }
     }
 
     if (domapshot==1)
