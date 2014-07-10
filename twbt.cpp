@@ -54,6 +54,7 @@
 #include "df/enabler.h"
 #include "df/d_init.h"
 #include "df/renderer.h"
+#include "df/interfacest.h"
 #include "df/building.h"
 #include "df/building_type.h"
 #include "df/buildings_other_id.h"
@@ -82,6 +83,7 @@ using df::global::gps;
 using df::global::ui;
 using df::global::init;
 using df::global::d_init;
+using df::global::gview;
 
 struct texture_fullid {
     int texpos;
@@ -180,7 +182,6 @@ struct renderer_cool : renderer_opengl
     GLfloat *gvertexes, *gfg, *gbg, *gtex;
     int gdimx, gdimy, gdimxfull, gdimyfull;
     int gdispx, gdispy;
-    bool gupdate;
     float goff_x, goff_y, gsize_x, gsize_y;
 	bool needs_reshape;
     int needs_zoom;
@@ -190,13 +191,14 @@ struct renderer_cool : renderer_opengl
     gvertexes=0, gfg=0, gbg=0, gtex=0;
     gdimx=0, gdimy=0, gdimxfull=0, gdimyfull=0;
     gdispx=0, gdispy=0;
-    gupdate = 0;
     goff_x=0, goff_y=0, gsize_x=0, gsize_y=0;
     needs_reshape = needs_zoom = 0;
 
     }
 
     void reshape_graphics();
+    void display();
+    void update_map_tile(int x, int y);
 
     virtual void update_tile(int x, int y);
     virtual void draw(int vertex_count);
@@ -208,8 +210,6 @@ struct renderer_cool : renderer_opengl
 
 bool is_text_tile(int x, int y, bool &is_map)
 {
-    return !((renderer_cool*)enabler->renderer)->gupdate && has_textfont;
-
     const int tile = x * gps->dimy + y;
     df::viewscreen * ws = Gui::getCurViewscreen();
 
@@ -345,105 +345,204 @@ GLfloat shadowtex[256*256*2*6];
 GLfloat shadowvert[256*256*2*6];
 long shadow_texpos[8];
 bool shadowsloaded;
+int gmenu_w;
 
-void screen_to_texid2(renderer_cool *r, int x, int y, struct texture_fullid &ret) {
-    const int tile = x * (r->gupdate ? r->gdimy : gps->dimy) + y;
+float fogcoord[256*256*6];
+unsigned char screen2[256*256*4];
+int32_t screentexpos2[256*256];
+int8_t screentexpos_addcolor2[256*256];
+uint8_t screentexpos_grayscale2[256*256];
+uint8_t screentexpos_cf2[256*256];
+uint8_t screentexpos_cbr2[256*256];
+unsigned char screen3[256*256*4];
+int32_t screentexpos3[256*256];
+int8_t screentexpos_addcolor3[256*256];
+uint8_t screentexpos_grayscale3[256*256];
+uint8_t screentexpos_cf3[256*256];
+uint8_t screentexpos_cbr3[256*256];
+uint8_t skytile;
+uint8_t chasmtile;
+
+static void screen_to_texid2_text(renderer_cool *r, int tile, struct texture_fullid &ret)
+{
     const unsigned char *s = r->screen + tile*4;
 
-    int ch;
-    int bold;
-    int fg;
-    int bg;
+    int bold = (s[3]&0x0f) * 8;
+    int fg   = (s[1] + bold);
+    int bg   = s[2] % 16;
 
-    ch   = s[0];
-    bold = (s[3]&0x0f) * 8;
-    fg   = (s[1] + bold);
-    bg   = s[2] % 16;
+    const long texpos = r->screentexpos[tile];
 
-    const long texpos             = r->screentexpos[tile];
-    const char addcolor           = r->screentexpos_addcolor[tile];
-    const unsigned char grayscale = r->screentexpos_grayscale[tile];
-    const unsigned char cf        = r->screentexpos_cf[tile];
-    const unsigned char cbr       = r->screentexpos_cbr[tile];
+    if (!texpos)
+    {
+        int ch = s[0];
+        ret.texpos = enabler->fullscreen ? init->font.large_font_texpos[ch] : init->font.small_font_texpos[ch];
 
-    if (texpos) {
-      ret.texpos = texpos;
-      if (grayscale) {
+        ret.r = enabler->ccolor[fg][0];
+        ret.g = enabler->ccolor[fg][1];
+        ret.b = enabler->ccolor[fg][2];
+        ret.br = enabler->ccolor[bg][0];
+        ret.bg = enabler->ccolor[bg][1];
+        ret.bb = enabler->ccolor[bg][2];
+
+        return;
+    }        
+
+    ret.texpos = texpos;
+
+    if (r->screentexpos_grayscale[tile])
+    {
+        const unsigned char cf = r->screentexpos_cf[tile];
+        const unsigned char cbr = r->screentexpos_cbr[tile];
+
         ret.r = enabler->ccolor[cf][0];
         ret.g = enabler->ccolor[cf][1];
         ret.b = enabler->ccolor[cf][2];
         ret.br = enabler->ccolor[cbr][0];
         ret.bg = enabler->ccolor[cbr][1];
         ret.bb = enabler->ccolor[cbr][2];
-      } else if (addcolor) {
-        goto use_ch;
-      } else {
+    }
+    else if (r->screentexpos_addcolor[tile])
+    {
+        ret.r = enabler->ccolor[fg][0];
+        ret.g = enabler->ccolor[fg][1];
+        ret.b = enabler->ccolor[fg][2];
+        ret.br = enabler->ccolor[bg][0];
+        ret.bg = enabler->ccolor[bg][1];
+        ret.bb = enabler->ccolor[bg][2];
+    }
+    else
+    {
         ret.r = ret.g = ret.b = 1;
         ret.br = ret.bg = ret.bb = 0;
-      }
-      return;
     }
-  
-  if (r->gupdate)
-            ret.texpos = enabler->fullscreen ? tilesets[1].large_texpos[s[0]] : tilesets[1].small_texpos[s[0]];
-else
-  ret.texpos = enabler->fullscreen ?
-    init->font.large_font_texpos[ch] :
-    init->font.small_font_texpos[ch];
-
- use_ch:
- if (fg < 16)
- {
-  ret.r = enabler->ccolor[fg][0];
-  ret.g = enabler->ccolor[fg][1];
-  ret.b = enabler->ccolor[fg][2];
-}
-else
-{
-  ret.r = addcolors[fg-16][0];
-  ret.g = addcolors[fg-16][1];
-  ret.b = addcolors[fg-16][2];
-}
-  ret.br = enabler->ccolor[bg][0];
-  ret.bg = enabler->ccolor[bg][1];
-  ret.bb = enabler->ccolor[bg][2];
 }
 
-void write_tile_arrays(renderer_cool *r, int x, int y, GLfloat *fg, GLfloat *bg, GLfloat *tex)
+static void screen_to_texid2_map(renderer_cool *r, int tile, struct texture_fullid &ret)
 {
+    const unsigned char *s = screen2 + tile*4;
+
+    int bold = (s[3]&0x0f) * 8;
+    int fg   = (s[1] + bold);
+    int bg   = s[2] % 16;
+
+    const long texpos = screentexpos2[tile];
+
+    if (!texpos)
+    {
+        int ch = s[0];
+        ret.texpos = enabler->fullscreen ? tilesets[1].large_texpos[s[0]] : tilesets[1].small_texpos[s[0]];
+
+        ret.r = enabler->ccolor[fg][0];
+        ret.g = enabler->ccolor[fg][1];
+        ret.b = enabler->ccolor[fg][2];
+        ret.br = enabler->ccolor[bg][0];
+        ret.bg = enabler->ccolor[bg][1];
+        ret.bb = enabler->ccolor[bg][2];
+
+        return;
+    }        
+
+    ret.texpos = texpos;
+
+    if (screentexpos_grayscale2[tile])
+    {
+        const unsigned char cf = screentexpos_cf2[tile];
+        const unsigned char cbr = screentexpos_cbr2[tile];
+
+        ret.r = enabler->ccolor[cf][0];
+        ret.g = enabler->ccolor[cf][1];
+        ret.b = enabler->ccolor[cf][2];
+        ret.br = enabler->ccolor[cbr][0];
+        ret.bg = enabler->ccolor[cbr][1];
+        ret.bb = enabler->ccolor[cbr][2];
+    }
+    else if (screentexpos_addcolor2[tile])
+    {
+        ret.r = enabler->ccolor[fg][0];
+        ret.g = enabler->ccolor[fg][1];
+        ret.b = enabler->ccolor[fg][2];
+        ret.br = enabler->ccolor[bg][0];
+        ret.bg = enabler->ccolor[bg][1];
+        ret.bb = enabler->ccolor[bg][2];
+    }
+    else
+    {
+        ret.r = ret.g = ret.b = 1;
+        ret.br = ret.bg = ret.bb = 0;
+    }
+}
+
+static void write_tile_arrays_text(renderer_cool *r, int x, int y, GLfloat *fg, GLfloat *bg, GLfloat *tex)
+{
+    const int tile = x * gps->dimy + y;
+
+    if (df::viewscreen_dwarfmodest::_identity.is_direct_instance(Gui::getCurViewscreen()) && x > 0 && y > 0 && y < gps->dimy-1 && x < gps->dimx-gmenu_w-1)
+    {
+        const unsigned char *s = r->screen + tile*4;
+        if (s[0] == 0)
+        {
+            memset(fg, 0, sizeof(GLfloat)*6*4);
+            memset(bg, 0, sizeof(GLfloat)*6*4);
+            return;
+        }
+    }
+
     struct texture_fullid ret;
-    screen_to_texid2(r, x, y, ret);
-    const int tile = x * (r->gupdate ? r->gdimy : gps->dimy) + y;
-    float a = 1;//+(((r->screen[tile*4+3]&0xf0)>>4))*0.2;
-    const unsigned char *s = r->screen + tile*4;
-    int s0 = s[0];
-    if (!r->gupdate && s0 == 0 && df::viewscreen_dwarfmodest::_identity.is_direct_instance(Gui::getCurViewscreen()))
-        a = 0;
+    screen_to_texid2_text(r, tile, ret);
 
     for (int i = 0; i < 6; i++) {
         *(fg++) = ret.r;
         *(fg++) = ret.g;
         *(fg++) = ret.b;
-        *(fg++) = a;
+        *(fg++) = 1;
         
         *(bg++) = ret.br;
         *(bg++) = ret.bg;
         *(bg++) = ret.bb;
-        *(bg++) = a;
+        *(bg++) = 1;
+    }
+
+    //TODO: handle special cases of graphics tiles outside of the map here with is_text_tile as before
+    
+    // Set texture coordinates
+    gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
+    *(tex++) = txt[ret.texpos].left;   // Upper left
+    *(tex++) = txt[ret.texpos].bottom;
+    *(tex++) = txt[ret.texpos].right;  // Upper right
+    *(tex++) = txt[ret.texpos].bottom;
+    *(tex++) = txt[ret.texpos].left;   // Lower left
+    *(tex++) = txt[ret.texpos].top;
+    
+    *(tex++) = txt[ret.texpos].left;   // Lower left
+    *(tex++) = txt[ret.texpos].top;
+    *(tex++) = txt[ret.texpos].right;  // Upper right
+    *(tex++) = txt[ret.texpos].bottom;
+    *(tex++) = txt[ret.texpos].right;  // Lower right
+    *(tex++) = txt[ret.texpos].top;
+}
+
+static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, GLfloat *bg, GLfloat *tex)
+{
+    struct texture_fullid ret;
+    const int tile = x * r->gdimy + y;        
+    screen_to_texid2_map(r, tile, ret);
+
+    for (int i = 0; i < 6; i++) {
+        *(fg++) = ret.r;
+        *(fg++) = ret.g;
+        *(fg++) = ret.b;
+        *(fg++) = 1;
+        
+        *(bg++) = ret.br;
+        *(bg++) = ret.bg;
+        *(bg++) = ret.bb;
+        *(bg++) = 1;
     }
     
-    bool is_map;
-    if (is_text_tile(x, y, is_map))
+    if (has_overrides)
     {
-        //const int tile = x * (r->gupdate ? r->gdimy : gps->dimy) + y;
-        //const unsigned char *s = r->screen + tile*4;
-        //ret.texpos = enabler->fullscreen ? tilesets[0].large_texpos[s[0]] : tilesets[0].small_texpos[s[0]];
-    }
-    //if (is_map && !r->gupdate)
-    //    ret.texpos = enabler->fullscreen ? tilesets[0].large_texpos[0] : tilesets[0].small_texpos[0];
-    if (is_map && has_overrides)
-    {
-        const unsigned char *s = r->screen + tile*4;
+        const unsigned char *s = screen2 + tile*4;
         int s0 = s[0];
         if (overrides[s0])
         {
@@ -528,21 +627,7 @@ void write_tile_arrays(renderer_cool *r, int x, int y, GLfloat *fg, GLfloat *bg,
     *(tex++) = txt[ret.texpos].top;
 }
 
-float fogcoord[2000*2000*6];
-unsigned char screen2[2000*2000*4];
-int32_t screentexpos2[2000*2000];
-int8_t screentexpos_addcolor2[2000*2000];
-uint8_t screentexpos_grayscale2[2000*2000];
-uint8_t screentexpos_cf2[2000*2000];
-uint8_t screentexpos_cbr2[2000*2000];
-unsigned char screen3[2000*2000*4];
-int32_t screentexpos3[2000*2000];
-int8_t screentexpos_addcolor3[2000*2000];
-uint8_t screentexpos_grayscale3[2000*2000];
-uint8_t screentexpos_cf3[2000*2000];
-uint8_t screentexpos_cbr3[2000*2000];
-uint8_t skytile;
-uint8_t chasmtile;
+
 
 #include "renderer.hpp"
 
@@ -591,6 +676,9 @@ void hook()
         VirtualProtectEx( process, vtable_new[0], 18*sizeof(void*), oldProtection, &oldProtection );
     }
 #else
+    MemoryPatcher p(Core::getInstance().p);
+    p.verifyAccess(vtable_new[0], sizeof(void*)*17, true);
+
     memcpy(vtable_new[0], vtable_old[0], sizeof(void*)*17);
     vtable_new[0][14] = draw_new;
     vtable_new[0][0] = update_tile_new;
@@ -600,24 +688,36 @@ void hook()
 #endif
     
     memcpy(&newr->screen, &oldr->screen, (char*)&newr->dummy-(char*)&newr->screen);
-    //newr->reshape_gl();
     enabler->renderer = newr;
-
-    //init->font.small_font_dispx = 12;
-    //init->font.large_font_dispx = 12;
-    //newr->gdispx = newr->gdispy = 16;
-    //newr->dispx = 10;
 
     //free(oldr);
 
-    //*out2 << (char*)&newr->vertexes-(char*)newr << std::endl;
-
 #ifdef WIN32
-    //unsigned char t1[] = { 0x90,0x90,0x90,0x90,0x90 };
-    //Core::getInstance().p->patchMemory((void*)(0x0058eac0+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
-#else
+    // On Windows original map rendering function must be called at least once to initialize something
+#elif defined(__APPLE__)
     unsigned char t1[] = { 0x90,0x90,0x90,0x90,0x90 };
+
+    // Disable original map rendering
     Core::getInstance().p->patchMemory((void*)0x002e0e0a, t1, sizeof(t1));
+
+    // Disable original renderer::display
+    // Original code will check screentexpos et al. for changes but we don't want that
+    // because map is not rendered this way now. But we can't completely disable graphics
+    // because it's used on status screen to show professions at least.
+    // To find this address, look for a function with two SDL_GetTicks calls inside,
+    // there will be two calls with the same argument right before an increment between 
+    // SDL_SemWait and SDL_SemPost near the end - they are renderer->display() and renderer->render(). 
+    Core::getInstance().p->patchMemory((void*)0x00c92fe1, t1, sizeof(t1));
+
+    // Adv. mode
+    /*Core::getInstance().p->patchMemory((void*)0x002cbbb0, t1, sizeof(t1));
+    Core::getInstance().p->patchMemory((void*)0x002cbf8d, t1, sizeof(t1));    
+    Core::getInstance().p->patchMemory((void*)0x002cc288, t1, sizeof(t1));    
+    Core::getInstance().p->patchMemory((void*)0x002cc225, t1, sizeof(t1));*/
+    //Core::getInstance().p->patchMemory((void*)0x002cc306, t1, sizeof(t1));    
+
+#else
+    #error Linux not supported yet
 #endif
 
     enabled = true;   
@@ -632,18 +732,6 @@ void unhook()
 
     enabled = false;
     gps->force_full_display_count = true;
-}
-
-
-#define CHECK(dx,dy) \
-{\
-    const int tile = (x+dx) * gps->dimy + (y+dy); \
-    {\
-    df::map_block *block = world->map.block_index[(xx+dx) >> 4][(yy+dy) >> 4][zz]; \
-    if (block) {\
-        df::tiletype tt = block->tiletype[(xx+dx)&15][(yy+dy)&15];\
-        k = tt != df::tiletype::OpenSpace && tt != df::tiletype::RampTop;\
-    }}\
 }
 
 struct zzz : public df::viewscreen_dwarfmodest
@@ -704,7 +792,25 @@ struct zzz : public df::viewscreen_dwarfmodest
         Gui::getMenuWidth(menu_width_new, area_map_width_new);
         bool menuforced_new = (ui->main.mode != df::ui_sidebar_mode::Default || df::global::cursor->x != -30000);
         if (menu_width != menu_width_new || area_map_width != area_map_width_new || menuforced != menuforced_new)
+        {
+            if ((menuforced_new || menu_width_new == 1) && area_map_width_new == 2) // Menu + area map
+            {
+                gmenu_w = 55;
+            }
+            else if (menu_width_new == 2 && area_map_width_new == 2) // Area map only
+            {
+                gmenu_w = 24;
+            }
+            else if (menu_width_new == 1) // Wide menu
+                gmenu_w = 55;
+            else if (menuforced_new || (menu_width_new == 2 && area_map_width_new == 3)) // Menu only
+                gmenu_w = 31;
+            else
+                gmenu_w = 0;
+
             r->needs_reshape = true;
+            gps->force_full_display_count = 1;            
+        }
     }
 
     DEFINE_VMETHOD_INTERPOSE(void, render, ())
@@ -811,7 +917,7 @@ struct zzz : public df::viewscreen_dwarfmodest
 
 
 
-
+        if (shadowsloaded)
         {
 
 
@@ -956,7 +1062,7 @@ struct zzz : public df::viewscreen_dwarfmodest
                     x0 = x + 1;
             }
 
-            if (p++ >= 10)
+            if (p++ >= maxlevels)
                 break;
         } while(empty_tiles_left);
 
@@ -991,32 +1097,158 @@ struct zzz : public df::viewscreen_dwarfmodest
         gps->screentexpos_cf = enabler->renderer->screentexpos_cf = screentexpos_cftop;
         gps->screentexpos_cbr = enabler->renderer->screentexpos_cbr = screentexpos_cbrtop;
 
-
-        //if (shadowsloaded)
-        //    render_more_layers();
     }
+};
 
-/*    void render_more_layers()
+/*struct zzz2 : public df::viewscreen_dungeonmodest
+{
+    typedef df::viewscreen_dungeonmodest interpose_base;
+
+    DEFINE_VMETHOD_INTERPOSE(void, feed, (std::set<df::interface_key> *input))
     {
+        renderer_cool *r = (renderer_cool*)enabler->renderer;
+
+        int oldgridx = init->display.grid_x;
+        int oldgridy = init->display.grid_y;
+
+
+        static uint8_t menu_width_last, area_map_width_last;
+        static bool menuforced_last=0;
+
         int32_t w = gps->dimx, h = gps->dimy;
         uint8_t menu_width, area_map_width;
         Gui::getMenuWidth(menu_width, area_map_width);
-        int32_t menu_left = w - 1;
+        int32_t menu_w = 0;
 
         bool menuforced = (ui->main.mode != df::ui_sidebar_mode::Default || df::global::cursor->x != -30000);
 
-        if ((menuforced || menu_width == 1) && area_map_width == 2) // Menu + area map
+        init->display.grid_x = r->gdimxfull+menu_w+2;
+        init->display.grid_y = r->gdimyfull+2;
+        gps->dimx = r->gdimxfull+menu_w+2;
+        gps->dimy = r->gdimyfull+2;
+
+
+        INTERPOSE_NEXT(feed)(input);
+        init->display.grid_x = gps->dimx = oldgridx;
+        init->display.grid_y = gps->dimy = oldgridy;
+
+        bool menuforced_new = (ui->main.mode != df::ui_sidebar_mode::Default || df::global::cursor->x != -30000);
+        if (menuforced != menuforced_new)
         {
-            menu_left = w - 56;
+            gmenu_w = 0;
+
+            r->needs_reshape = true;
+            gps->force_full_display_count = 1;            
         }
-        else if (menu_width == 2 && area_map_width == 2) // Area map only
+    }
+
+    DEFINE_VMETHOD_INTERPOSE(void, render, ())
+    {
+        INTERPOSE_NEXT(render)();
+
+#ifdef WIN32
+        static bool patched = false;
+        if (!patched)
         {
-            menu_left = w - 25;
+        unsigned char t1[] = {  0x90,0x90, 0x90, 0x90,0x90,0x90,0x90,0x90 };
+        Core::getInstance().p->patchMemory((void*)(0x0058eabd+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+
+//          unsigned char t1[] = { 0x90,0x90,0x90,0x90,0x90 };
+//            Core::getInstance().p->patchMemory((void*)(0x0058eac0+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+            patched = true;
         }
-        else if (menu_width == 1) // Wide menu
-            menu_left = w - 56;
-        else if (menuforced || (menu_width == 2 && area_map_width == 3)) // Menu only
-            menu_left = w - 32; 
+#endif
+
+        renderer_cool *r = (renderer_cool*)enabler->renderer;
+
+        if (r->needs_reshape)
+        {
+            if (r->needs_zoom)
+            {
+            if (r->needs_zoom > 0)
+            {
+                r->gdispx++;
+                r->gdispy++;
+            }
+            else
+            {
+                r->gdispx--;
+                r->gdispy--;
+
+                if (r->gsize_x / r->gdispx > world->map.x_count)
+                    r->gdispx = r->gdispy = r->gsize_x / world->map.x_count;
+                else if (r->gsize_y / r->gdispy > world->map.y_count)
+                    r->gdispx = r->gdispy = r->gsize_y / world->map.y_count;
+            }
+            r->needs_zoom = 0;
+        }
+        r->needs_reshape = false;
+        r->reshape_graphics();
+    }
+
+#ifdef WIN32
+        void (*render_map)(int) = (void (*)(int))(0x008f65c0+(Core::getInstance().vinfo->getRebaseDelta()));
+#else
+        void (*render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
+#endif
+
+        uint8_t *sctop = enabler->renderer->screen;
+        int32_t *screentexpostop = enabler->renderer->screentexpos;
+        int8_t *screentexpos_addcolortop = enabler->renderer->screentexpos_addcolor;
+        uint8_t *screentexpos_grayscaletop = enabler->renderer->screentexpos_grayscale;
+        uint8_t *screentexpos_cftop = enabler->renderer->screentexpos_cf;
+        uint8_t *screentexpos_cbrtop = enabler->renderer->screentexpos_cbr;
+
+        gps->screen = enabler->renderer->screen = screen2;
+        gps->screen_limit = gps->screen + r->gdimx * r->gdimy * 4;
+        gps->screentexpos = enabler->renderer->screentexpos = screentexpos2;
+        gps->screentexpos_addcolor = enabler->renderer->screentexpos_addcolor = screentexpos_addcolor2;
+        gps->screentexpos_grayscale = enabler->renderer->screentexpos_grayscale = screentexpos_grayscale2;
+        gps->screentexpos_cf = enabler->renderer->screentexpos_cf = screentexpos_cf2;
+        gps->screentexpos_cbr = enabler->renderer->screentexpos_cbr = screentexpos_cbr2;
+
+        long *z = (long*)r->screen;
+        for (int y = 0; y < r->gdimy; y++)
+        {
+            for (int x = world->map.x_count-*df::global::window_x; x < r->gdimx; x++)
+            {
+                z[x*r->gdimy+y] = 0;
+            }
+        }
+        for (int x = 0; x < r->gdimx; x++)
+        {
+            for (int y = world->map.y_count-*df::global::window_y; y < r->gdimy; y++)
+            {
+                z[x*r->gdimy+y] = 0;
+            }
+        }
+
+        int oldgridx = init->display.grid_x;
+        int oldgridy = init->display.grid_y;
+
+        init->display.grid_x = r->gdimx;
+        init->display.grid_y = r->gdimy;
+        gps->dimx = r->gdimx;
+        gps->dimy = r->gdimy;
+        gps->clipx[1] = r->gdimx-1;
+        gps->clipy[1] = r->gdimy-1;
+
+#ifdef WIN32
+        render_map(1);
+#else
+#ifdef DFHACK_r5
+        render_map(df::global::map_renderer, 1);
+#else
+        render_map(df::global::cursor_unit_list, 1);
+#endif
+#endif
+
+
+
+  if (shadowsloaded)
+        {
+
+
 
 
         uint8_t *sctop = enabler->renderer->screen;
@@ -1026,21 +1258,21 @@ struct zzz : public df::viewscreen_dwarfmodest
         uint8_t *screentexpos_cftop = enabler->renderer->screentexpos_cf;
         uint8_t *screentexpos_cbrtop = enabler->renderer->screentexpos_cbr;
 
-        gps->screen = screen2;
-        gps->screen_limit = gps->screen + gps->dimx * gps->dimy * 4;
-        gps->screentexpos = screentexpos2;
-        gps->screentexpos_addcolor = screentexpos_addcolor2;
-        gps->screentexpos_grayscale = screentexpos_grayscale2;
-        gps->screentexpos_cf = screentexpos_cf2;
-        gps->screentexpos_cbr = screentexpos_cbr2;
+        gps->screen = screen3;
+        gps->screen_limit = gps->screen + r->gdimx * r->gdimy * 4;
+        gps->screentexpos = screentexpos3;
+        gps->screentexpos_addcolor = screentexpos_addcolor3;
+        gps->screentexpos_grayscale = screentexpos_grayscale3;
+        gps->screentexpos_cf = screentexpos_cf3;
+        gps->screentexpos_cbr = screentexpos_cbr3;
 
         //this->*this->interpose_render.get_first_interpose(&df::viewscreen_dwarfmodest::_identity).saved_chain;
 
-        void (*render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
+        //void (*render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
 
         bool empty_tiles_left;
         int p = 1;
-        int x0 = 1;
+        int x0 = 0;
         int zz0 = *df::global::window_z;        
         do
         {
@@ -1050,14 +1282,21 @@ struct zzz : public df::viewscreen_dwarfmodest
 
             (*df::global::window_z)--;
 
-            (*df::global::window_x) += x0-1;
-            init->display.grid_x -= x0-1;
+            (*df::global::window_x) += x0;
+            //init->display.grid_x -= x0-1;
 
-            INTERPOSE_NEXT(render)();
-            //render_map(df::global::cursor_unit_list, 1);
-
-            (*df::global::window_x) -= x0-1;
-            init->display.grid_x += x0-1;
+#ifdef WIN32
+        render_map(1);
+#else
+#ifdef DFHACK_r5
+        render_map(df::global::map_renderer, 1);
+#else
+        render_map(df::global::cursor_unit_list, 1);
+#endif
+#endif
+        
+            (*df::global::window_x) -= x0;
+            //init->display.grid_x += x0-1;
 
             empty_tiles_left = false;
             int x00 = x0;
@@ -1067,24 +1306,24 @@ struct zzz : public df::viewscreen_dwarfmodest
             
             GLfloat *vertices = ((renderer_opengl*)enabler->renderer)->vertexes;
             //TODO: test this
-            int x1 = std::min(menu_left, world->map.x_count-*df::global::window_x+1);
-            int y1 = std::min(h-1, world->map.y_count-*df::global::window_y+1);
+            int x1 = std::min(r->gdimx, world->map.x_count-*df::global::window_x);
+            int y1 = std::min(r->gdimy, world->map.y_count-*df::global::window_y);
             for (int x = x0; x < x1; x++)
             {
-                for (int y = 1; y < y1; y++)
+                for (int y = 0; y < y1; y++)
                 {
-                    const int tile = x * gps->dimy + y;
-                    const int tile2 = (x-(x00-1)) * gps->dimy + y;
+                    const int tile = x * r->gdimy + y;
+                    const int tile2 = (x-(x00)) * r->gdimy + y;
 
                     if ((sctop[tile*4+3]&0xf0))
                         continue;
 
                     unsigned char ch = sctop[tile*4+0];
-                    if (ch != 31 && ch != 249 && ch != 250 && ch != 254 && ch != 32 && ch != 0 && !(ch >= '1' && ch <= '7'))
+                    if (ch != 31 && ch != 249 && ch != 250 && ch != 254 && ch != skytile && ch != chasmtile && !(ch >= '1' && ch <= '7'))
                         continue;
 
-                    int xx = *df::global::window_x + x-1;
-                    int yy = *df::global::window_y + y-1;
+                    int xx = *df::global::window_x + x;
+                    int yy = *df::global::window_y + y;
                     if (xx < 0 || yy < 0)
                         continue;
 
@@ -1099,111 +1338,104 @@ struct zzz : public df::viewscreen_dwarfmodest
                     if (!(e0))
                         continue;
 
-                    ch = screen2[tile2*4+0];
-                    if (!(ch!=31&&ch != 249 && ch != 250 && ch != 254 && ch != 32 && ch != 0 && !(ch >= '1' && ch <= '7')))
+                    int d=p;
+                    ch = screen3[tile2*4+0];
+                    if (!(ch!=31&&ch != 249 && ch != 250 && ch != 254 && ch != skytile && ch != chasmtile && !(ch >= '1' && ch <= '7')))
                     {
                         df::map_block *block1 = world->map.block_index[xx >> 4][yy >> 4][zz-1];
                         if (!block1)
                         {
                             //TODO: skip all other y's in this block
-                            empty_tiles_left = true;
-                            continue;
+                            if (p < maxlevels)
+                            {
+                                empty_tiles_left = true;
+                                continue;
+                            }
+                            else
+                                d = p+1;
                         }
-
-                        //TODO: check for hidden also
-                        df::tiletype t1 = block1->tiletype[xx&15][yy&15];
-                        if (t1 == df::tiletype::OpenSpace || t1 == df::tiletype::RampTop)
+                        else
                         {
-                            empty_tiles_left = true;
-                            continue;
+                            //TODO: check for hidden also
+                            df::tiletype t1 = block1->tiletype[xx&15][yy&15];
+                            if (t1 == df::tiletype::OpenSpace || t1 == df::tiletype::RampTop)
+                            {
+                                if (p < maxlevels)
+                                {
+                                    empty_tiles_left = true;
+                                    continue;
+                                }
+                                else
+                                {
+                                    if (t1 != df::tiletype::RampTop)
+                                        d = p+1;
+                                }
+                            }
                         }
                     }
 
                     //*out2 << p << " !" << std::endl;
-                    *((int*)sctop+tile) = *((int*)screen2+tile2);
-                    if (*(screentexpos2+tile))
+                    *((int*)screen2+tile) = *((int*)screen3+tile2);
+                    if (*(screentexpos3+tile2))
                     {
-                        *(screentexpostop+tile) = *(screentexpos2+tile2);
-                        *(screentexpos_addcolortop+tile) = *(screentexpos_addcolor2+tile2);
-                        *(screentexpos_grayscaletop+tile) = *(screentexpos_grayscale2+tile2);
-                        *(screentexpos_cftop+tile) = *(screentexpos_cf2+tile2);
-                        *(screentexpos_cbrtop+tile) = *(screentexpos_cbr2+tile2);
+                        *(screentexpostop+tile) = *(screentexpos3+tile2);
+                        *(screentexpos_addcolortop+tile) = *(screentexpos_addcolor3+tile2);
+                        *(screentexpos_grayscaletop+tile) = *(screentexpos_grayscale3+tile2);
+                        *(screentexpos_cftop+tile) = *(screentexpos_cf3+tile2);
+                        *(screentexpos_cbrtop+tile) = *(screentexpos_cbr3+tile2);
                     }
-
-                    int k = false;
-                    int kk = 0;
-                    do
-                    {
-                        if (xx>0)
-                        {
-                            CHECK(-1,0)
-                            kk |= k<<0;
-                        }
-                        if (yy < world->map.y_count-1)
-                        {
-                            CHECK(0,1)
-                            kk |= k<<1;
-                        }
-                        if (yy > 0)
-                        {
-                            CHECK(0,-1)
-                            kk |= k<<2;
-                        }
-                        if (xx < world->map.x_count-1)
-                        {
-                            CHECK(1,0)
-                            kk |= k<<3;
-                        }
-                        if (xx < world->map.x_count-1 && yy < world->map.y_count-1 && !(kk & (1<<1)) && !(kk & (1<<3)))
-                        {
-                            CHECK(1,1)
-                            kk |= k << 4;
-                        }
-
-                        if (xx > 0 && yy < world->map.y_count-1 && !(kk & (1<<0)) && !(kk & (1<<1)))
-                        {
-                            CHECK(-1,1)
-                            kk |= k<<5;
-                        }
-                        if (xx > 0 && yy > 0 && !(kk & (1<<0)) && !(kk & (1<<2)))
-                        {
-                            CHECK(-1,-1)
-                            kk |= k<<6;
-                        }
-                        if (xx < world->map.x_count-1 && yy > 0 && !(kk & (1<<2)) && !(kk & (1<<3)))
-                        {
-                            CHECK(1,-1)
-                            kk |= k<<7;
-                        }
-
-                        shadows[tile] = kk;
-
-                    } while(0);
-                    sctop[tile*4+3] = (0x10*p) | (sctop[tile*4+3]&0x0f);
+                    sctop[tile*4+3] = (0x10*d) | (sctop[tile*4+3]&0x0f);
                 }
                 if (!empty_tiles_left)
                     x0 = x + 1;
             }
 
-            if (p++ >= 10)
+            if (p++ >= maxlevels)
                 break;
         } while(empty_tiles_left);
 
         (*df::global::window_z) = zz0;
 
-        gps->screen = sctop;
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+        init->display.grid_x = gps->dimx = oldgridx;
+        init->display.grid_y = gps->dimy = oldgridy;
+        gps->clipx[1] = gps->dimx-1;
+        gps->clipy[1] = gps->dimy-1;
+
+
+        gps->screen = enabler->renderer->screen = sctop;
         gps->screen_limit = gps->screen + gps->dimx * gps->dimy * 4;
-        gps->screentexpos = screentexpostop;
-        gps->screentexpos_addcolor = screentexpos_addcolortop;
-        gps->screentexpos_grayscale = screentexpos_grayscaletop;
-        gps->screentexpos_cf = screentexpos_cftop;
-        gps->screentexpos_cbr = screentexpos_cbrtop;
-    }    */
-};
+        gps->screentexpos = enabler->renderer->screentexpos = screentexpostop;
+        gps->screentexpos_addcolor = enabler->renderer->screentexpos_addcolor = screentexpos_addcolortop;
+        gps->screentexpos_grayscale = enabler->renderer->screentexpos_grayscale = screentexpos_grayscaletop;
+        gps->screentexpos_cf = enabler->renderer->screentexpos_cf = screentexpos_cftop;
+        gps->screentexpos_cbr = enabler->renderer->screentexpos_cbr = screentexpos_cbrtop;
+
+    }
+};*/
+
+
 
 //TODO: Priority?
 IMPLEMENT_VMETHOD_INTERPOSE(zzz, render);
 IMPLEMENT_VMETHOD_INTERPOSE(zzz, feed);
+//IMPLEMENT_VMETHOD_INTERPOSE(zzz2, render);
+//IMPLEMENT_VMETHOD_INTERPOSE(zzz2, feed);
 
 
 #ifdef __APPLE__
@@ -1413,6 +1645,8 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 
     INTERPOSE_HOOK(zzz, render).apply(1);
     INTERPOSE_HOOK(zzz, feed).apply(1);
+    //INTERPOSE_HOOK(zzz2, render).apply(1);
+    //INTERPOSE_HOOK(zzz2, feed).apply(1);
 
 #ifdef __APPLE__
     INTERPOSE_HOOK(traderesize_hook, render).apply(true);
