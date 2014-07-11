@@ -10,6 +10,8 @@ Main function is to use separate fonts (tilesets) for map tiles in Fortress Mode
 
 In your `init.txt` set FONT and FULLFONT to the font you want to use for **text**, and GRAPHICS\_FONT and GRAPHICS\_FULLFONT to the font for **map tiles**.
 
+`twbt tilesize` command adjust the size of map tiles. Possible parameters are `bigger`, `smaller` or exact values `<width> <height>`.
+
 ### Overrides ###
 
 Allows to override tile numbers for buildings and items, see `overrides.txt` for details.
@@ -18,7 +20,13 @@ Allows to override tile numbers for buildings and items, see `overrides.txt` for
 
 Copy `shadows.png` to `data/art` folder.
 
-`multilevel` command controls the number of additional levels rendered. Possible parameters are `more`, `less` or number `0-15`.
+`multilevel` command sets the number of additional levels to render. Possible parameters are `more`, `less` or number `0-15`.
+
+`multilevel shadowcolor <r> <g> <b> <a>` command sets shadow colour. Components are in range `0-1`. Default is `0 0 0 0.4`.
+
+`multilevel fogcolor <r> <g> <b>` command sets fog colour. Default is `0.1 0.1 0.3`.
+
+`multilevel fogdensity <d>` command sets fog density in range `0-1`. Default is `0.15`.
 
 ### Additional Colours ###
 

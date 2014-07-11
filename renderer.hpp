@@ -35,12 +35,15 @@ void renderer_cool::update_map_tile(int x, int y)
 
         depth[tile] = d;
 
-        fogcoord[tile * 6 + 0] = d;
-        fogcoord[tile * 6 + 1] = d;
-        fogcoord[tile * 6 + 2] = d;
-        fogcoord[tile * 6 + 3] = d;
-        fogcoord[tile * 6 + 4] = d;
-        fogcoord[tile * 6 + 5] = d;
+        if (fogdensity > 0)
+        {
+            fogcoord[tile * 6 + 0] = d;
+            fogcoord[tile * 6 + 1] = d;
+            fogcoord[tile * 6 + 2] = d;
+            fogcoord[tile * 6 + 3] = d;
+            fogcoord[tile * 6 + 4] = d;
+            fogcoord[tile * 6 + 5] = d;
+        }
     }
 }
 
@@ -92,8 +95,8 @@ void renderer_cool::reshape_graphics()
         gsize_x = (size_x - tsx * (gmenu_w + 1 + 1));
         gsize_y = (size_y - tsy * 2);
         *out2 << tsx << " " << gsize_x << std::endl;
-        float dimx = gsize_x / gdispx;
-        float dimy = gsize_y / gdispy;
+        float dimx = std::min(gsize_x / gdispx, 256.0f);
+        float dimy = std::min(gsize_y / gdispy, 256.0f);
         gdimx = ceilf(dimx);
         gdimy = ceilf(dimy);
         gdimxfull = floorf(dimx);
@@ -289,17 +292,15 @@ void renderer_cool::draw(int vertex_count)
             //glClearColor(1,0,0,1);
             //glClear(GL_COLOR_BUFFER_BIT);
 
-            float FogCol[3] = {0.1f, 0.1f, 0.3f};
-            //float FogCol[3]={0.8f,0.8f,0.8f};
-            glEnable(GL_FOG);
-            glFogfv(GL_FOG_COLOR, FogCol);
-            glFogf(GL_FOG_DENSITY, 0.15f);
-            //glFogi(GL_FOG_MODE, GL_LINEAR);
-            glFogf(GL_FOG_END, 20);
-            glFogi(GL_FOG_COORD_SRC, GL_FOG_COORD);
-
-            glFogCoordPointer(GL_FLOAT, 0, fogcoord);
-            glEnableClientState(GL_FOG_COORD_ARRAY);
+            if (fogdensity > 0)
+            {
+                glEnable(GL_FOG);
+                glFogfv(GL_FOG_COLOR, fogcolor);
+                glFogf(GL_FOG_DENSITY, fogdensity);
+                glFogi(GL_FOG_COORD_SRC, GL_FOG_COORD);
+                glFogCoordPointer(GL_FLOAT, 0, fogcoord);
+                glEnableClientState(GL_FOG_COORD_ARRAY);
+            }
 
             glVertexPointer(2, GL_FLOAT, 0, gvertexes);
 
@@ -320,10 +321,8 @@ void renderer_cool::draw(int vertex_count)
             glColorPointer(4, GL_FLOAT, 0, gfg);
             glDrawArrays(GL_TRIANGLES, 0, gdimx * gdimy * 6);
 
-            glDisable(GL_FOG);
-
-
-
+            if (fogdensity > 0)
+                glDisable(GL_FOG);
 
 
             // Prepare and render shadows
@@ -407,7 +406,7 @@ void renderer_cool::draw(int vertex_count)
                 if (elemcnt)
                 {
                     glDisableClientState(GL_COLOR_ARRAY);
-                    glColor4f(0, 0, 0, 0.4f);
+                    glColor4fv(shadowcolor);
                     glEnable(GL_BLEND);
                     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                     //glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);

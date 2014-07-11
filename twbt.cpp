@@ -156,6 +156,9 @@ static struct tileref override_defs[256];
 static df::item_flags bad_item_flags;
 
 static int maxlevels = 10;
+static float fogdensity = 0.15f;
+static float fogcolor[4] = { 0.1f, 0.1f, 0.3f, 1 };
+static float shadowcolor[4] = { 0, 0, 0, 0.4f };
 
 // This is from g_src/renderer_opengl.hpp
 struct renderer_opengl : df::renderer
@@ -855,6 +858,7 @@ struct zzz : public df::viewscreen_dwarfmodest
         }
         r->needs_reshape = false;
         r->reshape_graphics();
+        gps->force_full_display_count = 1;
     }
 
 #ifdef WIN32
@@ -1555,7 +1559,9 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
 {
     CoreSuspender suspend;
 
-    if (parameters.size() > 0)
+    int pcnt = parameters.size();
+
+    if (pcnt >= 1)
     {
         std::string &param1 = parameters[0];
 
@@ -1569,12 +1575,111 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
             if (maxlevels > 0)
                 maxlevels--;
         }
+        else if (param1 == "shadowcolor" && pcnt >= 5)
+        {
+            float c[4];
+            char *e;
+            do {
+                c[0] = strtof(parameters[1].c_str(), &e);
+                if (*e != 0)
+                    break;
+                c[1] = strtof(parameters[2].c_str(), &e);
+                if (*e != 0)
+                    break;
+                c[2] = strtof(parameters[3].c_str(), &e);
+                if (*e != 0)
+                    break;
+                c[3] = strtof(parameters[4].c_str(), &e);
+                if (*e != 0)
+                    break;
+
+                shadowcolor[0] = c[0], shadowcolor[1] = c[1], shadowcolor[2] = c[2], shadowcolor[3] = c[3];
+            } while(0);
+        }        
+        else if (param1 == "fogcolor" && pcnt >= 4)
+        {
+            float c[3];
+            char *e;
+            do {
+                c[0] = strtof(parameters[1].c_str(), &e);
+                if (*e != 0)
+                    break;
+                c[1] = strtof(parameters[2].c_str(), &e);
+                if (*e != 0)
+                    break;
+                c[2] = strtof(parameters[3].c_str(), &e);
+                if (*e != 0)
+                    break;
+
+                fogcolor[0] = c[0], fogcolor[1] = c[1], fogcolor[2] = c[2];
+            } while(0);
+        }
+        else if (param1 == "fogdensity" && pcnt >= 2)
+        {
+            char *e;
+            float l = strtof(parameters[1].c_str(), &e);
+            if (*e == 0)
+                fogdensity = l;
+        }
         else 
         {
             char *e;
             int l = (int)strtol(param1.c_str(), &e, 10);
             if (*e == 0)
                 maxlevels = l;
+        }
+    }
+
+    return CR_OK;    
+}
+
+command_result twbt_cmd (color_ostream &out, std::vector <std::string> & parameters)
+{
+    CoreSuspender suspend;
+
+    int pcnt = parameters.size();
+
+    if (pcnt >= 1)
+    {
+        std::string &param1 = parameters[0];
+
+        if (param1 == "tilesize" && pcnt >= 2)
+        {
+            renderer_cool *r = (renderer_cool*) enabler->renderer;
+            std::string &param2 = parameters[1];
+
+            if (param2 == "bigger")
+            {
+                r->gdispx++;
+                r->gdispy++;
+                r->needs_reshape = true;
+            }
+            else if (param2 == "smaller")
+            {
+                if (r->gdispx > 0 && r->gdispy > 0)
+                {
+                    r->gdispx--;
+                    r->gdispy--;
+                    r->needs_reshape = true;
+                }
+            }
+            else if (pcnt >= 3)
+            {
+                int w, h;
+                char *e;
+                do {
+                    w = strtol(parameters[1].c_str(), &e, 10);
+                    if (*e != 0)
+                        break;
+                    h = strtol(parameters[2].c_str(), &e, 10);
+                    if (*e != 0)
+                        break;
+
+                    r->gdispx = w;
+                    r->gdispy = h;
+                    r->needs_reshape = true;
+                } while(0);
+            }
         }
     }
 
@@ -1661,6 +1766,12 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     commands.push_back(PluginCommand(
         "multilevel", "Multilivel rendering",
         multilevel_cmd, false, /* true means that the command can't be used from non-interactive user interface */
+        // Extended help string. Used by CR_WRONG_USAGE and the help command:
+        ""
+    ));       
+    commands.push_back(PluginCommand(
+        "twbt", "Text Will Be Text",
+        twbt_cmd, false, /* true means that the command can't be used from non-interactive user interface */
         // Extended help string. Used by CR_WRONG_USAGE and the help command:
         ""
     ));       
