@@ -916,7 +916,7 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
             char *e;
             int l = (int)strtol(param1.c_str(), &e, 10);
             if (*e == 0)
-                maxlevels = l;
+                maxlevels = std::max (std::min(l, 15), 0);
         }
     }
 
