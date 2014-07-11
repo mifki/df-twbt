@@ -1580,16 +1580,16 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
             float c[4];
             char *e;
             do {
-                c[0] = strtof(parameters[1].c_str(), &e);
+                c[0] = strtod(parameters[1].c_str(), &e);
                 if (*e != 0)
                     break;
-                c[1] = strtof(parameters[2].c_str(), &e);
+                c[1] = strtod(parameters[2].c_str(), &e);
                 if (*e != 0)
                     break;
-                c[2] = strtof(parameters[3].c_str(), &e);
+                c[2] = strtod(parameters[3].c_str(), &e);
                 if (*e != 0)
                     break;
-                c[3] = strtof(parameters[4].c_str(), &e);
+                c[3] = strtod(parameters[4].c_str(), &e);
                 if (*e != 0)
                     break;
 
@@ -1601,13 +1601,13 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
             float c[3];
             char *e;
             do {
-                c[0] = strtof(parameters[1].c_str(), &e);
+                c[0] = strtod(parameters[1].c_str(), &e);
                 if (*e != 0)
                     break;
-                c[1] = strtof(parameters[2].c_str(), &e);
+                c[1] = strtod(parameters[2].c_str(), &e);
                 if (*e != 0)
                     break;
-                c[2] = strtof(parameters[3].c_str(), &e);
+                c[2] = strtod(parameters[3].c_str(), &e);
                 if (*e != 0)
                     break;
 
@@ -1617,7 +1617,7 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
         else if (param1 == "fogdensity" && pcnt >= 2)
         {
             char *e;
-            float l = strtof(parameters[1].c_str(), &e);
+            float l = strtod(parameters[1].c_str(), &e);
             if (*e == 0)
                 fogdensity = l;
         }
