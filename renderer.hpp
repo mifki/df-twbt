@@ -49,12 +49,16 @@ void renderer_cool::update_tile(int x, int y)
     //const int tile = x * gps->dimy + y;
     float d = (float)((screen[tile*4+3]&0xf0)>>4);
     depth[tile] = d;
-    fogcoord[tile*6+0] = d;
-    fogcoord[tile*6+1] = d;
-    fogcoord[tile*6+2] = d;
-    fogcoord[tile*6+3] = d;
-    fogcoord[tile*6+4] = d;
-    fogcoord[tile*6+5] = d;
+
+    if (fogdensity > 0)
+    {
+        fogcoord[tile*6+0] = d;
+        fogcoord[tile*6+1] = d;
+        fogcoord[tile*6+2] = d;
+        fogcoord[tile*6+3] = d;
+        fogcoord[tile*6+4] = d;
+        fogcoord[tile*6+5] = d;
+    }
 }
 
 #define SETTEX(tt) \
@@ -185,17 +189,15 @@ GLenum status;
         glOrtho(0,gps->dimx,gps->dimy,0,-1,1);*/
     }
 
-    float FogCol[3]={0.1f,0.1f,0.3f};
-    //float FogCol[3]={0.8f,0.8f,0.8f};
-    glEnable(GL_FOG);
-    glFogfv(GL_FOG_COLOR,FogCol);
-    glFogf(GL_FOG_DENSITY,0.15f);
-    //glFogi(GL_FOG_MODE, GL_LINEAR);
-    glFogf(GL_FOG_END, 20);
-    glFogi(GL_FOG_COORD_SRC, GL_FOG_COORD);
-
-    glFogCoordPointer(GL_FLOAT, 0, fogcoord);
-    glEnableClientState(GL_FOG_COORD_ARRAY);
+    if (fogdensity)
+    {
+        glEnable(GL_FOG);
+        glFogfv(GL_FOG_COLOR, fogcolor);
+        glFogf(GL_FOG_DENSITY, fogdensity);
+        glFogi(GL_FOG_COORD_SRC, GL_FOG_COORD);
+        glFogCoordPointer(GL_FLOAT, 0, fogcoord);
+        glEnableClientState(GL_FOG_COORD_ARRAY);
+    }
 
     glVertexPointer(2, GL_FLOAT, 0, vertexes);
 
@@ -216,7 +218,8 @@ GLenum status;
     glColorPointer(4, GL_FLOAT, 0, fg);
     glDrawArrays(GL_TRIANGLES, 0, vertex_count);
 
-    glDisable(GL_FOG);    
+    if (fogdensity > 0)
+        glDisable(GL_FOG);    
 
     if (maxlevels)
     {
@@ -325,7 +328,7 @@ GLenum status;
         if (elemcnt)
         {
             glDisableClientState(GL_COLOR_ARRAY);
-            glColor4f(0, 0, 0, 0.4f);
+            glColor4fv(shadowcolor);
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             //glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);

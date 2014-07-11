@@ -147,7 +147,10 @@ static vector< struct override > *overrides[256];
 static struct tileref override_defs[256];
 static df::item_flags bad_item_flags;
 
-static int maxlevels = 10;
+static int maxlevels = 0;
+static float fogdensity = 0.15f;
+static float fogcolor[4] = { 0.1f, 0.1f, 0.3f, 1 };
+static float shadowcolor[4] = { 0, 0, 0, 0.4f };
 
 bool is_text_tile(int x, int y, bool &is_map)
 {
@@ -846,7 +849,9 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
 {
     CoreSuspender suspend;
 
-    if (parameters.size() > 0)
+    int pcnt = parameters.size();
+
+    if (pcnt >= 1)
     {
         std::string &param1 = parameters[0];
 
@@ -859,6 +864,52 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
         {
             if (maxlevels > 0)
                 maxlevels--;
+        }
+        else if (param1 == "shadowcolor" && pcnt >= 5)
+        {
+            float c[4];
+            char *e;
+            do {
+                c[0] = strtof(parameters[1].c_str(), &e);
+                if (*e != 0)
+                    break;
+                c[1] = strtof(parameters[2].c_str(), &e);
+                if (*e != 0)
+                    break;
+                c[2] = strtof(parameters[3].c_str(), &e);
+                if (*e != 0)
+                    break;
+                c[3] = strtof(parameters[4].c_str(), &e);
+                if (*e != 0)
+                    break;
+
+                shadowcolor[0] = c[0], shadowcolor[1] = c[1], shadowcolor[2] = c[2], shadowcolor[3] = c[3];
+            } while(0);
+        }        
+        else if (param1 == "fogcolor" && pcnt >= 4)
+        {
+            float c[3];
+            char *e;
+            do {
+                c[0] = strtof(parameters[1].c_str(), &e);
+                if (*e != 0)
+                    break;
+                c[1] = strtof(parameters[2].c_str(), &e);
+                if (*e != 0)
+                    break;
+                c[2] = strtof(parameters[3].c_str(), &e);
+                if (*e != 0)
+                    break;
+
+                fogcolor[0] = c[0], fogcolor[1] = c[1], fogcolor[2] = c[2];
+            } while(0);
+        }
+        else if (param1 == "fogdensity" && pcnt >= 2)
+        {
+            char *e;
+            float l = strtof(parameters[1].c_str(), &e);
+            if (*e == 0)
+                fogdensity = l;
         }
         else 
         {

@@ -6,13 +6,19 @@ I wrote this small plugin because I was tired seeing coffins instead of zeroes a
 
 ### Overrides ###
 
-Allows to override tile numbers for buildings and items, see overrides.txt for details.
+Allows to override tile numbers for buildings and items, see `overrides.txt` for details.
 
 ### Multi-Level Rendering ###
 
 Copy `shadows.png` to `data/art` folder.
 
-`multilevel` command controls the number of additional levels rendered. Possible parameters are `more`, `less` or number `0-15`.
+`multilevel` command sets the number of additional levels to render. Possible parameters are `more`, `less` or number `0-15`.
+
+`multilevel shadowcolor <r> <g> <b> <a>` command sets shadow colour. Components are in range `0-1`. Default is `0 0 0 0.4`.
+
+`multilevel fogcolor <r> <g> <b>` command sets fog colour. Default is `0.1 0.1 0.3`.
+
+`multilevel fogdensity <d>` command sets fog density in range `0-1`. Default is `0.15`.
 
 ### Additional Colours ###
 
