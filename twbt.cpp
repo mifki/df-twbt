@@ -569,7 +569,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         gps->screentexpos_cf = screentexpos_cf2;
         gps->screentexpos_cbr = screentexpos_cbr2;
 
-        bool empty_tiles_left;
+        bool empty_tiles_left, rendered1st = false;
         int p = 1;
         int x0 = 1;
         int zz0 = *df::global::window_z;        
@@ -582,13 +582,16 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
             (*df::global::window_z)--;
 
-            (*df::global::window_x) += x0-1;
-            init->display.grid_x -= x0-1;
+            if (p > 1)
+            {
+                (*df::global::window_x) += x0 - 1;
+                init->display.grid_x -= x0 - 1;
 
-            INTERPOSE_NEXT(render)();
+                INTERPOSE_NEXT(render)();
 
-            (*df::global::window_x) -= x0-1;
-            init->display.grid_x += x0-1;
+                (*df::global::window_x) -= x0 - 1;
+                init->display.grid_x += x0 - 1;
+            }
 
             empty_tiles_left = false;
             int x00 = x0;
@@ -604,13 +607,12 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
             {
                 for (int y = 1; y < y1; y++)
                 {
-                    const int tile = x * gps->dimy + y;
-                    const int tile2 = (x-(x00-1)) * gps->dimy + y;
+                    const int tile = x * gps->dimy + y, stile = tile * 4;
 
-                    if ((sctop[tile*4+3]&0xf0))
+                    if ((sctop[stile+3]&0xf0))
                         continue;
 
-                    unsigned char ch = sctop[tile*4+0];
+                    unsigned char ch = sctop[stile+0];
                     if (ch != 31 && ch != 249 && ch != 250 && ch != 254 && ch != skytile && ch != chasmtile && !(ch >= '1' && ch <= '7'))
                         continue;
 
@@ -619,22 +621,42 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                     if (xx < 0 || yy < 0)
                         continue;
 
-                    //TODO: check for z=0
-                    bool e0,h,h0;
-                    //*out2 << xx << " " << world->map.x_count << " " << yy << " " << world->map.y_count << " " << *df::global::window_x << " " << *df::global::window_y << std::endl;
-                    df::map_block *block0 = world->map.block_index[xx >> 4][yy >> 4][zz0];
-                    h0 = block0 && block0->designation[xx&15][yy&15].bits.hidden;
+                    //TODO: check for z=0 (?)
+                    bool e0, h, h0;
+
+                    int xxquot = xx >> 4, xxrem = xx & 15;
+                    int yyquot = yy >> 4, yyrem = yy & 15;
+
+                    df::map_block *block0 = world->map.block_index[xxquot][yyquot][zz0];
+                    h0 = block0 && block0->designation[xxrem][yyrem].bits.hidden;
                     if (h0)
                         continue;
-                    e0 = !block0 || (block0->tiletype[xx&15][yy&15] == df::tiletype::OpenSpace || block0->tiletype[xx&15][yy&15] == df::tiletype::RampTop);
+                    e0 = !block0 || (block0->tiletype[xxrem][yyrem] == df::tiletype::OpenSpace || block0->tiletype[xxrem][yyrem] == df::tiletype::RampTop);
                     if (!(e0))
                         continue;
 
-                    int d=p;
-                    ch = screen2[tile2*4+0];
+                    if (p == 1 && !rendered1st)
+                    {
+                        (*df::global::window_x) += x0 - 1;
+                        init->display.grid_x -= x0 - 1;
+
+                        INTERPOSE_NEXT(render)();
+
+                        (*df::global::window_x) -= x0 - 1;
+                        init->display.grid_x += x0 - 1;
+
+                        x00 = x0;
+
+                        rendered1st = true;
+                    }
+
+                    const int tile2 = (x-(x00-1)) * gps->dimy + y, stile2 = tile2 * 4;                    
+
+                    int d = p;
+                    ch = screen2[stile2+0];
                     if (!(ch!=31&&ch != 249 && ch != 250 && ch != 254 && ch != skytile && ch != chasmtile && !(ch >= '1' && ch <= '7')))
                     {
-                        df::map_block *block1 = world->map.block_index[xx >> 4][yy >> 4][zz-1];
+                        df::map_block *block1 = world->map.block_index[xxquot][yyquot][zz-1];
                         if (!block1)
                         {
                             //TODO: skip all other y's in this block
@@ -649,7 +671,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                         else
                         {
                             //TODO: check for hidden also
-                            df::tiletype t1 = block1->tiletype[xx&15][yy&15];
+                            df::tiletype t1 = block1->tiletype[xxrem][yyrem];
                             if (t1 == df::tiletype::OpenSpace || t1 == df::tiletype::RampTop)
                             {
                                 if (p < maxlevels)
@@ -675,8 +697,9 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                         *(screentexpos_cftop+tile) = *(screentexpos_cf2+tile2);
                         *(screentexpos_cbrtop+tile) = *(screentexpos_cbr2+tile2);
                     }
-                    sctop[tile*4+3] = (0x10*d) | (sctop[tile*4+3]&0x0f);                                        
+                    sctop[stile+3] = (0x10*d) | (sctop[stile+3]&0x0f);                                        
                 }
+
                 if (!empty_tiles_left)
                     x0 = x + 1;
             }
