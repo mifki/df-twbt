@@ -1,8 +1,8 @@
 ## Text Will Be Text ##
 
-This is a plugin for [Dwarf Fortress](http://bay12games.com) / [DFHack](http://github.com/dfhack/dfhack) that improves various aspects of rendering.
+This is a plugin for [Dwarf Fortress](http://bay12games.com) / [DFHack](http://github.com/dfhack/dfhack) that improves various aspects the game interface.
 
-Originally I wrote a small plugin because I was tired seeing coffins instead of zeroes and all that stuff. It has greately evolved since then. Requires OpenGL PRINT_MODE (STANDARD or VBO).
+Originally I wrote a small plugin because I was tired seeing coffins instead of zeroes and all that stuff. It has greately evolved since then. Requires OpenGL PRINT_MODE (STANDARD or VBO). Some functions may not work or have issues in Adventurer Mode.
 
 ### Text and Map Tilesets ###
 
@@ -26,7 +26,7 @@ Copy `shadows.png` to `data/art` folder.
 
 `multilevel fogcolor <r> <g> <b>` command sets fog colour. Default is `0.1 0.1 0.3`.
 
-`multilevel fogdensity <d>` command sets fog density in range `0-1`. Default is `0.15`.
+`multilevel fogdensity <d>` command sets fog density. Default is `0.15`.
 
 ### Additional Colours ###
 

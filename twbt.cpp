@@ -28,6 +28,7 @@
 
 #elif defined(__APPLE__)
     #include <OpenGL/gl.h>
+
 #else
     #define GL_GLEXT_PROTOTYPES
     #include <GL/gl.h>
@@ -38,7 +39,7 @@
 #include "Console.h"
 #include "Export.h"
 #include "PluginManager.h"
-#include <VTableInterpose.h>
+#include "VTableInterpose.h"
 #include "MemAccess.h"
 #include "VersionInfo.h"
 #include "modules/Maps.h"
@@ -97,33 +98,25 @@ struct gl_texpos {
 
 DFHACK_PLUGIN("twbt");
 
-void (*load_multi_pdim)(void *tex,const string &filename, long *tex_pos, long dimx, long dimy, bool convert_magenta, long *disp_x, long *disp_y);
 
 #ifdef WIN32
-__declspec(naked) void load_multi_pdim_x(void *tex, const string &filename, long *tex_pos, long dimx, long dimy, bool convert_magenta, long *disp_x, long *disp_y)
-{
-    __asm {
-        push ebp
-        mov ebp, esp
-
-        push disp_y
-        push disp_x
-        push dimy
-        push dimx
-        mov ecx, tex_pos
-        push tex
-        mov edx, filename
-
-        call load_multi_pdim
-
-        mov esp, ebp
-        pop ebp
-        ret
-    }    
-}
+    // On Windows there's no convert_magenta parameter. Arguments are pushed onto stack,
+    // except for tex_pos and filename, which go into ecx and edx. Simulating this with __fastcall.
+    typedef void (__fastcall *LOAD_MULTI_PDIM)(long *tex_pos, const string &filename, void *tex, long dimx, long dimy, long *disp_x, long *disp_y);
 #else
-#define load_multi_pdim_x load_multi_pdim
-#endif        
+    typedef void (*LOAD_MULTI_PDIM)(void *tex, const string &filename, long *tex_pos, long dimx, long dimy, bool convert_magenta, long *disp_x, long *disp_y);
+#endif
+LOAD_MULTI_PDIM load_multi_pdim;
+
+static void load_tileset(const string &filename, long *tex_pos, long dimx, long dimy, long *disp_x, long *disp_y)
+{
+#ifdef WIN32
+    load_multi_pdim(tex_pos, filename, &enabler->textures, dimx, dimy, disp_x, disp_y);
+#else
+    load_multi_pdim(&enabler->textures, filename, tex_pos, dimx, dimy, true, disp_x, disp_y);
+#endif
+}
+
 
 struct tileset {
     string small_font_path;
@@ -283,7 +276,7 @@ bool is_text_tile(int x, int y, bool &is_map)
     if (IS_SCREEN(viewscreen_dungeonmodest))
     {
         //df::viewscreen_dungeonmodest *s = strict_virtual_cast<df::viewscreen_dungeonmodest>(ws);
-        //TODO
+        //TODO:
 
         if (y >= h-2)
             return true;
@@ -342,36 +335,36 @@ bool is_text_tile(int x, int y, bool &is_map)
     return true;
 }
 
-float addcolors[][3] = { {1,0,0} };
-unsigned char depth[256*256];
-GLfloat shadowtex[256*256*2*6];
-GLfloat shadowvert[256*256*2*6];
-long shadow_texpos[8];
-bool shadowsloaded;
-int gmenu_w;
+static float addcolors[][3] = { {1,0,0} };
+static unsigned char depth[256*256];
+static GLfloat shadowtex[256*256*2*6];
+static GLfloat shadowvert[256*256*2*6];
+static long shadow_texpos[8];
+static bool shadowsloaded;
+static int gmenu_w;
 
-float fogcoord[256*256*6];
-unsigned char screen2[256*256*4];
-int32_t screentexpos2[256*256];
-int8_t screentexpos_addcolor2[256*256];
-uint8_t screentexpos_grayscale2[256*256];
-uint8_t screentexpos_cf2[256*256];
-uint8_t screentexpos_cbr2[256*256];
-unsigned char screen3[256*256*4];
-int32_t screentexpos3[256*256];
-int8_t screentexpos_addcolor3[256*256];
-uint8_t screentexpos_grayscale3[256*256];
-uint8_t screentexpos_cf3[256*256];
-uint8_t screentexpos_cbr3[256*256];
-uint8_t skytile;
-uint8_t chasmtile;
+static float fogcoord[256*256*6];
+static unsigned char screen2[256*256*4];
+static int32_t screentexpos2[256*256];
+static int8_t screentexpos_addcolor2[256*256];
+static uint8_t screentexpos_grayscale2[256*256];
+static uint8_t screentexpos_cf2[256*256];
+static uint8_t screentexpos_cbr2[256*256];
+static unsigned char screen3[256*256*4];
+static int32_t screentexpos3[256*256];
+static int8_t screentexpos_addcolor3[256*256];
+static uint8_t screentexpos_grayscale3[256*256];
+static uint8_t screentexpos_cf3[256*256];
+static uint8_t screentexpos_cbr3[256*256];
+static uint8_t skytile;
+static uint8_t chasmtile;
 
-static void screen_to_texid2_text(renderer_cool *r, int tile, struct texture_fullid &ret)
+static void screen_to_texid_text(renderer_cool *r, int tile, struct texture_fullid &ret)
 {
     const unsigned char *s = r->screen + tile*4;
 
-    int bold = (s[3]&0x0f) * 8;
-    int fg   = (s[1] + bold);
+    int bold = (s[3] != 0) * 8;
+    int fg   = (s[1] + bold) % 16;
     int bg   = s[2] % 16;
 
     const long texpos = r->screentexpos[tile];
@@ -421,12 +414,12 @@ static void screen_to_texid2_text(renderer_cool *r, int tile, struct texture_ful
     }
 }
 
-static void screen_to_texid2_map(renderer_cool *r, int tile, struct texture_fullid &ret)
+static void screen_to_texid_map(renderer_cool *r, int tile, struct texture_fullid &ret)
 {
     const unsigned char *s = screen2 + tile*4;
 
-    int bold = (s[3]&0x0f) * 8;
-    int fg   = (s[1] + bold);
+    int bold = (s[3] & 0x0f) * 8;
+    int fg   = (s[1] + bold) % 16;
     int bg   = s[2] % 16;
 
     const long texpos = screentexpos2[tile];
@@ -492,7 +485,7 @@ static void write_tile_arrays_text(renderer_cool *r, int x, int y, GLfloat *fg, 
     }
 
     struct texture_fullid ret;
-    screen_to_texid2_text(r, tile, ret);
+    screen_to_texid_text(r, tile, ret);
 
     for (int i = 0; i < 6; i++) {
         *(fg++) = ret.r;
@@ -529,7 +522,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
 {
     struct texture_fullid ret;
     const int tile = x * r->gdimy + y;        
-    screen_to_texid2_map(r, tile, ret);
+    screen_to_texid_map(r, tile, ret);
 
     for (int i = 0; i < 6; i++) {
         *(fg++) = ret.r;
@@ -547,6 +540,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
     {
         const unsigned char *s = screen2 + tile*4;
         int s0 = s[0];
+
         if (overrides[s0])
         {
             int xx = *df::global::window_x + x-1;
@@ -630,18 +624,12 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
     *(tex++) = txt[ret.texpos].top;
 }
 
-
-
 #include "renderer.hpp"
 
-
-
-void hook()
+static void hook()
 {
     if (enabled)
         return;
-
-    //TODO: check for opengl renderer, graphics, show msg otherwise
 
     renderer_opengl *oldr = (renderer_opengl*)enabler->renderer;
     renderer_cool *newr = new renderer_cool;
@@ -726,18 +714,17 @@ void hook()
     enabled = true;   
 }
 
-void unhook()
+static void unhook()
 {
-    if (!enabled)
+    /*if (!enabled)
         return;
 
-    //TODO: !!!
-
     enabled = false;
-    gps->force_full_display_count = true;
+
+    gps->force_full_display_count = true;*/
 }
 
-struct zzz : public df::viewscreen_dwarfmodest
+struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 {
     typedef df::viewscreen_dwarfmodest interpose_base;
 
@@ -946,10 +933,11 @@ struct zzz : public df::viewscreen_dwarfmodest
 
         //void (*render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
 
-        bool empty_tiles_left;
+        bool empty_tiles_left, rendered1st = false;
         int p = 1;
         int x0 = 0;
-        int zz0 = *df::global::window_z;        
+        int zz0 = *df::global::window_z;    
+
         do
         {
             //TODO: if z=0 should just render and use for all tiles always
@@ -958,21 +946,23 @@ struct zzz : public df::viewscreen_dwarfmodest
 
             (*df::global::window_z)--;
 
-            (*df::global::window_x) += x0;
-            //init->display.grid_x -= x0-1;
+            if (p > 1)
+            {
+                (*df::global::window_x) += x0;
+                //init->display.grid_x -= x0-1;
 
 #ifdef WIN32
-        render_map(1);
+                render_map(1);
 #else
 #ifdef DFHACK_r5
-        render_map(df::global::map_renderer, 1);
+                render_map(df::global::map_renderer, 1);
 #else
-        render_map(df::global::cursor_unit_list, 1);
+                render_map(df::global::cursor_unit_list, 1);
 #endif
 #endif
-        
-            (*df::global::window_x) -= x0;
-            //init->display.grid_x += x0-1;
+                (*df::global::window_x) -= x0;
+                //init->display.grid_x += x0-1;
+            }
 
             empty_tiles_left = false;
             int x00 = x0;
@@ -988,13 +978,12 @@ struct zzz : public df::viewscreen_dwarfmodest
             {
                 for (int y = 0; y < y1; y++)
                 {
-                    const int tile = x * r->gdimy + y;
-                    const int tile2 = (x-(x00)) * r->gdimy + y;
+                    const int tile = x * r->gdimy + y, stile = tile * 4;
 
-                    if ((sctop[tile*4+3]&0xf0))
+                    if ((sctop[stile+3]&0xf0))
                         continue;
 
-                    unsigned char ch = sctop[tile*4+0];
+                    unsigned char ch = sctop[stile+0];
                     if (ch != 31 && ch != 249 && ch != 250 && ch != 254 && ch != skytile && ch != chasmtile && !(ch >= '1' && ch <= '7'))
                         continue;
 
@@ -1003,22 +992,49 @@ struct zzz : public df::viewscreen_dwarfmodest
                     if (xx < 0 || yy < 0)
                         continue;
 
-                    //TODO: check for z=0
+                    int xxquot = xx >> 4, xxrem = xx & 15;
+                    int yyquot = yy >> 4, yyrem = yy & 15;                    
+
+                    //TODO: check for z=0 (?)
                     bool e0,h,h0;
                     //*out2 << xx << " " << world->map.x_count << " " << yy << " " << world->map.y_count << " " << *df::global::window_x << " " << *df::global::window_y << std::endl;
-                    df::map_block *block0 = world->map.block_index[xx >> 4][yy >> 4][zz0];
-                    h0 = block0 && block0->designation[xx&15][yy&15].bits.hidden;
+                    df::map_block *block0 = world->map.block_index[xxquot][yyquot][zz0];
+                    h0 = block0 && block0->designation[xxrem][yyrem].bits.hidden;
                     if (h0)
                         continue;
-                    e0 = !block0 || (block0->tiletype[xx&15][yy&15] == df::tiletype::OpenSpace || block0->tiletype[xx&15][yy&15] == df::tiletype::RampTop);
+                    e0 = !block0 || (block0->tiletype[xxrem][yyrem] == df::tiletype::OpenSpace || block0->tiletype[xxrem][yyrem] == df::tiletype::RampTop);
                     if (!(e0))
                         continue;
 
-                    int d=p;
-                    ch = screen3[tile2*4+0];
+                    if (p == 1 && !rendered1st)
+                    {
+                        (*df::global::window_x) += x0;
+                        //init->display.grid_x -= x0-1;
+
+#ifdef WIN32
+                        render_map(1);
+#else
+#ifdef DFHACK_r5
+                        render_map(df::global::map_renderer, 1);
+#else
+                        render_map(df::global::cursor_unit_list, 1);
+#endif
+#endif
+                        (*df::global::window_x) -= x0;
+                        //init->display.grid_x += x0-1;
+
+                        x00 = x0;
+
+                        rendered1st = true;                        
+                    }                    
+
+                    const int tile2 = (x-(x00)) * r->gdimy + y, stile2 = tile2 * 4;                    
+
+                    int d = p;
+                    ch = screen3[stile2+0];
                     if (!(ch!=31&&ch != 249 && ch != 250 && ch != 254 && ch != skytile && ch != chasmtile && !(ch >= '1' && ch <= '7')))
                     {
-                        df::map_block *block1 = world->map.block_index[xx >> 4][yy >> 4][zz-1];
+                        df::map_block *block1 = world->map.block_index[xxquot][yyquot][zz-1];
                         if (!block1)
                         {
                             //TODO: skip all other y's in this block
@@ -1033,7 +1049,7 @@ struct zzz : public df::viewscreen_dwarfmodest
                         else
                         {
                             //TODO: check for hidden also
-                            df::tiletype t1 = block1->tiletype[xx&15][yy&15];
+                            df::tiletype t1 = block1->tiletype[xxrem][yyrem];
                             if (t1 == df::tiletype::OpenSpace || t1 == df::tiletype::RampTop)
                             {
                                 if (p < maxlevels)
@@ -1060,8 +1076,9 @@ struct zzz : public df::viewscreen_dwarfmodest
                         *(screentexpos_cftop+tile) = *(screentexpos_cf3+tile2);
                         *(screentexpos_cbrtop+tile) = *(screentexpos_cbr3+tile2);
                     }
-                    sctop[tile*4+3] = (0x10*d) | (sctop[tile*4+3]&0x0f);
+                    sctop[stile+3] = (0x10*d) | (sctop[stile+3]&0x0f);
                 }
+
                 if (!empty_tiles_left)
                     x0 = x + 1;
             }
@@ -1433,14 +1450,10 @@ struct zzz : public df::viewscreen_dwarfmodest
     }
 };*/
 
-
-
-//TODO: Priority?
-IMPLEMENT_VMETHOD_INTERPOSE(zzz, render);
-IMPLEMENT_VMETHOD_INTERPOSE(zzz, feed);
+IMPLEMENT_VMETHOD_INTERPOSE(dwarfmode_hook, render);
+IMPLEMENT_VMETHOD_INTERPOSE(dwarfmode_hook, feed);
 //IMPLEMENT_VMETHOD_INTERPOSE(zzz2, render);
 //IMPLEMENT_VMETHOD_INTERPOSE(zzz2, feed);
-
 
 #ifdef __APPLE__
 //0x0079cb2a+4 0x14 - item name length
@@ -1689,7 +1702,7 @@ command_result twbt_cmd (color_ostream &out, std::vector <std::string> & paramet
 DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCommand> &commands)
 {
     auto dflags = init->display.flag;
-    if (0&&!dflags.is_set(init_display_flags::USE_GRAPHICS))
+    if (!dflags.is_set(init_display_flags::USE_GRAPHICS))
     {
         out.color(COLOR_RED);
         out << "TWBT: GRAPHICS is not enabled in init.txt" << std::endl;
@@ -1710,17 +1723,15 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     }
 
     out2 = &out;
-    
+
 #ifdef WIN32
-    load_multi_pdim = (void (*)(void *tex, const string &filename, long *tex_pos, long dimx,
-        long dimy, bool convert_magenta, long *disp_x, long *disp_y)) (0x00a52670+(Core::getInstance().vinfo->getRebaseDelta()));    
+    load_multi_pdim = (LOAD_MULTI_PDIM) (0x00a52670 + Core::getInstance().vinfo->getRebaseDelta());
 #elif defined(__APPLE__)
-    load_multi_pdim = (void (*)(void *tex, const string &filename, long *tex_pos, long dimx,
-        long dimy, bool convert_magenta, long *disp_x, long *disp_y)) 0x00cfbbb0;    
+    load_multi_pdim = (LOAD_MULTI_PDIM) 0x00cfbbb0;    
 #else
+    load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
     #error Linux not supported yet
 #endif
-    //_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_
 
     bad_item_flags.whole = 0;
     bad_item_flags.bits.in_building = true;
@@ -1744,12 +1755,19 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     memset(override_defs, sizeof(struct tileref)*256, 0);
 
     has_textfont = get_font_paths();
-    has_overrides |= load_overrides();
-    if (has_textfont || has_overrides)
-        hook();
+    has_overrides = load_overrides();
 
-    INTERPOSE_HOOK(zzz, render).apply(1);
-    INTERPOSE_HOOK(zzz, feed).apply(1);
+    if (!has_textfont)
+    {
+        out.color(COLOR_YELLOW);
+        out << "TWBT: FONT and GRAPHICS_FONT are the same" << std::endl;
+        out.color(COLOR_RESET);        
+    }
+
+    hook();
+
+    INTERPOSE_HOOK(dwarfmode_hook, render).apply(1);
+    INTERPOSE_HOOK(dwarfmode_hook, feed).apply(1);
     //INTERPOSE_HOOK(zzz2, render).apply(1);
     //INTERPOSE_HOOK(zzz2, feed).apply(1);
 
@@ -1781,12 +1799,14 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 
 DFhackCExport command_result plugin_shutdown ( color_ostream &out )
 {
-    if (enabled)
+    return CR_FAILURE;
+
+    /*if (enabled)
         unhook();
 
 #ifdef __APPLE__
     INTERPOSE_HOOK(traderesize_hook, render).apply(false);
 #endif            
 
-    return CR_OK;
+    return CR_OK;*/
 }
