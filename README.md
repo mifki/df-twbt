@@ -1,12 +1,12 @@
 ## Text Will Be Text ##
 
-This is a plugin for [Dwarf Fortress](http://bay12games.com) / [DFHack](http://github.com/dfhack/dfhack) that improves various aspects of rendering.
+This is a plugin for [Dwarf Fortress](http://bay12games.com) / [DFHack](http://github.com/dfhack/dfhack) that improves various aspects of the game interface.
 
-Originally I wrote a small plugin because I was tired seeing coffins instead of zeroes and all that stuff. It has greately evolved since then. Requires OpenGL PRINT_MODE (STANDARD or VBO).
+Originally I wrote a small plugin because I was tired seeing coffins instead of zeroes and all that stuff. It has greately evolved since then. Requires OpenGL PRINT_MODE (STANDARD or VBO). Some functions may not work or have issues in Adventurer Mode.
 
 ### Text and Map Tilesets ###
 
-Main function is to use separate fonts (tilesets) for map tiles in Fortress Mode and for text.
+Main function is to use separate fonts (tilesets) for map tiles and for text.
 
 In your `init.txt` set FONT and FULLFONT to the font you want to use for **text**, and GRAPHICS\_FONT and GRAPHICS\_FULLFONT to the font for **map tiles**.
 
@@ -24,7 +24,7 @@ Copy `shadows.png` to `data/art` folder. **Note:** multilevel rendering is disab
 
 `multilevel fogcolor <r> <g> <b>` command sets fog colour. Default is `0.1 0.1 0.3`.
 
-`multilevel fogdensity <d>` command sets fog density in range `0-1`. Default is `0.15`.
+`multilevel fogdensity <d>` command sets fog density. Default is `0.15`.
 
 ### Additional Colours ###
 
