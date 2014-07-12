@@ -134,10 +134,6 @@ struct override {
     struct tileref newtile;
 };
 
-
-
-
-
 static vector< struct tileset > tilesets;
 
 static bool enabled, texloaded;
@@ -283,12 +279,12 @@ bool is_text_tile(int x, int y, bool &is_map)
     return true;
 }
 
-float addcolors[][3] = { {1,0,0} };
-unsigned char depth[256*256];
-GLfloat shadowtex[256*256*2*6];
-GLfloat shadowvert[256*256*2*6];
-long shadow_texpos[8];
-bool shadowsloaded;
+static float addcolors[][3] = { {1,0,0} };
+static unsigned char depth[256*256];
+static GLfloat shadowtex[256*256*2*6];
+static GLfloat shadowvert[256*256*2*6];
+static long shadow_texpos[8];
+static bool shadowsloaded;
 
 void screen_to_texid2(df::renderer *r, int x, int y, struct texture_fullid &ret) {
     const int tile = x * gps->dimy + y;
@@ -300,8 +296,8 @@ void screen_to_texid2(df::renderer *r, int x, int y, struct texture_fullid &ret)
     int bg;
 
     ch   = s[0];
-    bold = (s[3]&0x0f) * 8;
-    fg   = (s[1] + bold);
+    bold = (s[3] != 0) * 8;
+    fg   = (s[1] + bold) % 16;
     bg   = s[2] % 16;
 
     const long texpos             = r->screentexpos[tile];
@@ -333,18 +329,9 @@ void screen_to_texid2(df::renderer *r, int x, int y, struct texture_fullid &ret)
     init->font.small_font_texpos[ch];
 
  use_ch:
- if (fg < 16)
- {
   ret.r = enabler->ccolor[fg][0];
   ret.g = enabler->ccolor[fg][1];
   ret.b = enabler->ccolor[fg][2];
-}
-else
-{
-  ret.r = addcolors[fg-16][0];
-  ret.g = addcolors[fg-16][1];
-  ret.b = addcolors[fg-16][2];
-}
   ret.br = enabler->ccolor[bg][0];
   ret.bg = enabler->ccolor[bg][1];
   ret.bb = enabler->ccolor[bg][2];
@@ -981,9 +968,16 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     memset(override_defs, sizeof(struct tileref)*256, 0);
 
     has_textfont = get_font_paths();
-    has_overrides |= load_overrides();
-    if (has_textfont || has_overrides)
-        hook();
+    has_overrides = load_overrides();
+
+    if (!has_textfont)
+    {
+        out.color(COLOR_YELLOW);
+        out << "TWBT: FONT and GRAPHICS_FONT are the same" << std::endl;
+        out.color(COLOR_RESET);        
+    }
+
+    hook();
 
     INTERPOSE_HOOK(zzz, render).apply(1);
 #ifdef __APPLE__

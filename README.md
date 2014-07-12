@@ -2,7 +2,13 @@
 
 This is a plugin for [Dwarf Fortress](http://bay12games.com) / [DFHack](http://github.com/dfhack/dfhack) that improves various aspects of rendering.
 
-I wrote this small plugin because I was tired seeing coffins instead of zeroes and all that stuff. It allows to specify separate fonts for map tiles and for text. GRAPHICS\_FONT / GRAPHICS\_FULLFONT will continue to be used for map area(s), and FONT / FULLFONT will be used for everything else. Requires OpenGL PRINT_MODE (STANDARD, VBO and so on). Adventurer mode and possibly some other screens need some more work.
+Originally I wrote a small plugin because I was tired seeing coffins instead of zeroes and all that stuff. It has greately evolved since then. Requires OpenGL PRINT_MODE (STANDARD or VBO).
+
+### Text and Map Tilesets ###
+
+Main function is to use separate fonts (tilesets) for map tiles in Fortress Mode and for text.
+
+In your `init.txt` set FONT and FULLFONT to the font you want to use for **text**, and GRAPHICS\_FONT and GRAPHICS\_FULLFONT to the font for **map tiles**.
 
 ### Overrides ###
 
@@ -10,7 +16,7 @@ Allows to override tile numbers for buildings and items, see `overrides.txt` for
 
 ### Multi-Level Rendering ###
 
-Copy `shadows.png` to `data/art` folder.
+Copy `shadows.png` to `data/art` folder. **Note:** multilevel rendering is disabled by default for performance reasons, you need to set number of additional levels you want to render with the `multilevel` command (see below). You can add it to your `dfhack.init` to be executed automatically.
 
 `multilevel` command sets the number of additional levels to render. Possible parameters are `more`, `less` or number `0-15`.
 
