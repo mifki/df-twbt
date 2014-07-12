@@ -32,7 +32,7 @@
 #include "Console.h"
 #include "Export.h"
 #include "PluginManager.h"
-#include <VTableInterpose.h>
+#include "VTableInterpose.h"
 #include "MemAccess.h"
 #include "VersionInfo.h"
 #include "modules/Maps.h"
@@ -273,77 +273,83 @@ bool is_text_tile(int x, int y, bool &is_map)
 
 static float addcolors[][3] = { {1,0,0} };
 static unsigned char depth[256*256];
+static float fogcoord[256*256*6];
 static GLfloat shadowtex[256*256*2*6];
 static GLfloat shadowvert[256*256*2*6];
 static long shadow_texpos[8];
 static bool shadowsloaded;
 
-void screen_to_texid2(df::renderer *r, int x, int y, struct texture_fullid &ret) {
-    const int tile = x * gps->dimy + y;
+static void screen_to_texid(df::renderer *r, int tile, struct texture_fullid &ret)
+{
     const unsigned char *s = r->screen + tile*4;
 
-    int ch;
-    int bold;
-    int fg;
-    int bg;
+    int bold = (s[3] != 0) * 8;
+    int fg   = (s[1] + bold) % 16;
+    int bg   = s[2] % 16;
 
-    ch   = s[0];
-    bold = (s[3] != 0) * 8;
-    fg   = (s[1] + bold) % 16;
-    bg   = s[2] % 16;
+    const long texpos = r->screentexpos[tile];
 
-    const long texpos             = r->screentexpos[tile];
-    const char addcolor           = r->screentexpos_addcolor[tile];
-    const unsigned char grayscale = r->screentexpos_grayscale[tile];
-    const unsigned char cf        = r->screentexpos_cf[tile];
-    const unsigned char cbr       = r->screentexpos_cbr[tile];
+    if (!texpos)
+    {
+        int ch = s[0];
+        ret.texpos = enabler->fullscreen ? init->font.large_font_texpos[ch] : init->font.small_font_texpos[ch];
 
-    if (texpos) {
-      ret.texpos = texpos;
-      if (grayscale) {
+        ret.r = enabler->ccolor[fg][0];
+        ret.g = enabler->ccolor[fg][1];
+        ret.b = enabler->ccolor[fg][2];
+        ret.br = enabler->ccolor[bg][0];
+        ret.bg = enabler->ccolor[bg][1];
+        ret.bb = enabler->ccolor[bg][2];
+
+        return;
+    }        
+
+    ret.texpos = texpos;
+
+    if (r->screentexpos_grayscale[tile])
+    {
+        const unsigned char cf = r->screentexpos_cf[tile];
+        const unsigned char cbr = r->screentexpos_cbr[tile];
+
         ret.r = enabler->ccolor[cf][0];
         ret.g = enabler->ccolor[cf][1];
         ret.b = enabler->ccolor[cf][2];
         ret.br = enabler->ccolor[cbr][0];
         ret.bg = enabler->ccolor[cbr][1];
         ret.bb = enabler->ccolor[cbr][2];
-      } else if (addcolor) {
-        goto use_ch;
-      } else {
+    }
+    else if (r->screentexpos_addcolor[tile])
+    {
+        ret.r = enabler->ccolor[fg][0];
+        ret.g = enabler->ccolor[fg][1];
+        ret.b = enabler->ccolor[fg][2];
+        ret.br = enabler->ccolor[bg][0];
+        ret.bg = enabler->ccolor[bg][1];
+        ret.bb = enabler->ccolor[bg][2];
+    }
+    else
+    {
         ret.r = ret.g = ret.b = 1;
         ret.br = ret.bg = ret.bb = 0;
-      }
-      return;
     }
-  
-  ret.texpos = enabler->fullscreen ?
-    init->font.large_font_texpos[ch] :
-    init->font.small_font_texpos[ch];
-
- use_ch:
-  ret.r = enabler->ccolor[fg][0];
-  ret.g = enabler->ccolor[fg][1];
-  ret.b = enabler->ccolor[fg][2];
-  ret.br = enabler->ccolor[bg][0];
-  ret.bg = enabler->ccolor[bg][1];
-  ret.bb = enabler->ccolor[bg][2];
 }
 
-void write_tile_arrays(df::renderer *r, int x, int y, GLfloat *fg, GLfloat *bg, GLfloat *tex)
+static void write_tile_arrays(df::renderer *r, int x, int y, GLfloat *fg, GLfloat *bg, GLfloat *tex)
 {
-    struct texture_fullid ret;
-    screen_to_texid2(r, x, y, ret);
     const int tile = x * gps->dimy + y;
-    float a = 1;//+(((r->screen[tile*4+3]&0xf0)>>4))*0.2;
+
+    struct texture_fullid ret;
+    screen_to_texid(r, tile, ret);
+
     for (int i = 0; i < 6; i++) {
-        *(fg++) = ret.r/a;
-        *(fg++) = ret.g/a;
-        *(fg++) = ret.b/a;
+        *(fg++) = ret.r;
+        *(fg++) = ret.g;
+        *(fg++) = ret.b;
         *(fg++) = 1;
         
-        *(bg++) = ret.br/a;
-        *(bg++) = ret.bg/a;
-        *(bg++) = ret.bb/a;
+        *(bg++) = ret.br;
+        *(bg++) = ret.bg;
+        *(bg++) = ret.bb;
         *(bg++) = 1;
     }
     
@@ -441,19 +447,16 @@ void write_tile_arrays(df::renderer *r, int x, int y, GLfloat *fg, GLfloat *bg, 
     *(tex++) = txt[ret.texpos].top;
 }
 
-float fogcoord[256*256*6];
 #include "renderer.hpp"
 
+static renderer_opengl *oldr;
 
-
-void hook()
+static void hook()
 {
     if (enabled)
         return;
 
-    //TODO: check for opengl renderer, graphics, show msg otherwise
-
-    renderer_opengl *oldr = (renderer_opengl*)enabler->renderer;
+    oldr = (renderer_opengl*)enabler->renderer;
     renderer_cool *newr = new renderer_cool;
 
     long **vtable_old = (long **)oldr;
@@ -465,11 +468,6 @@ void hook()
     long draw_new = vtable_new[0][14];
 #endif
     long update_tile_new = vtable_new[0][0];
-
-    /*for (int i = 0; i < 20; i++)
-        *out2 << "$ " << i << " " << (long)vtable_old[0][i] << std::endl;
-    for (int i = 0; i < 24; i++)
-        *out2 << "$ " << i << " " << (long)vtable_new[0][i] << std::endl;*/
 
 #ifdef WIN32
     HANDLE process = ::GetCurrentProcess();
@@ -496,32 +494,32 @@ void hook()
     enabler->renderer = newr;
     //free(oldr);
 
-    //*out2 << (char*)&newr->vertexes-(char*)newr << std::endl;
-
     enabled = true;   
 }
 
-void unhook()
+static void unhook()
 {
     if (!enabled)
         return;
 
-    //TODO: !!!
-
     enabled = false;
+
+    //TODO: !!!
+    enabler->renderer = oldr;
+
     gps->force_full_display_count = true;
 }
 
-unsigned char screen2[256*256*4];
-int32_t screentexpos2[256*256];
-int8_t screentexpos_addcolor2[256*256];
-uint8_t screentexpos_grayscale2[256*256];
-uint8_t screentexpos_cf2[256*256];
-uint8_t screentexpos_cbr2[256*256];
-uint8_t skytile;
-uint8_t chasmtile;
+static unsigned char screen2[256*256*4];
+static int32_t screentexpos2[256*256];
+static int8_t screentexpos_addcolor2[256*256];
+static uint8_t screentexpos_grayscale2[256*256];
+static uint8_t screentexpos_cf2[256*256];
+static uint8_t screentexpos_cbr2[256*256];
+static uint8_t skytile;
+static uint8_t chasmtile;
 
-struct zzz : public df::viewscreen_dwarfmodest
+struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 {
     typedef df::viewscreen_dwarfmodest interpose_base;
 
@@ -571,10 +569,6 @@ struct zzz : public df::viewscreen_dwarfmodest
         gps->screentexpos_cf = screentexpos_cf2;
         gps->screentexpos_cbr = screentexpos_cbr2;
 
-        //this->*this->interpose_render.get_first_interpose(&df::viewscreen_dwarfmodest::_identity).saved_chain;
-
-        void (*render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
-
         bool empty_tiles_left;
         int p = 1;
         int x0 = 1;
@@ -592,7 +586,6 @@ struct zzz : public df::viewscreen_dwarfmodest
             init->display.grid_x -= x0-1;
 
             INTERPOSE_NEXT(render)();
-            //render_map(df::global::cursor_unit_list, 1);
 
             (*df::global::window_x) -= x0-1;
             init->display.grid_x += x0-1;
@@ -704,9 +697,7 @@ struct zzz : public df::viewscreen_dwarfmodest
     }    
 };
 
-//TODO: Priority?
-IMPLEMENT_VMETHOD_INTERPOSE(zzz, render);
-
+IMPLEMENT_VMETHOD_INTERPOSE_PRIO(dwarfmode_hook, render, 1000);
 
 #ifdef __APPLE__
 //0x0079cb2a+4 0x14 - item name length
@@ -968,11 +959,10 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 
     hook();
 
-    INTERPOSE_HOOK(zzz, render).apply(1);
+    INTERPOSE_HOOK(dwarfmode_hook, render).apply(true);
 #ifdef __APPLE__
     INTERPOSE_HOOK(traderesize_hook, render).apply(true);
 #endif
-
 
     commands.push_back(PluginCommand(
         "mapshot", "Mapshot!",
@@ -991,13 +981,15 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 }
 
 DFhackCExport command_result plugin_shutdown ( color_ostream &out )
-{
-    if (enabled)
-        unhook();
-
+{    
+    INTERPOSE_HOOK(dwarfmode_hook, render).apply(false);
 #ifdef __APPLE__
     INTERPOSE_HOOK(traderesize_hook, render).apply(false);
 #endif        
 
-    return CR_OK;
+    if (enabled)
+        unhook();
+
+    //TODO: return CR_OK;
+    return CR_FAILURE;
 }
