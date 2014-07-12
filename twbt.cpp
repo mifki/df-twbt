@@ -149,18 +149,24 @@ bool is_text_tile(int x, int y, bool &is_map)
 
     is_map = false;
 
-    if (!has_textfont)
-        return false;    
+#define IS_SCREEN(_sc) df::_sc::_identity.is_direct_instance(ws)     
+
+    if (IS_SCREEN(viewscreen_dungeonmodest))
+    {
+        //df::viewscreen_dungeonmodest *s = strict_virtual_cast<df::viewscreen_dungeonmodest>(ws);
+        //TODO:
+
+        if (y >= h-2)
+            return true;
+
+        return false;
+    }    
 
     if (!x || !y || x == w - 1 || y == h - 1)
-       return true;
-
-#define IS_SCREEN(_sc) df::_sc::_identity.is_direct_instance(ws) 
+       return has_textfont;
 
     if (IS_SCREEN(viewscreen_dwarfmodest))
     {
-        //*out2 << ((long**)ws)[0][2] << std::endl;
-        //*out2 << (long)enabler->renderer->screen << std::endl;
         uint8_t menu_width, area_map_width;
         Gui::getMenuWidth(menu_width, area_map_width);
         int32_t menu_left = w - 1, menu_right = w - 1;
@@ -187,16 +193,19 @@ bool is_text_tile(int x, int y, bool &is_map)
             {
                 // Make burrow symbols use graphics font
                 if ((y != 12 && y != 13 && !(x == menu_left + 2 && y == 2)) || x == menu_left || x == menu_right) 
-                    return true;
+                    return has_textfont;
             }
             else
-                return true;
+                return has_textfont;
         }
 
         is_map = (x > 0 && x < menu_left);
 
         return false;
     }
+
+    if (!has_textfont)
+        return false;
     
     if (IS_SCREEN(viewscreen_setupadventurest))
     {
@@ -209,17 +218,6 @@ bool is_text_tile(int x, int y, bool &is_map)
         return false;
     }
     
-    if (IS_SCREEN(viewscreen_dungeonmodest))
-    {
-        //df::viewscreen_dungeonmodest *s = strict_virtual_cast<df::viewscreen_dungeonmodest>(ws);
-        //TODO
-
-        if (y >= h-2)
-            return true;
-
-        return false;
-    }
-
     if (IS_SCREEN(viewscreen_choose_start_sitest))
     {
         if (y <= 1 || y >= h - 6 || x == 0 || x >= 57)
