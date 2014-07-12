@@ -79,23 +79,20 @@ void renderer_cool::update_tile(int x, int y)
 void renderer_cool::draw(int vertex_count)
 {
 #ifdef WIN32
+    // We can't do this in plugin_init() because OpenGL context isn't initialized by that time
     static bool glew_init = false;
     if (!glew_init)
     {
-        glew_init = true;
         GLenum err = glewInit();
-        if (GLEW_OK != err)
-        {
-          /* Problem: glewInit failed, something is seriously wrong. */
-          *out2 << glewGetErrorString(err);
-        }
+        if (err != GLEW_OK)
+            *out2 << glewGetErrorString(err);
+        glew_init = true;
     }
 #endif
 
     if (!texloaded)
     {
         long dx, dy;
-        void *t = &enabler->textures;
 
         for (int j = 0; j < tilesets.size(); j++)
         {
@@ -103,9 +100,9 @@ void renderer_cool::draw(int vertex_count)
             if (!ts.small_font_path.length())
                 continue;
 
-            load_multi_pdim_x(t, ts.small_font_path, tilesets[j].small_texpos, 16, 16, true, &dx, &dy);
+            load_tileset(ts.small_font_path, tilesets[j].small_texpos, 16, 16, &dx, &dy);
             if (ts.large_font_path != ts.small_font_path)
-                load_multi_pdim_x(t, ts.large_font_path, tilesets[j].large_texpos, 16, 16, true, &dx, &dy);
+                load_tileset(ts.large_font_path, tilesets[j].large_texpos, 16, 16, &dx, &dy);
             else
                 memcpy(ts.large_texpos, ts.small_texpos, sizeof(ts.large_texpos));
         }
@@ -114,7 +111,7 @@ void renderer_cool::draw(int vertex_count)
         struct stat buf;
         if (stat("data/art/shadows.png", &buf) == 0)
         {
-            load_multi_pdim_x(t, "data/art/shadows.png", shadow_texpos, 8, 1, false, &dx, &dy);        
+            load_tileset("data/art/shadows.png", shadow_texpos, 8, 1, &dx, &dy);        
             shadowsloaded = true;
         }
         else

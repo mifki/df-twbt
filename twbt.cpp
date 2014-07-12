@@ -89,33 +89,25 @@ struct gl_texpos {
 
 DFHACK_PLUGIN("twbt");
 
-void (*load_multi_pdim)(void *tex,const string &filename, long *tex_pos, long dimx, long dimy, bool convert_magenta, long *disp_x, long *disp_y);
 
 #ifdef WIN32
-__declspec(naked) void load_multi_pdim_x(void *tex, const string &filename, long *tex_pos, long dimx, long dimy, bool convert_magenta, long *disp_x, long *disp_y)
-{
-    __asm {
-        push ebp
-        mov ebp, esp
-
-        push disp_y
-        push disp_x
-        push dimy
-        push dimx
-        mov ecx, tex_pos
-        push tex
-        mov edx, filename
-
-        call load_multi_pdim
-
-        mov esp, ebp
-        pop ebp
-        ret
-    }    
-}
+    // On Windows there's no convert_magenta parameter. Arguments are pushed onto stack,
+    // except for tex_pos and filename, which go into ecx and edx. Simulating this with __fastcall.
+    typedef void (__fastcall *LOAD_MULTI_PDIM)(long *tex_pos, const string &filename, void *tex, long dimx, long dimy, long *disp_x, long *disp_y);
 #else
-#define load_multi_pdim_x load_multi_pdim
-#endif        
+    typedef void (*LOAD_MULTI_PDIM)(void *tex, const string &filename, long *tex_pos, long dimx, long dimy, bool convert_magenta, long *disp_x, long *disp_y);
+#endif
+LOAD_MULTI_PDIM load_multi_pdim;
+
+static void load_tileset(const string &filename, long *tex_pos, long dimx, long dimy, long *disp_x, long *disp_y)
+{
+#ifdef WIN32
+    load_multi_pdim(tex_pos, filename, &enabler->textures, dimx, dimy, disp_x, disp_y);
+#else
+    load_multi_pdim(&enabler->textures, filename, tex_pos, dimx, dimy, true, disp_x, disp_y);
+#endif
+}
+
 
 struct tileset {
     string small_font_path;
@@ -936,14 +928,11 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     out2 = &out;
     
 #ifdef WIN32
-    load_multi_pdim = (void (*)(void *tex, const string &filename, long *tex_pos, long dimx,
-        long dimy, bool convert_magenta, long *disp_x, long *disp_y)) (0x00a52670+(Core::getInstance().vinfo->getRebaseDelta()));    
+    load_multi_pdim = (LOAD_MULTI_PDIM) (0x00a52670 + Core::getInstance().vinfo->getRebaseDelta());
 #elif defined(__APPLE__)
-    load_multi_pdim = (void (*)(void *tex, const string &filename, long *tex_pos, long dimx,
-        long dimy, bool convert_magenta, long *disp_x, long *disp_y)) 0x00cfbbb0;
+    load_multi_pdim = (LOAD_MULTI_PDIM) 0x00cfbbb0;    
 #else
-    load_multi_pdim = (void (*)(void *tex, const string &filename, long *tex_pos, long dimx,
-        long dimy, bool convert_magenta, long *disp_x, long *disp_y)) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
+    load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
 #endif
 
     bad_item_flags.whole = 0;
