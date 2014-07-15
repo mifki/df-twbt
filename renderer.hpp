@@ -136,6 +136,11 @@ void renderer_cool::draw(int vertex_count)
 
     if (gvertexes)
     {
+        if (needs_full_update)
+        {
+            memset(fogcoord, 0, 256*256*6);            
+        }
+
         for (int x2 = 0; x2 < gdimx; x2++)
             for (int y2 = 0; y2 < gdimy; y2++)
                 update_map_tile(x2, y2);

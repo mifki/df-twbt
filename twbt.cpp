@@ -148,7 +148,7 @@ static vector< struct override > *overrides[256];
 static struct tileref override_defs[256];
 static df::item_flags bad_item_flags;
 
-static int maxlevels = 10;
+static int maxlevels = 0;
 static float fogdensity = 0.15f;
 static float fogcolor[4] = { 0.1f, 0.1f, 0.3f, 1 };
 static float shadowcolor[4] = { 0, 0, 0, 0.4f };
@@ -181,6 +181,7 @@ struct renderer_cool : renderer_opengl
     float goff_x, goff_y, gsize_x, gsize_y;
 	bool needs_reshape;
     int needs_zoom;
+    bool needs_full_update;
 
     renderer_cool()
     {
@@ -624,6 +625,50 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
 
 #include "renderer.hpp"
 
+// Disables standard rendering of lower levels
+static void patch_rendering(bool enable_lower_levels)
+{
+    static bool ready = false;
+    static unsigned char orig[6];
+
+#ifdef WIN32
+    #define ADDR 0x00b57c8e
+    if (!ready)
+    {
+        (new MemoryPatcher(Core::getInstance().p))->verifyAccess((void*)ADDR, 6, true);
+        memcpy(orig, (void*)ADDR, 6);
+        ready = true;        
+    }
+
+    if (enable_lower_levels)
+        memcpy((void*)ADDR, orig, 6);
+    else
+    {
+        unsigned char jmpnop[] = { 0xe9,0x30,0xfa,0xff,0xff, 0x90 };
+        memcpy((void*)ADDR, jmpnop, 6);
+    }
+
+#elif defined(__APPLE__)
+    #define ADDR 0x00af1f44
+    if (!ready)
+    {
+        (new MemoryPatcher(Core::getInstance().p))->verifyAccess((void*)ADDR, 6, true);
+        memcpy(orig, (void*)ADDR, 6);
+        ready = true;        
+    }
+
+    if (enable_lower_levels)
+        memcpy((void*)ADDR, orig, 6);
+    else
+    {
+        unsigned char nop6[] = { 0x90,0x90,0x90,0x90,0x90,0x90 };
+        memcpy((void*)ADDR, nop6, 6);
+    }
+#else
+    #define NO_RENDERING_PATCH
+#endif
+}
+
 static void hook()
 {
     if (enabled)
@@ -644,10 +689,10 @@ static void hook()
 #endif
     long update_tile_new = vtable_new[0][0];
 
-    for (int i = 0; i < 20; i++)
+    /*for (int i = 0; i < 20; i++)
         *out2 << "$ " << i << " " << (long)vtable_old[0][i] << std::endl;
     for (int i = 0; i < 24; i++)
-        *out2 << "$ " << i << " " << (long)vtable_new[0][i] << std::endl;
+        *out2 << "$ " << i << " " << (long)vtable_new[0][i] << std::endl;*/
 
 #ifdef WIN32
     HANDLE process = ::GetCurrentProcess();
@@ -684,10 +729,10 @@ static void hook()
 #ifdef WIN32
     // On Windows original map rendering function must be called at least once to initialize something
 #elif defined(__APPLE__)
-    unsigned char t1[] = { 0x90,0x90,0x90,0x90,0x90 };
+    unsigned char nop6[] = { 0x90,0x90,0x90,0x90,0x90,0x90 };
 
     // Disable original map rendering
-    Core::getInstance().p->patchMemory((void*)0x002e0e0a, t1, sizeof(t1));
+    Core::getInstance().p->patchMemory((void*)0x002e0e0a, nop6, 5);
 
     // Disable original renderer::display
     // Original code will check screentexpos et al. for changes but we don't want that
@@ -696,7 +741,7 @@ static void hook()
     // To find this address, look for a function with two SDL_GetTicks calls inside,
     // there will be two calls with the same argument right before an increment between 
     // SDL_SemWait and SDL_SemPost near the end - they are renderer->display() and renderer->render(). 
-    Core::getInstance().p->patchMemory((void*)0x00c92fe1, t1, sizeof(t1));
+    Core::getInstance().p->patchMemory((void*)0x00c92fe1, nop6, 5);
 
     // Adv. mode
     /*Core::getInstance().p->patchMemory((void*)0x002cbbb0, t1, sizeof(t1));
@@ -847,9 +892,16 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
     }
 
 #ifdef WIN32
-        void (*render_map)(int) = (void (*)(int))(0x008f65c0+(Core::getInstance().vinfo->getRebaseDelta()));
+        void (*_render_map)(int) = (void (*)(int))(0x008f65c0+(Core::getInstance().vinfo->getRebaseDelta()));
+        #define render_map() _render_map(1)
+#elif defined(__APPLE__)
+        void (*_render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
+    #ifdef DFHACK_r5
+        #define render_map() _render_map(df::global::map_renderer, 1)
+    #else
+        #define render_map() _render_map(df::global::cursor_unit_list, 1)
+    #endif
 #else
-        void (*render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
 #endif
 
         uint8_t *sctop = enabler->renderer->screen;
@@ -893,20 +945,12 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         gps->clipx[1] = r->gdimx-1;
         gps->clipy[1] = r->gdimy-1;
 
-#ifdef WIN32
-        render_map(1);
-#else
-#ifdef DFHACK_r5
-        render_map(df::global::map_renderer, 1);
-#else
-        render_map(df::global::cursor_unit_list, 1);
-#endif
-#endif
+        if (maxlevels && shadowsloaded)
+            patch_rendering(false);
 
+        render_map();
 
-
-
-        if (shadowsloaded)
+        if (maxlevels && shadowsloaded)
         {
 
 
@@ -942,6 +986,9 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
             if (*df::global::window_z == 0)
                 break;
 
+            if (p == maxlevels)
+                patch_rendering(true);
+
             (*df::global::window_z)--;
 
             if (p > 1)
@@ -949,15 +996,8 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                 (*df::global::window_x) += x0;
                 //init->display.grid_x -= x0-1;
 
-#ifdef WIN32
-                render_map(1);
-#else
-#ifdef DFHACK_r5
-                render_map(df::global::map_renderer, 1);
-#else
-                render_map(df::global::cursor_unit_list, 1);
-#endif
-#endif
+                render_map();
+
                 (*df::global::window_x) -= x0;
                 //init->display.grid_x += x0-1;
             }
@@ -981,8 +1021,9 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                     if ((sctop[stile+3]&0xf0))
                         continue;
 
+#ifndef NO_RENDERING_PATCH
                     unsigned char ch = sctop[stile+0];
-                    if (ch != 31 && ch != 249 && ch != 250 && ch != 254 && ch != skytile && ch != chasmtile && !(ch >= '1' && ch <= '7'))
+                    if (ch != skytile && ch != 31)
                         continue;
 
                     int xx = *df::global::window_x + x;
@@ -1000,7 +1041,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                     h0 = block0 && block0->designation[xxrem][yyrem].bits.hidden;
                     if (h0)
                         continue;
-                    e0 = !block0 || (block0->tiletype[xxrem][yyrem] == df::tiletype::OpenSpace || block0->tiletype[xxrem][yyrem] == df::tiletype::RampTop);
+                    e0 = !block0 || block0->tiletype[xxrem][yyrem] == df::tiletype::OpenSpace || block0->tiletype[xxrem][yyrem] == df::tiletype::RampTop;
                     if (!(e0))
                         continue;
 
@@ -1009,15 +1050,8 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                         (*df::global::window_x) += x0;
                         //init->display.grid_x -= x0-1;
 
-#ifdef WIN32
-                        render_map(1);
-#else
-#ifdef DFHACK_r5
-                        render_map(df::global::map_renderer, 1);
-#else
-                        render_map(df::global::cursor_unit_list, 1);
-#endif
-#endif
+                        render_map();
+
                         (*df::global::window_x) -= x0;
                         //init->display.grid_x += x0-1;
 
@@ -1030,7 +1064,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
                     int d = p;
                     ch = screen3[stile2+0];
-                    if (!(ch!=31&&ch != 249 && ch != 250 && ch != 254 && ch != skytile && ch != chasmtile && !(ch >= '1' && ch <= '7')))
+                    if (ch == skytile || ch == 31)
                     {
                         df::map_block *block1 = world->map.block_index[xxquot][yyquot][zz-1];
                         if (!block1)
@@ -1064,6 +1098,84 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                         }
                     }
 
+#else
+                    unsigned char ch = sctop[stile+0];
+                    if (ch != 31 && ch != 249 && ch != 250 && ch != 254 && ch != skytile && ch != chasmtile && !(ch >= '1' && ch <= '7'))
+                        continue;
+
+                    int xx = *df::global::window_x + x;
+                    int yy = *df::global::window_y + y;
+                    if (xx < 0 || yy < 0)
+                        continue;
+
+                    int xxquot = xx >> 4, xxrem = xx & 15;
+                    int yyquot = yy >> 4, yyrem = yy & 15;                    
+
+                    //TODO: check for z=0 (?)
+                    bool e0,h,h0;
+                    //*out2 << xx << " " << world->map.x_count << " " << yy << " " << world->map.y_count << " " << *df::global::window_x << " " << *df::global::window_y << std::endl;
+                    df::map_block *block0 = world->map.block_index[xxquot][yyquot][zz0];
+                    h0 = block0 && block0->designation[xxrem][yyrem].bits.hidden;
+                    if (h0)
+                        continue;
+                    e0 = !block0 || ((block0->tiletype[xxrem][yyrem] == df::tiletype::OpenSpace || block0->tiletype[xxrem][yyrem] == df::tiletype::RampTop) && !block0->designation[xxrem][yyrem].bits.flow_size);
+                    if (!(e0))
+                        continue;
+
+                    if (p == 1 && !rendered1st)
+                    {
+                        (*df::global::window_x) += x0;
+                        //init->display.grid_x -= x0-1;
+
+                        render_map();
+
+                        (*df::global::window_x) -= x0;
+                        //init->display.grid_x += x0-1;
+
+                        x00 = x0;
+
+                        rendered1st = true;                        
+                    }                    
+
+                    const int tile2 = (x-(x00)) * r->gdimy + y, stile2 = tile2 * 4;                    
+
+                    int d = p;
+                    ch = screen3[stile2+0];
+                    if (!(ch!=31&&ch != 249 && ch != 250 && ch != 254 && ch != skytile && ch != chasmtile && !(ch >= '1' && ch <= '7')))
+                    {
+                        df::map_block *block1 = world->map.block_index[xxquot][yyquot][zz-1];
+                        if (!block1)
+                        {
+                            //TODO: skip all other y's in this block
+                            if (p < maxlevels)
+                            {
+                                empty_tiles_left = true;
+                                continue;
+                            }
+                            else
+                                d = p+1;
+                        }
+                        else
+                        {
+                            //TODO: check for hidden also
+                            df::tiletype t1 = block1->tiletype[xxrem][yyrem];
+                            if ((t1 == df::tiletype::OpenSpace || t1 == df::tiletype::RampTop) && !block1->designation[xxrem][yyrem].bits.flow_size)
+                            {
+                                if (p < maxlevels)
+                                {
+                                    empty_tiles_left = true;
+                                    continue;
+                                }
+                                else
+                                {
+                                    if (t1 != df::tiletype::RampTop)
+                                        d = p+1;
+                                }
+                            }
+                        }
+                    }
+#endif
+
                     //*out2 << p << " !" << std::endl;
                     *((int*)screen2+tile) = *((int*)screen3+tile2);
                     if (*(screentexpos3+tile2))
@@ -1089,6 +1201,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
 
 
+        //patch_rendering(false);
 
 
 
@@ -1559,6 +1672,9 @@ IMPLEMENT_VMETHOD_INTERPOSE(traderesize_hook, render);
 
 command_result mapshot_cmd (color_ostream &out, std::vector <std::string> & parameters)
 {
+    if (!enabled)
+        return CR_FAILURE;
+
     CoreSuspender suspend;
 
     domapshot = 10;
@@ -1568,6 +1684,9 @@ command_result mapshot_cmd (color_ostream &out, std::vector <std::string> & para
 
 command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & parameters)
 {
+    if (!enabled)
+        return CR_FAILURE;
+
     CoreSuspender suspend;
 
     int pcnt = parameters.size();
@@ -1575,18 +1694,9 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
     if (pcnt >= 1)
     {
         std::string &param1 = parameters[0];
+        int newmaxlevels = maxlevels;
 
-        if (param1 == "more")
-        {
-            if (maxlevels < 15)
-                maxlevels++;
-        }
-        else if (param1 == "less")
-        {
-            if (maxlevels > 0)
-                maxlevels--;
-        }
-        else if (param1 == "shadowcolor" && pcnt >= 5)
+        if (param1 == "shadowcolor" && pcnt >= 5)
         {
             float c[4];
             char *e;
@@ -1632,13 +1742,30 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
             if (*e == 0)
                 fogdensity = l;
         }
+        else if (param1 == "more")
+        {
+            if (maxlevels < 15)
+                newmaxlevels = maxlevels + 1;
+        }
+        else if (param1 == "less")
+        {
+            if (maxlevels > 0)
+                newmaxlevels = maxlevels - 1;
+        }        
         else 
         {
             char *e;
             int l = (int)strtol(param1.c_str(), &e, 10);
             if (*e == 0)
-                maxlevels = std::max (std::min(l, 15), 0);
+                newmaxlevels = std::max (std::min(l, 15), 0);
         }
+
+        if (newmaxlevels && !maxlevels)
+            patch_rendering(false);
+        else if (!newmaxlevels && maxlevels)
+            patch_rendering(true);
+
+        maxlevels = newmaxlevels;            
     }
 
     return CR_OK;    
@@ -1646,6 +1773,9 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
 
 command_result twbt_cmd (color_ostream &out, std::vector <std::string> & parameters)
 {
+    if (!enabled)
+        return CR_FAILURE;
+
     CoreSuspender suspend;
 
     int pcnt = parameters.size();
