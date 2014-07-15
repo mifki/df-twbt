@@ -629,7 +629,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                     h0 = block0 && block0->designation[xxrem][yyrem].bits.hidden;
                     if (h0)
                         continue;
-                    e0 = !block0 || (block0->tiletype[xxrem][yyrem] == df::tiletype::OpenSpace || block0->tiletype[xxrem][yyrem] == df::tiletype::RampTop);
+                    e0 = !block0 || ((block0->tiletype[xxrem][yyrem] == df::tiletype::OpenSpace || block0->tiletype[xxrem][yyrem] == df::tiletype::RampTop) && !block0->designation[xxrem][yyrem].bits.flow_size);
                     if (!(e0))
                         continue;
 
@@ -670,7 +670,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                         {
                             //TODO: check for hidden also
                             df::tiletype t1 = block1->tiletype[xxrem][yyrem];
-                            if (t1 == df::tiletype::OpenSpace || t1 == df::tiletype::RampTop)
+                            if ((t1 == df::tiletype::OpenSpace || t1 == df::tiletype::RampTop) && !block1->designation[xxrem][yyrem].bits.flow_size)
                             {
                                 if (p < maxlevels)
                                 {
