@@ -17,7 +17,7 @@ LDFLAGS = $(LIB) -shared
 ifeq ($(shell uname -s), Darwin)
 	CXX = c++ -std=gnu++0x -stdlib=libstdc++
 	CFLAGS += -Wno-tautological-compare
-	LDFLAGS += -framework OpenGL -mmacosx-version-min=10.6
+	LDFLAGS += -framework OpenGL -mmacosx-version-min=10.6 -undefined dynamic_lookup
 else
 	CXX = c++ -std=c++0x
 endif
