@@ -31,7 +31,7 @@ void renderer_cool::update_map_tile(int x, int y)
 
     if (maxlevels)
     {
-        float d = (float)((screen2[tile * 4 + 3] & 0xf0) >> 4);
+        float d = (float)((gscreen[tile * 4 + 3] & 0xf0) >> 4);
 
         depth[tile] = d;
 
@@ -138,7 +138,8 @@ void renderer_cool::draw(int vertex_count)
     {
         if (needs_full_update)
         {
-            memset(fogcoord, 0, 256*256*6);            
+            memset(fogcoord, 0, 256*256*6);           
+            needs_full_update = false; 
         }
 
         for (int x2 = 0; x2 < gdimx; x2++)
@@ -516,44 +517,44 @@ void renderer_cool::draw(int vertex_count)
     }
 }
 
-    void renderer_cool::display()
-    {
-      const int dimx = gps->dimx;
-      const int dimy = gps->dimy;
-      if (gps->force_full_display_count) {
-        update_all();
-      } else {
-        uint32_t *screenp = (uint32_t*)screen, *oldp = (uint32_t*)screen_old;
-        /*if (use_graphics) {
-          int off = 0;
-          for (int x2=0; x2 < dimx; x2++) {
-            for (int y2=0; y2 < dimy; y2++, ++off, ++screenp, ++oldp) {
-              // We don't use pointers for the non-screen arrays because we mostly fail at the
-              // *first* comparison, and having pointers for the others would exceed register
-              // count.
-              // Partial printing (and color-conversion): Big-ass if.
-              if (*screenp == *oldp &&
-                  screentexpos[off] == screentexpos_old[off] &&
-                  screentexpos_addcolor[off] == screentexpos_addcolor_old[off] &&
-                  screentexpos_grayscale[off] == screentexpos_grayscale_old[off] &&
-                  screentexpos_cf[off] == screentexpos_cf_old[off] &&
-                  screentexpos_cbr[off] == screentexpos_cbr_old[off])
-                {
-                  // Nothing's changed, this clause deliberately empty
-                } else {
-                update_tile(x2, y2);
-              }
-            }
+void renderer_cool::display()
+{
+  const int dimx = gps->dimx;
+  const int dimy = gps->dimy;
+  if (gps->force_full_display_count) {
+    update_all();
+  } else {
+    uint32_t *screenp = (uint32_t*)screen, *oldp = (uint32_t*)screen_old;
+    /*if (use_graphics) {
+      int off = 0;
+      for (int x2=0; x2 < dimx; x2++) {
+        for (int y2=0; y2 < dimy; y2++, ++off, ++screenp, ++oldp) {
+          // We don't use pointers for the non-screen arrays because we mostly fail at the
+          // *first* comparison, and having pointers for the others would exceed register
+          // count.
+          // Partial printing (and color-conversion): Big-ass if.
+          if (*screenp == *oldp &&
+              screentexpos[off] == screentexpos_old[off] &&
+              screentexpos_addcolor[off] == screentexpos_addcolor_old[off] &&
+              screentexpos_grayscale[off] == screentexpos_grayscale_old[off] &&
+              screentexpos_cf[off] == screentexpos_cf_old[off] &&
+              screentexpos_cbr[off] == screentexpos_cbr_old[off])
+            {
+              // Nothing's changed, this clause deliberately empty
+            } else {
+            update_tile(x2, y2);
           }
-        } else {*/
-          for (int x2=0; x2 < dimx; ++x2) {
-            for (int y2=0; y2 < dimy; ++y2, ++screenp, ++oldp) {
-              if (*screenp != *oldp) {
-                update_tile(x2, y2);
-              }
-            }
-          }
-        //}
+        }
       }
-      if (gps->force_full_display_count > 0) gps->force_full_display_count--;
-    } 
+    } else {*/
+      for (int x2=0; x2 < dimx; ++x2) {
+        for (int y2=0; y2 < dimy; ++y2, ++screenp, ++oldp) {
+          if (*screenp != *oldp) {
+            update_tile(x2, y2);
+          }
+        }
+      }
+    //}
+  }
+  if (gps->force_full_display_count > 0) gps->force_full_display_count--;
+} 
