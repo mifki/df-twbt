@@ -50,6 +50,8 @@ struct renderer_cool : renderer_opengl
     virtual void draw(int vertex_count);
     virtual void reshape_gl();
 
+    virtual bool get_mouse_coords(int32_t *x, int32_t *y);
+
     virtual void update_tile_old(int x, int y) {}; //17
     virtual void reshape_gl_old() {}; //18
 };

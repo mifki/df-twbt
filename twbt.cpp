@@ -637,9 +637,11 @@ static void hook()
     long **vtable_new = (long **)newr;
 
 #ifdef WIN32
+    long get_mouse_coords_new = vtable_new[0][8];
     long draw_new = vtable_new[0][13];
     long reshape_gl_new = vtable_new[0][15];
 #else
+    long get_mouse_coords_new = vtable_new[0][9];
     long draw_new = vtable_new[0][14];
     long reshape_gl_new = vtable_new[0][16];
 #endif
@@ -659,6 +661,7 @@ static void hook()
         memcpy(vtable_new[0], vtable_old[0], sizeof(void*)*16);
         vtable_new[0][13] = draw_new;
         vtable_new[0][0] = update_tile_new;
+        vtable_new[0][8] = get_mouse_coords_new;
         vtable_new[0][16] = vtable_old[0][0];
 	    vtable_new[0][14] = reshape_gl_new;
 		vtable_new[0][17] = vtable_old[0][14];
@@ -672,6 +675,7 @@ static void hook()
     memcpy(vtable_new[0], vtable_old[0], sizeof(void*)*17);
     vtable_new[0][14] = draw_new;
     vtable_new[0][0] = update_tile_new;
+    vtable_new[0][9] = get_mouse_coords_new;
     vtable_new[0][17] = vtable_old[0][0];
     vtable_new[0][15] = reshape_gl_new;
     vtable_new[0][18] = vtable_old[0][15];

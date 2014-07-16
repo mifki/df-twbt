@@ -91,7 +91,6 @@ void renderer_cool::reshape_graphics()
         int cx = *df::global::window_x + gdimx / 2;
         int cy = *df::global::window_y + gdimy / 2;
 
-
         gsize_x = (size_x - tsx * (gmenu_w + 1 + 1));
         gsize_y = (size_y - tsy * 2);
         *out2 << tsx << " " << gsize_x << std::endl;
@@ -102,6 +101,9 @@ void renderer_cool::reshape_graphics()
         gdimxfull = floorf(dimx);
         gdimyfull = floorf(dimy);
         *out2 << gdispx << " " << gdispy << "   " << gdimx << " " << gdimy << "   " << gdimxfull << " " << gdimyfull << " " << (gsize_x - gdispx * gdimxfull) << " " << (gsize_y - gdispy * gdimyfull) << std::endl;
+
+        goff_x = off_x + roundf((float)size_x / gps->dimx);
+        goff_y = off_y + roundf((float)size_y / gps->dimy) - (gdimy == gdimyfull ? 0 : roundf(gdispy - (gsize_y - gdispy * gdimyfull)));        
 
         *df::global::window_x = std::max(0, cx - gdimx / 2);
         *df::global::window_y = std::max(0, cy - gdimy / 2);
@@ -282,7 +284,7 @@ void renderer_cool::draw(int vertex_count)
             reshape_graphics();
         {
             /////
-            glViewport(off_x + roundf((float)size_x / gps->dimx), off_y + roundf((float)size_y / gps->dimy) - (gdimy == gdimyfull ? 0 : roundf(gdispy - (gsize_y - gdispy * gdimyfull))), gdimx * gdispx, gdimy * gdispy);
+            glViewport(goff_x, goff_y, gdimx * gdispx, gdimy * gdispy);
 
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
@@ -558,3 +560,24 @@ void renderer_cool::display()
   }
   if (gps->force_full_display_count > 0) gps->force_full_display_count--;
 } 
+
+extern "C" {
+    uint8_t SDL_GetMouseState(int *x, int *y);
+}
+
+bool renderer_cool::get_mouse_coords(int32_t *x, int32_t *y)
+{
+    int mouse_x, mouse_y;
+    SDL_GetMouseState(&mouse_x, &mouse_y);    
+    
+    mouse_x -= goff_x;
+    mouse_y -= goff_y;
+
+    if (mouse_x < 0 || mouse_y < 0 || mouse_x >= gsize_x || mouse_y >= gsize_y)
+        return false;
+
+    *x = (float) mouse_x / gdispx + 1;
+    *y = (float) mouse_y / gdispy + 1;
+    
+    return true;
+}
