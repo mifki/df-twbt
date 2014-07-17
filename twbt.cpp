@@ -589,23 +589,17 @@ static void patch_rendering(bool enable_lower_levels)
 
 #ifdef WIN32
     #define ADDR 0x00b57c8e
-    if (!ready)
-    {
-        (new MemoryPatcher(Core::getInstance().p))->verifyAccess((void*)ADDR, 6, true);
-        memcpy(orig, (void*)ADDR, 6);
-        ready = true;        
-    }
-
-    if (enable_lower_levels)
-        memcpy((void*)ADDR, orig, 6);
-    else
-    {
-        unsigned char jmpnop[] = { 0xe9,0x30,0xfa,0xff,0xff, 0x90 };
-        memcpy((void*)ADDR, jmpnop, 6);
-    }
+    unsigned char patch[] = { 0xe9,0x30,0xfa,0xff,0xff, 0x90 };
 
 #elif defined(__APPLE__)
     #define ADDR 0x00af1f44
+    unsigned char patch[] = { 0x90,0x90,0x90,0x90,0x90,0x90 };
+
+#else
+    #define NO_RENDERING_PATCH
+#endif
+
+#ifndef NO_RENDERING_PATCH
     if (!ready)
     {
         (new MemoryPatcher(Core::getInstance().p))->verifyAccess((void*)ADDR, 6, true);
@@ -614,14 +608,9 @@ static void patch_rendering(bool enable_lower_levels)
     }
 
     if (enable_lower_levels)
-        memcpy((void*)ADDR, orig, 6);
+        memcpy((void*)ADDR, orig, sizeof(orig));
     else
-    {
-        unsigned char nop6[] = { 0x90,0x90,0x90,0x90,0x90,0x90 };
-        memcpy((void*)ADDR, nop6, 6);
-    }
-#else
-    #define NO_RENDERING_PATCH
+        memcpy((void*)ADDR, patch, sizeof(patch));
 #endif
 }
 
@@ -630,69 +619,58 @@ static void hook()
     if (enabled)
         return;
 
+    MemoryPatcher p(Core::getInstance().p);    
+
     renderer_opengl *oldr = (renderer_opengl*)enabler->renderer;
     renderer_cool *newr = new renderer_cool;
 
-    long **vtable_old = (long **)oldr;
-    long **vtable_new = (long **)newr;
-
-#ifdef WIN32
-    long get_mouse_coords_new = vtable_new[0][8];
-    long draw_new = vtable_new[0][13];
-    long reshape_gl_new = vtable_new[0][15];
-#else
-    long get_mouse_coords_new = vtable_new[0][9];
-    long draw_new = vtable_new[0][14];
-    long reshape_gl_new = vtable_new[0][16];
-#endif
-    long update_tile_new = vtable_new[0][0];
+    void **vtable_old = ((void ***)oldr)[0];
+    void **vtable_new = ((void ***)newr)[0];
 
     /*for (int i = 0; i < 20; i++)
-        *out2 << "$ " << i << " " << (long)vtable_old[0][i] << std::endl;
+        *out2 << "$ " << i << " " << vtable_old[i] << std::endl;
     for (int i = 0; i < 24; i++)
-        *out2 << "$ " << i << " " << (long)vtable_new[0][i] << std::endl;*/
+        *out2 << "$ " << i << " " << vtable_new[i] << std::endl;*/
 
-#ifdef WIN32
-    HANDLE process = ::GetCurrentProcess();
-    DWORD protection = PAGE_READWRITE;
-    DWORD oldProtection;
-    if ( ::VirtualProtectEx( process, vtable_new[0], 18*sizeof(void*), protection, &oldProtection ) )
-    {
-        memcpy(vtable_new[0], vtable_old[0], sizeof(void*)*16);
-        vtable_new[0][13] = draw_new;
-        vtable_new[0][0] = update_tile_new;
-        vtable_new[0][8] = get_mouse_coords_new;
-        vtable_new[0][16] = vtable_old[0][0];
-	    vtable_new[0][14] = reshape_gl_new;
-		vtable_new[0][17] = vtable_old[0][14];
+#define DEFIDX(n) int IDX_##n = vmethod_pointer_to_idx(&renderer_cool::n);
 
-        VirtualProtectEx( process, vtable_new[0], 18*sizeof(void*), oldProtection, &oldProtection );
-    }
-#else
-    MemoryPatcher p(Core::getInstance().p);
-    p.verifyAccess(vtable_new[0], sizeof(void*)*17, true);
+    DEFIDX(draw)
+    DEFIDX(update_tile)
+    DEFIDX(get_mouse_coords)
+    DEFIDX(update_tile_old)
+    DEFIDX(reshape_gl)
+    DEFIDX(reshape_gl_old)
+    DEFIDX(_last_vmethod)
 
-    memcpy(vtable_new[0], vtable_old[0], sizeof(void*)*17);
-    vtable_new[0][14] = draw_new;
-    vtable_new[0][0] = update_tile_new;
-    vtable_new[0][9] = get_mouse_coords_new;
-    vtable_new[0][17] = vtable_old[0][0];
-    vtable_new[0][15] = reshape_gl_new;
-    vtable_new[0][18] = vtable_old[0][15];
-#endif
+    void *get_mouse_coords_new = vtable_new[IDX_get_mouse_coords];
+    void *draw_new             = vtable_new[IDX_draw];
+    void *reshape_gl_new       = vtable_new[IDX_reshape_gl];
+    void *update_tile_new      = vtable_new[IDX_update_tile];    
+
+    p.verifyAccess(vtable_new, sizeof(void*)*IDX__last_vmethod, true);
+    memcpy(vtable_new, vtable_old, sizeof(void*)*IDX__last_vmethod);
+
+    vtable_new[IDX_draw] = draw_new;
+
+    vtable_new[IDX_update_tile] = update_tile_new;
+    vtable_new[IDX_update_tile_old] = vtable_old[IDX_update_tile];
+
+    vtable_new[IDX_reshape_gl] = reshape_gl_new;
+    vtable_new[IDX_reshape_gl_old] = vtable_old[IDX_reshape_gl];
+
+    vtable_new[IDX_get_mouse_coords] = get_mouse_coords_new;
     
     memcpy(&newr->screen, &oldr->screen, (char*)&newr->dummy-(char*)&newr->screen);
     enabler->renderer = newr;
 
-    //free(oldr);
-
 #ifdef WIN32
     // On Windows original map rendering function must be called at least once to initialize something
+
 #elif defined(__APPLE__)
     unsigned char nop6[] = { 0x90,0x90,0x90,0x90,0x90,0x90 };
 
     // Disable original map rendering
-    Core::getInstance().p->patchMemory((void*)0x002e0e0a, nop6, 5);
+    p.write((void*)0x002e0e0a, nop6, 5);
 
     // Disable original renderer::display
     // Original code will check screentexpos et al. for changes but we don't want that
@@ -701,14 +679,14 @@ static void hook()
     // To find this address, look for a function with two SDL_GetTicks calls inside,
     // there will be two calls with the same argument right before an increment between 
     // SDL_SemWait and SDL_SemPost near the end - they are renderer->display() and renderer->render(). 
-    Core::getInstance().p->patchMemory((void*)0x00c92fe1, nop6, 5);
+    p.write((void*)0x00c92fe1, nop6, 5);
 
     // Adv. mode
-    /*Core::getInstance().p->patchMemory((void*)0x002cbbb0, t1, sizeof(t1));
-    Core::getInstance().p->patchMemory((void*)0x002cbf8d, t1, sizeof(t1));    
-    Core::getInstance().p->patchMemory((void*)0x002cc288, t1, sizeof(t1));    
-    Core::getInstance().p->patchMemory((void*)0x002cc225, t1, sizeof(t1));*/
-    //Core::getInstance().p->patchMemory((void*)0x002cc306, t1, sizeof(t1));    
+    /*p.write((void*)0x002cbbb0, t1, sizeof(t1));
+    p.write((void*)0x002cbf8d, t1, sizeof(t1));    
+    p.write((void*)0x002cc288, t1, sizeof(t1));    
+    p.write((void*)0x002cc225, t1, sizeof(t1));*/
+    //p.write((void*)0x002cc306, t1, sizeof(t1));    
 
 #else
     #error Linux not supported yet
@@ -730,7 +708,6 @@ static void unhook()
 #include "dwarfmode.hpp"
 #include "dungeonmode.hpp"
 #include "tradefix.hpp"
-
 #include "config.hpp"
 
 command_result mapshot_cmd (color_ostream &out, std::vector <std::string> & parameters)
@@ -947,8 +924,6 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     memcpy(ts.small_texpos, df::global::init->font.small_font_texpos, sizeof(ts.small_texpos));
     memcpy(ts.large_texpos, df::global::init->font.large_font_texpos, sizeof(ts.large_texpos));
     tilesets.push_back(ts);
-
-    memset(override_defs, sizeof(struct tileref)*256, 0);
 
     has_textfont = get_font_paths();
     has_overrides = load_overrides();

@@ -54,6 +54,8 @@ struct renderer_cool : renderer_opengl
 
     virtual void update_tile_old(int x, int y) {}; //17
     virtual void reshape_gl_old() {}; //18
+
+    virtual void _last_vmethod() {};
 };
 
 #endif
