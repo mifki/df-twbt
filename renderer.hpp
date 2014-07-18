@@ -4,7 +4,7 @@ static volatile int domapshot = 0;
 
 void renderer_cool::update_tile(int x, int y)
 {
-    if (!enabled || !texloaded)
+    if (!enabled)
     {
         this->update_tile_old(x, y);
         return;
@@ -114,7 +114,7 @@ void renderer_cool::reshape_graphics()
         gbg = static_cast<GLfloat *>(realloc(gbg, sizeof(GLfloat) * tiles * 4 * 6));
         gtex = static_cast<GLfloat *>(realloc(gtex, sizeof(GLfloat) * tiles * 2 * 6));
         *out2 << gvertexes << " " << gfg << " " << gbg << " " << gtex << std::endl;
-        int tile = 0;
+        int tile = 0;   
         for (GLfloat x = 0; x < gdimx; x++)
             for (GLfloat y = 0; y < gdimy; y++, tile++)
                 write_tile_vertexes(x, y, gvertexes + 6 * 2 * tile);
@@ -135,6 +135,13 @@ void renderer_cool::draw(int vertex_count)
 #ifdef __APPLE__
     display();
 #endif
+
+    static bool initial_resize = false;
+    if (!initial_resize)
+    {
+        resize((size_x / dispx)*dispx, (size_y / dispy)*dispy);
+        initial_resize = true;
+    }
 
     if (gvertexes)
     {
@@ -160,60 +167,6 @@ void renderer_cool::draw(int vertex_count)
         glew_init = true;
     }
 #endif
-
-    if (!texloaded)
-    {
-        long dx, dy;
-
-        for (int j = 0; j < tilesets.size(); j++)
-        {
-            struct tileset &ts = tilesets[j];
-            if (!ts.small_font_path.length())
-                continue;
-
-            long buf[256];
-            if (j > 1)
-                load_tileset(ts.small_font_path, tilesets[j].small_texpos, 16, 16, &dx, &dy);
-            else
-            {
-                gdispx = init->font.small_font_dispx;
-                gdispy = init->font.small_font_dispy;
-                memcpy(tilesets[j].small_texpos, init->font.small_font_texpos, sizeof(long) * 256);
-                load_tileset(ts.small_font_path, (long *)init->font.small_font_texpos, 16, 16, (long *)&init->font.small_font_dispx, (long *)&init->font.small_font_dispy);
-                dispx = init->font.small_font_dispx;
-                dispy = init->font.small_font_dispy;
-            }
-
-            if (ts.large_font_path != ts.small_font_path)
-                load_tileset(ts.large_font_path, tilesets[j].large_texpos, 16, 16, &dx, &dy);
-            else
-                memcpy(ts.large_texpos, ts.small_texpos, sizeof(ts.large_texpos));
-
-            resize((size_x / dispx)*dispx, (size_y / dispy)*dispy);
-        }
-
-        /*struct tileset ts;
-        load_tileset(t, "data/art/Spacefox_16x16.png", ts.small_texpos, 16, 16, &dx, &dy);
-        tilesets.push_back(ts);
-        *out2 << "=="<<tilesets.size() << std::endl;*/
-
-        // Load shadows
-        struct stat buf;
-        if (stat("data/art/shadows.png", &buf) == 0)
-        {
-            load_tileset("data/art/shadows.png", shadow_texpos, 8, 1, &dx, &dy);
-            shadowsloaded = true;
-        }
-        else
-        {
-            out2->color(COLOR_RED);
-            *out2 << "TWBT: shadows.png not found in data/art folder" << std::endl;
-            out2->color(COLOR_RESET);
-        }
-
-        texloaded = true;
-        gps->force_full_display_count = true;
-    }
 
     static int old_dimx, old_dimy, old_winx, old_winy;
     if (domapshot)

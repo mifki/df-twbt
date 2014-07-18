@@ -15,7 +15,7 @@ struct _renderer_opengl : df::renderer
     virtual void init_opengl() {};
     virtual void uninit_opengl() {};
     virtual void draw(int vertex_count) {};
-    virtual void opengl_renderer_destructor() {};
+    virtual ~_renderer_opengl() {};
     virtual void reshape_gl() {};
 };
 typedef _renderer_opengl renderer_opengl; // This is to make Linux happy

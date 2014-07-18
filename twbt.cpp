@@ -145,7 +145,7 @@ struct override {
 
 static vector< struct tileset > tilesets;
 
-static bool enabled, texloaded;
+static bool enabled;
 static bool has_textfont, has_overrides;
 static color_ostream *out2;
 static vector< struct override > *overrides[256];
@@ -935,7 +935,64 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         out.color(COLOR_RESET);        
     }
 
+    int gdispx, gdispy;
+    int dispx, dispy;
+    {
+        long dx, dy;
+
+        for (int j = 0; j < tilesets.size(); j++)
+        {
+            struct tileset &ts = tilesets[j];
+            if (!ts.small_font_path.length())
+                continue;
+
+            long buf[256];
+            if (j > 1)
+                load_tileset(ts.small_font_path, tilesets[j].small_texpos, 16, 16, &dx, &dy);
+            else
+            {
+                gdispx = init->font.small_font_dispx;
+                gdispy = init->font.small_font_dispy;
+                memcpy(tilesets[j].small_texpos, init->font.small_font_texpos, sizeof(long) * 256);
+                load_tileset(ts.small_font_path, (long *)init->font.small_font_texpos, 16, 16, (long *)&init->font.small_font_dispx, (long *)&init->font.small_font_dispy);
+                dispx = init->font.small_font_dispx;
+                dispy = init->font.small_font_dispy;
+            }
+
+            if (ts.large_font_path != ts.small_font_path)
+                load_tileset(ts.large_font_path, tilesets[j].large_texpos, 16, 16, &dx, &dy);
+            else
+                memcpy(ts.large_texpos, ts.small_texpos, sizeof(ts.large_texpos));
+        }
+
+        /*struct tileset ts;
+        load_tileset(t, "data/art/Spacefox_16x16.png", ts.small_texpos, 16, 16, &dx, &dy);
+        tilesets.push_back(ts);
+        *out2 << "=="<<tilesets.size() << std::endl;*/
+
+        // Load shadows
+        struct stat buf;
+        if (stat("data/art/shadows.png", &buf) == 0)
+        {
+            load_tileset("data/art/shadows.png", shadow_texpos, 8, 1, &dx, &dy);
+            shadowsloaded = true;
+        }
+        else
+        {
+            out2->color(COLOR_RED);
+            *out2 << "TWBT: shadows.png not found in data/art folder" << std::endl;
+            out2->color(COLOR_RESET);
+        }
+
+    }    
+
     hook();
+
+    renderer_cool *r = (renderer_cool*)enabler->renderer;
+    r->dispx = dispx;
+    r->dispy = dispy;
+    r->gdispx = gdispx;
+    r->gdispy = gdispy;
 
     INTERPOSE_HOOK(dwarfmode_hook, render).apply(1);
     INTERPOSE_HOOK(dwarfmode_hook, feed).apply(1);
