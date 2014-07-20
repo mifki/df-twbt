@@ -6,12 +6,12 @@ DH ?= /Users/vit/Downloads/dfhack-$(DFHACKREL)
 
 SRC = mousequery.cpp
 DEP = 
-OUT = dist/$(DFHACKVER)-$(DFHACKREL)/mousequery.plug.so
+OUT = ../dist/$(DFHACKVER)-$(DFHACKREL)/mousequery.plug.so
 
 INC = -I"$(DH)/library/include" -I"$(DH)/library/proto" -I"$(DH)/depends/protobuf" -I"$(DH)/depends/lua/include" -I"$(DH)/plugins" -I..
 LIB = -L"$(DH)/build/library" -ldfhack
 
-CFLAGS = $(INC) -m32 -DLINUX_BUILD -g
+CFLAGS = $(INC) -m32 -DLINUX_BUILD
 LDFLAGS = $(LIB) -shared 
 
 ifeq ($(shell uname -s), Darwin)
