@@ -30,6 +30,12 @@ Copy `shadows.png` to `data/art` folder. **Note:** multilevel rendering is disab
 
 Not yet.
 
+### Colormap Manipulation ###
+
+`colormap <colorname> <r> <g> <b>` command changes display colours. Colour names are as in `init/colors.txt` without `_R/G/B` suffix. Components are in range `0-255`. If no new values are provided, current values are printed.
+
+`colormap reload` command reloads all colours from `init/colors.txt`.
+
 ### Mapshot! ###
 
 `mapshot` command saves an image of entire map in full size to `mapshot.tga` in DF folder.
