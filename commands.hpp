@@ -213,6 +213,9 @@ command_result colormap_cmd (color_ostream &out, std::vector <std::string> & par
                     break;
 
                 memcpy(enabler->ccolor[cidx], c, sizeof(enabler->ccolor[cidx]));
+
+                gps->force_full_display_count = 1;
+                ((renderer_cool*)enabler->renderer)->needs_full_update = true;                
             } while(0);
         }  
     }
