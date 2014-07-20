@@ -123,8 +123,6 @@ static void load_tileset(const string &filename, long *tex_pos, long dimx, long 
 
 
 struct tileset {
-    string small_font_path;
-    string large_font_path;
     long small_texpos[16*16], large_texpos[16*16];
 };
 
@@ -153,11 +151,13 @@ static struct tileref override_defs[256];
 static df::item_flags bad_item_flags;
 
 static int maxlevels = 0;
+static bool multi_rendered;
 static float fogdensity = 0.15f;
 static float fogcolor[4] = { 0.1f, 0.1f, 0.3f, 1 };
 static float shadowcolor[4] = { 0, 0, 0, 0.4f };
 
-
+static int small_map_dispx, small_map_dispy;
+static int large_map_dispx, large_map_dispy;
 
 bool is_text_tile(int x, int y, bool &is_map)
 {
@@ -382,7 +382,7 @@ static void screen_to_texid_map(renderer_cool *r, int tile, struct texture_fulli
     if (!texpos)
     {
         int ch = s[0];
-        ret.texpos = enabler->fullscreen ? tilesets[1].large_texpos[s[0]] : tilesets[1].small_texpos[s[0]];
+        ret.texpos = enabler->fullscreen ? tilesets[0].large_texpos[s[0]] : tilesets[0].small_texpos[s[0]];
 
         ret.r = enabler->ccolor[fg][0];
         ret.g = enabler->ccolor[fg][1];
@@ -454,7 +454,7 @@ static void write_tile_arrays_text(renderer_cool *r, int x, int y, GLfloat *fg, 
         *(bg++) = 1;
     }
 
-    //TODO: handle special cases of graphics tiles outside of the map here with is_text_tile as before
+    //TODO: handle special cases of graphics tiles outside of the map here with is_text_tile as before (aux font)
     
     // Set texture coordinates
     gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
@@ -498,12 +498,12 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
 
         if (overrides[s0])
         {
-            int xx = *df::global::window_x + x-1;
-            int yy = *df::global::window_y + y-1;
+            int xx = *df::global::window_x + x;
+            int yy = *df::global::window_y + y;
             int zz = *df::global::window_z - ((s[3]&0xf0)>>4);
             bool matched = false;
 
-            // Items
+            // Items / buildings
             for (int j = 0; j < overrides[s0]->size(); j++)
             {
                 struct override &o = (*overrides[s0])[j];
@@ -582,18 +582,28 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
 #include "renderer.hpp"
 
 // Disables standard rendering of lower levels
+//TODO: explain how to find these addresses
 static void patch_rendering(bool enable_lower_levels)
 {
     static bool ready = false;
-    static unsigned char orig[6];
+    static unsigned char orig[15];
 
 #ifdef WIN32
-    #define ADDR 0x00b57c8e
-    unsigned char patch[] = { 0xe9,0x30,0xfa,0xff,0xff, 0x90 };
+    void *addr = (void*)(0x00b56370 + Core::getInstance().vinfo->getRebaseDelta());
+
+    // mov eax, dword [ss:esp+0x0c]
+    // mov byte [ds:eax], 0x20
+    // retn 0x1c    
+    unsigned char patch[] = { 0x36,0x8b,0x84,0x24,0x0C,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC2,0x1C,0x00 };
 
 #elif defined(__APPLE__)
-    #define ADDR 0x00af1f44
-    unsigned char patch[] = { 0x90,0x90,0x90,0x90,0x90,0x90 };
+    void *addr = (void*)0x00af6c30;
+
+    // mov eax, dword [ss:esp+0x14]
+    // mov byte [ds:eax], 0x20
+    // ret
+    unsigned char patch[] = { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 };
+    //unsigned char patch[] = { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc7,0x00,0x20,0x00,0x00,0x00, 0xC3 };
 
 #else
     #define NO_RENDERING_PATCH
@@ -602,15 +612,15 @@ static void patch_rendering(bool enable_lower_levels)
 #ifndef NO_RENDERING_PATCH
     if (!ready)
     {
-        (new MemoryPatcher(Core::getInstance().p))->verifyAccess((void*)ADDR, 6, true);
-        memcpy(orig, (void*)ADDR, 6);
-        ready = true;        
+        (new MemoryPatcher(Core::getInstance().p))->verifyAccess((void*)addr, sizeof(patch), true);
+        memcpy(orig, (void*)addr, sizeof(patch));
+        ready = true;
     }
 
     if (enable_lower_levels)
-        memcpy((void*)ADDR, orig, sizeof(orig));
+        memcpy((void*)addr, orig, sizeof(patch));
     else
-        memcpy((void*)ADDR, patch, sizeof(patch));
+        memcpy((void*)addr, patch, sizeof(patch));
 #endif
 }
 
@@ -663,11 +673,16 @@ static void hook()
     memcpy(&newr->screen, &oldr->screen, (char*)&newr->dummy-(char*)&newr->screen);
     enabler->renderer = newr;
 
+    unsigned char nop6[] = { 0x90,0x90,0x90,0x90,0x90,0x90 };
+
 #ifdef WIN32
     // On Windows original map rendering function must be called at least once to initialize something
 
+    // Disable original renderer::display
+    // See below how to find this address
+    p.write((void*)(0x005be941 + Core::getInstance().vinfo->getRebaseDelta()), nop6, 5);
+
 #elif defined(__APPLE__)
-    unsigned char nop6[] = { 0x90,0x90,0x90,0x90,0x90,0x90 };
 
     // Disable original map rendering
     p.write((void*)0x002e0e0a, nop6, 5);
@@ -709,168 +724,8 @@ static void unhook()
 #include "dungeonmode.hpp"
 #include "tradefix.hpp"
 #include "config.hpp"
+#include "commands.hpp"
 
-command_result mapshot_cmd (color_ostream &out, std::vector <std::string> & parameters)
-{
-    if (!enabled)
-        return CR_FAILURE;
-
-    CoreSuspender suspend;
-
-    domapshot = 10;
-
-    return CR_OK;    
-}
-
-command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & parameters)
-{
-    if (!enabled)
-        return CR_FAILURE;
-
-    CoreSuspender suspend;
-
-    int pcnt = parameters.size();
-
-    if (pcnt >= 1)
-    {
-        std::string &param1 = parameters[0];
-        int newmaxlevels = maxlevels;
-
-        if (param1 == "shadowcolor" && pcnt >= 5)
-        {
-            float c[4];
-            char *e;
-            do {
-                c[0] = strtod(parameters[1].c_str(), &e);
-                if (*e != 0)
-                    break;
-                c[1] = strtod(parameters[2].c_str(), &e);
-                if (*e != 0)
-                    break;
-                c[2] = strtod(parameters[3].c_str(), &e);
-                if (*e != 0)
-                    break;
-                c[3] = strtod(parameters[4].c_str(), &e);
-                if (*e != 0)
-                    break;
-
-                shadowcolor[0] = c[0], shadowcolor[1] = c[1], shadowcolor[2] = c[2], shadowcolor[3] = c[3];
-            } while(0);
-        }        
-        else if (param1 == "fogcolor" && pcnt >= 4)
-        {
-            float c[3];
-            char *e;
-            do {
-                c[0] = strtod(parameters[1].c_str(), &e);
-                if (*e != 0)
-                    break;
-                c[1] = strtod(parameters[2].c_str(), &e);
-                if (*e != 0)
-                    break;
-                c[2] = strtod(parameters[3].c_str(), &e);
-                if (*e != 0)
-                    break;
-
-                fogcolor[0] = c[0], fogcolor[1] = c[1], fogcolor[2] = c[2];
-            } while(0);
-        }
-        else if (param1 == "fogdensity" && pcnt >= 2)
-        {
-            char *e;
-            float l = strtod(parameters[1].c_str(), &e);
-            if (*e == 0)
-                fogdensity = l;
-        }
-        else if (param1 == "more")
-        {
-            if (maxlevels < 15)
-                newmaxlevels = maxlevels + 1;
-        }
-        else if (param1 == "less")
-        {
-            if (maxlevels > 0)
-                newmaxlevels = maxlevels - 1;
-        }        
-        else 
-        {
-            char *e;
-            int l = (int)strtol(param1.c_str(), &e, 10);
-            if (*e == 0)
-                newmaxlevels = std::max (std::min(l, 15), 0);
-        }
-
-        if (newmaxlevels && !maxlevels)
-            patch_rendering(false);
-        else if (!newmaxlevels && maxlevels)
-        {
-            patch_rendering(true);
-
-            // Fog coords won't be updated once multilevel rendering is off, so we need to zero all of them out
-            ((renderer_cool*)enabler->renderer)->needs_full_update = true;
-        }
-
-        maxlevels = newmaxlevels;            
-    }
-
-    return CR_OK;    
-}
-
-command_result twbt_cmd (color_ostream &out, std::vector <std::string> & parameters)
-{
-    if (!enabled)
-        return CR_FAILURE;
-
-    CoreSuspender suspend;
-
-    int pcnt = parameters.size();
-
-    if (pcnt >= 1)
-    {
-        std::string &param1 = parameters[0];
-
-        if (param1 == "tilesize" && pcnt >= 2)
-        {
-            renderer_cool *r = (renderer_cool*) enabler->renderer;
-            std::string &param2 = parameters[1];
-
-            if (param2 == "bigger")
-            {
-                r->gdispx++;
-                r->gdispy++;
-                r->needs_reshape = true;
-            }
-            else if (param2 == "smaller")
-            {
-                if (r->gdispx > 0 && r->gdispy > 0)
-                {
-                    r->gdispx--;
-                    r->gdispy--;
-                    r->needs_reshape = true;
-                }
-            }
-            else if (pcnt >= 3)
-            {
-                int w, h;
-                char *e;
-                do {
-                    w = strtol(parameters[1].c_str(), &e, 10);
-                    if (*e != 0)
-                        break;
-                    h = strtol(parameters[2].c_str(), &e, 10);
-                    if (*e != 0)
-                        break;
-
-                    r->gdispx = w;
-                    r->gdispy = h;
-                    r->needs_reshape = true;
-                } while(0);
-            }
-        }
-    }
-
-    return CR_OK;    
-}
 
 DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCommand> &commands)
 {
@@ -916,16 +771,21 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     bad_item_flags.bits.in_inventory = true;
     bad_item_flags.bits.in_chest = true;
 
+    // Used only if rendering patch is not available
     skytile = d_init->sky_tile;
     chasmtile = d_init->chasm_tile;    
 
-    //Main tileset
+    // Graphics tileset - accessible at index 0
     struct tileset ts;
-    memcpy(ts.small_texpos, df::global::init->font.small_font_texpos, sizeof(ts.small_texpos));
-    memcpy(ts.large_texpos, df::global::init->font.large_font_texpos, sizeof(ts.large_texpos));
+    memcpy(ts.small_texpos, init->font.small_font_texpos, sizeof(ts.small_texpos));
+    memcpy(ts.large_texpos, init->font.large_font_texpos, sizeof(ts.large_texpos));
     tilesets.push_back(ts);
 
-    has_textfont = get_font_paths();
+    // We will replace init->font with text font, so let's save graphics tile size
+    small_map_dispx = init->font.small_font_dispx, small_map_dispy = init->font.small_font_dispy;
+    large_map_dispx = init->font.large_font_dispx, large_map_dispy = init->font.large_font_dispy;
+
+    has_textfont = load_text_font();
     has_overrides = load_overrides();
 
     if (!has_textfont)
@@ -935,64 +795,22 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         out.color(COLOR_RESET);        
     }
 
-    int gdispx, gdispy;
-    int dispx, dispy;
+    // Load shadows
+    struct stat buf;
+    if (stat("data/art/shadows.png", &buf) == 0)
     {
-        long dx, dy;
-
-        for (int j = 0; j < tilesets.size(); j++)
-        {
-            struct tileset &ts = tilesets[j];
-            if (!ts.small_font_path.length())
-                continue;
-
-            long buf[256];
-            if (j > 1)
-                load_tileset(ts.small_font_path, tilesets[j].small_texpos, 16, 16, &dx, &dy);
-            else
-            {
-                gdispx = init->font.small_font_dispx;
-                gdispy = init->font.small_font_dispy;
-                memcpy(tilesets[j].small_texpos, init->font.small_font_texpos, sizeof(long) * 256);
-                load_tileset(ts.small_font_path, (long *)init->font.small_font_texpos, 16, 16, (long *)&init->font.small_font_dispx, (long *)&init->font.small_font_dispy);
-                dispx = init->font.small_font_dispx;
-                dispy = init->font.small_font_dispy;
-            }
-
-            if (ts.large_font_path != ts.small_font_path)
-                load_tileset(ts.large_font_path, tilesets[j].large_texpos, 16, 16, &dx, &dy);
-            else
-                memcpy(ts.large_texpos, ts.small_texpos, sizeof(ts.large_texpos));
-        }
-
-        /*struct tileset ts;
-        load_tileset(t, "data/art/Spacefox_16x16.png", ts.small_texpos, 16, 16, &dx, &dy);
-        tilesets.push_back(ts);
-        *out2 << "=="<<tilesets.size() << std::endl;*/
-
-        // Load shadows
-        struct stat buf;
-        if (stat("data/art/shadows.png", &buf) == 0)
-        {
-            load_tileset("data/art/shadows.png", shadow_texpos, 8, 1, &dx, &dy);
-            shadowsloaded = true;
-        }
-        else
-        {
-            out2->color(COLOR_RED);
-            *out2 << "TWBT: shadows.png not found in data/art folder" << std::endl;
-            out2->color(COLOR_RESET);
-        }
-
+        long dx, dy;        
+        load_tileset("data/art/shadows.png", shadow_texpos, 8, 1, &dx, &dy);
+        shadowsloaded = true;
+    }
+    else
+    {
+        out2->color(COLOR_RED);
+        *out2 << "TWBT: shadows.png not found in data/art folder" << std::endl;
+        out2->color(COLOR_RESET);
     }    
 
     hook();
-
-    renderer_cool *r = (renderer_cool*)enabler->renderer;
-    r->dispx = dispx;
-    r->dispy = dispy;
-    r->gdispx = gdispx;
-    r->gdispy = gdispy;
 
     INTERPOSE_HOOK(dwarfmode_hook, render).apply(1);
     INTERPOSE_HOOK(dwarfmode_hook, feed).apply(1);
@@ -1012,6 +830,12 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     commands.push_back(PluginCommand(
         "multilevel", "Multilivel rendering",
         multilevel_cmd, false, /* true means that the command can't be used from non-interactive user interface */
+        // Extended help string. Used by CR_WRONG_USAGE and the help command:
+        ""
+    ));       
+    commands.push_back(PluginCommand(
+        "colormap", "Colomap manipulation",
+        colormap_cmd, false, /* true means that the command can't be used from non-interactive user interface */
         // Extended help string. Used by CR_WRONG_USAGE and the help command:
         ""
     ));       

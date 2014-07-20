@@ -32,18 +32,10 @@ struct renderer_cool : renderer_opengl
     int needs_zoom;
     bool needs_full_update;
 
-    renderer_cool()
-    {
-        dummy = 'TWBT';
-        gvertexes = 0, gfg = 0, gbg = 0, gtex = 0;
-        gdimx = 0, gdimy = 0, gdimxfull = 0, gdimyfull = 0;
-        gdispx = 0, gdispy = 0;
-        goff_x = 0, goff_y = 0, gsize_x = 0, gsize_y = 0;
-        needs_reshape = needs_zoom = 0;
-    }
+    renderer_cool();
 
     void reshape_graphics();
-    void display();
+    void display_new();
     void update_map_tile(int x, int y);
 
     virtual void update_tile(int x, int y);

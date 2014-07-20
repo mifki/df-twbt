@@ -1,6 +1,14 @@
 static volatile int domapshot = 0;
 
-
+renderer_cool::renderer_cool()
+{
+    dummy = 'TWBT';
+    gvertexes = 0, gfg = 0, gbg = 0, gtex = 0;
+    gdimx = 0, gdimy = 0, gdimxfull = 0, gdimyfull = 0;
+    gdispx = 0, gdispy = 0;
+    goff_x = 0, goff_y = 0, gsize_x = 0, gsize_y = 0;
+    needs_reshape = needs_zoom = 0;
+}
 
 void renderer_cool::update_tile(int x, int y)
 {
@@ -80,81 +88,74 @@ static void write_tile_vertexes(GLfloat x, GLfloat y, GLfloat *vertex)
 
 void renderer_cool::reshape_graphics()
 {
-    {
-        float tsx = (float)size_x / gps->dimx, tsy = (float)size_y / gps->dimy;
+    float tsx = (float)size_x / gps->dimx, tsy = (float)size_y / gps->dimy;
 
+    int32_t w = gps->dimx, h = gps->dimy;
 
+    int cx = *df::global::window_x + gdimx / 2;
+    int cy = *df::global::window_y + gdimy / 2;
 
-        int32_t w = gps->dimx, h = gps->dimy;
+    gsize_x = (size_x - tsx * (gmenu_w + 1 + 1));
+    gsize_y = (size_y - tsy * 2);
 
+    float dimx = std::min(gsize_x / gdispx, 256.0f);
+    float dimy = std::min(gsize_y / gdispy, 256.0f);
+    gdimx = ceilf(dimx);
+    gdimy = ceilf(dimy);
+    gdimxfull = floorf(dimx);
+    gdimyfull = floorf(dimy);
 
-        int cx = *df::global::window_x + gdimx / 2;
-        int cy = *df::global::window_y + gdimy / 2;
+    goff_x = off_x + roundf((float)size_x / gps->dimx);
+    goff_y = off_y + roundf((float)size_y / gps->dimy) - (gdimy == gdimyfull ? 0 : roundf(gdispy - (gsize_y - gdispy * gdimyfull)));        
 
-        gsize_x = (size_x - tsx * (gmenu_w + 1 + 1));
-        gsize_y = (size_y - tsy * 2);
-        *out2 << tsx << " " << gsize_x << std::endl;
-        float dimx = std::min(gsize_x / gdispx, 256.0f);
-        float dimy = std::min(gsize_y / gdispy, 256.0f);
-        gdimx = ceilf(dimx);
-        gdimy = ceilf(dimy);
-        gdimxfull = floorf(dimx);
-        gdimyfull = floorf(dimy);
-        *out2 << gdispx << " " << gdispy << "   " << gdimx << " " << gdimy << "   " << gdimxfull << " " << gdimyfull << " " << (gsize_x - gdispx * gdimxfull) << " " << (gsize_y - gdispy * gdimyfull) << std::endl;
+    *df::global::window_x = std::max(0, cx - gdimx / 2);
+    *df::global::window_y = std::max(0, cy - gdimy / 2);
 
-        goff_x = off_x + roundf((float)size_x / gps->dimx);
-        goff_y = off_y + roundf((float)size_y / gps->dimy) - (gdimy == gdimyfull ? 0 : roundf(gdispy - (gsize_y - gdispy * gdimyfull)));        
+    int tiles = gdimx * gdimy;
+    gvertexes = static_cast<GLfloat *>(realloc(gvertexes, sizeof(GLfloat) * tiles * 2 * 6));
+    gfg = static_cast<GLfloat *>(realloc(gfg, sizeof(GLfloat) * tiles * 4 * 6));
+    gbg = static_cast<GLfloat *>(realloc(gbg, sizeof(GLfloat) * tiles * 4 * 6));
+    gtex = static_cast<GLfloat *>(realloc(gtex, sizeof(GLfloat) * tiles * 2 * 6));
 
-        *df::global::window_x = std::max(0, cx - gdimx / 2);
-        *df::global::window_y = std::max(0, cy - gdimy / 2);
-
-        int tiles = gdimx * gdimy;
-        gvertexes = static_cast<GLfloat *>(realloc(gvertexes, sizeof(GLfloat) * tiles * 2 * 6));
-        gfg = static_cast<GLfloat *>(realloc(gfg, sizeof(GLfloat) * tiles * 4 * 6));
-        gbg = static_cast<GLfloat *>(realloc(gbg, sizeof(GLfloat) * tiles * 4 * 6));
-        gtex = static_cast<GLfloat *>(realloc(gtex, sizeof(GLfloat) * tiles * 2 * 6));
-        *out2 << gvertexes << " " << gfg << " " << gbg << " " << gtex << std::endl;
-        int tile = 0;   
-        for (GLfloat x = 0; x < gdimx; x++)
-            for (GLfloat y = 0; y < gdimy; y++, tile++)
-                write_tile_vertexes(x, y, gvertexes + 6 * 2 * tile);
-
-        *out2 << gvertexes << std::endl;
-    }
+    int tile = 0;   
+    for (GLfloat x = 0; x < gdimx; x++)
+        for (GLfloat y = 0; y < gdimy; y++, tile++)
+            write_tile_vertexes(x, y, gvertexes + 6 * 2 * tile);
 }
 
 void renderer_cool::reshape_gl()
 {
-    *out2 << "RESHAPE" << std::endl;
     reshape_gl_old();
+
+    static int last_fullscreen = -1;
+    if (last_fullscreen != enabler->fullscreen)
+    {
+        last_fullscreen = enabler->fullscreen;
+        if (last_fullscreen)
+            gdispx = large_map_dispx, gdispy = large_map_dispy;            
+        else
+            gdispx = small_map_dispx, gdispy = small_map_dispy;            
+    }
+
     reshape_graphics();
 }
 
 void renderer_cool::draw(int vertex_count)
 {
-#ifdef __APPLE__
-    display();
-#endif
-
     static bool initial_resize = false;
     if (!initial_resize)
     {
-        resize((size_x / dispx)*dispx, (size_y / dispy)*dispy);
+        if (enabler->fullscreen)
+            resize(size_x, size_y);
+        else
+            resize((size_x/init->font.small_font_dispx)*init->font.small_font_dispx, (size_y/init->font.small_font_dispy)*init->font.small_font_dispy);
+            //resize(gps->dimx*init->font.small_font_dispx, gps->dimy*init->font.small_font_dispy);
+
+        reshape_gl();
         initial_resize = true;
     }
 
-    if (gvertexes)
-    {
-        if (needs_full_update)
-        {
-            memset(fogcoord, 0, 256*256*6);           
-            needs_full_update = false; 
-        }
-
-        for (int x2 = 0; x2 < gdimx; x2++)
-            for (int y2 = 0; y2 < gdimy; y2++)
-                update_map_tile(x2, y2);
-    }
+    display_new();
 
 #ifdef WIN32
     // We can't do this in plugin_init() because OpenGL context isn't initialized by that time
@@ -233,8 +234,6 @@ void renderer_cool::draw(int vertex_count)
 
     if (is_main_scr)
     {
-        if (!gvertexes)
-            reshape_graphics();
         {
             /////
             glViewport(goff_x, goff_y, gdimx * gdispx, gdimy * gdispy);
@@ -269,7 +268,6 @@ void renderer_cool::draw(int vertex_count)
             glDrawArrays(GL_TRIANGLES, 0, gdimx * gdimy * 6);
 
             // Render foreground
-            //glAlphaFunc(GL_NOTEQUAL, 0);
             glEnable(GL_TEXTURE_2D);
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
             glEnable(GL_BLEND);
@@ -281,9 +279,8 @@ void renderer_cool::draw(int vertex_count)
             if (fogdensity > 0)
                 glDisable(GL_FOG);
 
-
             // Prepare and render shadows
-            if (maxlevels) //TODO: also check number of actually rendered levels
+            if (multi_rendered)
             {
                 short elemcnt = 0;
                 //TODO: don't do this if view not moved and tiles with shadows not changed
@@ -374,13 +371,6 @@ void renderer_cool::draw(int vertex_count)
                 }
             }
 
-
-
-
-
-
-
-
             glDisable(GL_SCISSOR_TEST);
         }
     }
@@ -400,7 +390,6 @@ void renderer_cool::draw(int vertex_count)
         glDrawArrays(GL_TRIANGLES, 0, vertex_count);
 
         // Render foreground
-        //glAlphaFunc(GL_NOTEQUAL, 0);
         glEnable(GL_TEXTURE_2D);
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
         glEnable(GL_BLEND);
@@ -472,46 +461,63 @@ void renderer_cool::draw(int vertex_count)
     }
 }
 
-void renderer_cool::display()
+void renderer_cool::display_new()
 {
-  const int dimx = gps->dimx;
-  const int dimy = gps->dimy;
-  if (gps->force_full_display_count) {
-    update_all();
-  } else {
-    uint32_t *screenp = (uint32_t*)screen, *oldp = (uint32_t*)screen_old;
-    /*if (use_graphics) {
-      int off = 0;
-      for (int x2=0; x2 < dimx; x2++) {
+#if defined(__APPLE__) || defined(WIN32)
+    // In this case this function replaces original (non-virtual) renderer::display()
+    // So update text tiles here
+
+    const int dimx = gps->dimx;
+    const int dimy = gps->dimy;
+    if (gps->force_full_display_count) {
+        update_all();
+    } else {
+        uint32_t *screenp = (uint32_t*)screen, *oldp = (uint32_t*)screen_old;
+        /*if (use_graphics) {
+        int off = 0;
+        for (int x2=0; x2 < dimx; x2++) {
         for (int y2=0; y2 < dimy; y2++, ++off, ++screenp, ++oldp) {
-          // We don't use pointers for the non-screen arrays because we mostly fail at the
-          // *first* comparison, and having pointers for the others would exceed register
-          // count.
-          // Partial printing (and color-conversion): Big-ass if.
-          if (*screenp == *oldp &&
-              screentexpos[off] == screentexpos_old[off] &&
-              screentexpos_addcolor[off] == screentexpos_addcolor_old[off] &&
-              screentexpos_grayscale[off] == screentexpos_grayscale_old[off] &&
-              screentexpos_cf[off] == screentexpos_cf_old[off] &&
-              screentexpos_cbr[off] == screentexpos_cbr_old[off])
-            {
-              // Nothing's changed, this clause deliberately empty
-            } else {
-            update_tile(x2, y2);
-          }
+        // We don't use pointers for the non-screen arrays because we mostly fail at the
+        // *first* comparison, and having pointers for the others would exceed register
+        // count.
+        // Partial printing (and color-conversion): Big-ass if.
+        if (*screenp == *oldp &&
+        screentexpos[off] == screentexpos_old[off] &&
+        screentexpos_addcolor[off] == screentexpos_addcolor_old[off] &&
+        screentexpos_grayscale[off] == screentexpos_grayscale_old[off] &&
+        screentexpos_cf[off] == screentexpos_cf_old[off] &&
+        screentexpos_cbr[off] == screentexpos_cbr_old[off])
+        {
+        // Nothing's changed, this clause deliberately empty
+        } else {
+        update_tile(x2, y2);
         }
-      }
-    } else {*/
-      for (int x2=0; x2 < dimx; ++x2) {
-        for (int y2=0; y2 < dimy; ++y2, ++screenp, ++oldp) {
-          if (*screenp != *oldp) {
-            update_tile(x2, y2);
-          }
         }
-      }
-    //}
-  }
-  if (gps->force_full_display_count > 0) gps->force_full_display_count--;
+        }
+        } else {*/
+        for (int x2=0; x2 < dimx; ++x2) {
+            for (int y2=0; y2 < dimy; ++y2, ++screenp, ++oldp) {
+                if (*screenp != *oldp) {
+                    update_tile(x2, y2);
+                }
+            }
+        }
+        //}
+    }
+
+    if (gps->force_full_display_count > 0) gps->force_full_display_count--;
+#endif
+
+    // Now also update map tiles
+    if (needs_full_update)
+    {
+        memset(fogcoord, 0, 256*256*6);           
+        needs_full_update = false; 
+    }
+
+    for (int x2 = 0; x2 < gdimx; x2++)
+        for (int y2 = 0; y2 < gdimy; y2++)
+            update_map_tile(x2, y2);
 } 
 
 extern "C" {
