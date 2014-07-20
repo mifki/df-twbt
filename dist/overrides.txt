@@ -11,9 +11,9 @@
 # Id see buildings_other_id.h or items_other_id.h
 # Type see building_type.h or item_type.h, may be empty
 # Subtype is some numberical value, don't know what values correspond to what
-# Tileset is an index of tileset to use
+# Tileset is the tileset to use
 #   map  is the main tileset
-#   text is a text tileset loaded by this plugin
+#   text is the text tileset loaded by this plugin
 #   <Id> tilesets id specified in TILESET command
 # NewTile is the new tile number
 
