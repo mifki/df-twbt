@@ -221,12 +221,12 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
             if (p > 1)
             {
                 (*df::global::window_x) += x0;
-                //init->display.grid_x -= x0-1;
+                init->display.grid_x -= x0-1;
 
                 render_map();
 
                 (*df::global::window_x) -= x0;
-                //init->display.grid_x += x0-1;
+                init->display.grid_x += x0-1;
             }
 
             empty_tiles_left = false;
@@ -274,12 +274,12 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                         multi_rendered = true;
 
                         (*df::global::window_x) += x0;
-                        init->display.grid_x -= x0+2;
+                        init->display.grid_x -= x0-1;
 
                         render_map();
 
                         (*df::global::window_x) -= x0;
-                        init->display.grid_x += x0+2;
+                        init->display.grid_x += x0-1;
 
                         x00 = x0;
 
@@ -451,5 +451,5 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
     }
 };
 
-IMPLEMENT_VMETHOD_INTERPOSE_PRIO(dwarfmode_hook, render, 1000);
+IMPLEMENT_VMETHOD_INTERPOSE_PRIO(dwarfmode_hook, render, 200);
 IMPLEMENT_VMETHOD_INTERPOSE(dwarfmode_hook, feed);

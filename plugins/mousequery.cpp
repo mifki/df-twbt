@@ -70,9 +70,15 @@ static df::coord get_mouse_pos(int32_t &mx, int32_t &my)
     pos.x = vx + mx - 1;
     pos.y = vy + my - 1;
 
-    const int tile = pos.x * gps->dimy + pos.y;
-
-    pos.z = vz;
+    renderer_cool *r = (renderer_cool*)enabler->renderer;
+    if (r->dummy == 'TWBT')
+    {
+        const int tile = (mx-1) * r->gdimy + (my-1);
+        unsigned char *s = r->gscreen + tile*4;
+        pos.z = vz - ((s[3]&0xf0)>>4);
+    }
+    else
+        pos.z = vz;
 
     return pos;
 }
@@ -714,7 +720,7 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
                 s[0] = 'X';
                 s[1] = color % 16;
                 s[2] = 0;
-                s[3] = color / 16;
+                s[3] = (color / 16) | (s[3]&0xf0);
             }
             else
                 OutputString(color, mx, my, "X");
@@ -730,6 +736,10 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
             {
                 return;
             }
+
+            // Don't change levels
+            if (mpos.z != *df::global::window_z)
+                return;
 
             last_t = enabler->clock;
             moveCursor(mpos, false);
@@ -796,7 +806,7 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
 };
 
 IMPLEMENT_VMETHOD_INTERPOSE_PRIO(mousequery_hook, feed, 100);
-IMPLEMENT_VMETHOD_INTERPOSE_PRIO(mousequery_hook, render, 100);
+IMPLEMENT_VMETHOD_INTERPOSE_PRIO(mousequery_hook, render, 300);
 
 static command_result mousequery_cmd(color_ostream &out, vector <string> & parameters)
 {
