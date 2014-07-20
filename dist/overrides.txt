@@ -1,3 +1,5 @@
+# This file is a part of Text Will Be Text plugin
+
 # This file should be placed into data/init and allows to load additional tilesets
 # and override tile numbers for certain item/building types.
 
@@ -10,7 +12,7 @@
 # Kind is I for item or B for building
 # Id see buildings_other_id.h or items_other_id.h
 # Type see building_type.h or item_type.h, may be empty
-# Subtype is some numberical value, don't know what values correspond to what
+# Subtype is some numeric value, don't know what values correspond to what
 # Tileset is the tileset to use
 #   map  is the main tileset
 #   text is the text tileset loaded by this plugin
