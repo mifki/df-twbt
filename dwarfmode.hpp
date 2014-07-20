@@ -86,11 +86,9 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         static bool patched = false;
         if (!patched)
         {
-        unsigned char t1[] = {  0x90,0x90, 0x90, 0x90,0x90,0x90,0x90,0x90 };
-        Core::getInstance().p->patchMemory((void*)(0x0058eabd+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+            unsigned char t1[] = {  0x90,0x90, 0x90, 0x90,0x90,0x90,0x90,0x90 };
+            Core::getInstance().p->patchMemory((void*)(0x0058eabd+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
 
-//    	    unsigned char t1[] = { 0x90,0x90,0x90,0x90,0x90 };
-//            Core::getInstance().p->patchMemory((void*)(0x0058eac0+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
             patched = true;
         }
 #endif
@@ -453,5 +451,5 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
     }
 };
 
-IMPLEMENT_VMETHOD_INTERPOSE(dwarfmode_hook, render);
+IMPLEMENT_VMETHOD_INTERPOSE_PRIO(dwarfmode_hook, render, 1000);
 IMPLEMENT_VMETHOD_INTERPOSE(dwarfmode_hook, feed);

@@ -46,7 +46,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <OutputFile>dist\dfhack-$(dfhackrel)\$(TargetName)$(TargetExt)</OutputFile>
+      <OutputFile>dist\$(dfhackver)-$(dfhackrel)\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

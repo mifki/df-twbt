@@ -8,6 +8,7 @@ renderer_cool::renderer_cool()
     gdispx = 0, gdispy = 0;
     goff_x = 0, goff_y = 0, gsize_x = 0, gsize_y = 0;
     needs_reshape = needs_zoom = 0;
+    this->gscreen = ::gscreen;
 }
 
 void renderer_cool::update_tile(int x, int y)
@@ -532,11 +533,14 @@ bool renderer_cool::get_mouse_coords(int32_t *x, int32_t *y)
     mouse_x -= goff_x;
     mouse_y -= goff_y;
 
-    if (mouse_x < 0 || mouse_y < 0 || mouse_x >= gsize_x || mouse_y >= gsize_y)
+    int _x = (float) mouse_x / gdispx + 1;
+    int _y = (float) mouse_y / gdispy + 1;
+
+    if (_x < 0 || _y < 0 || _x > gdimxfull || _y > gdimyfull)
         return false;
 
-    *x = (float) mouse_x / gdispx + 1;
-    *y = (float) mouse_y / gdispy + 1;
+    *x = _x;
+    *y = _y;
     
     return true;
 }

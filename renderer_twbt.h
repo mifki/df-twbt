@@ -6,7 +6,7 @@ struct _renderer_opengl : df::renderer
 {
     void *sdlscreen;
     int dispx, dispy;
-    GLfloat *vertexes, *fg, *bg, *tex;
+    float *vertexes, *fg, *bg, *tex;
     int zoom_steps, forced_steps;
     int natural_w, natural_h;
     int off_x, off_y, size_x, size_y;
@@ -24,13 +24,14 @@ struct renderer_cool : renderer_opengl
 {
     uint32_t dummy;
 
-    GLfloat *gvertexes, *gfg, *gbg, *gtex;
+    float *gvertexes, *gfg, *gbg, *gtex;
     int gdimx, gdimy, gdimxfull, gdimyfull;
     int gdispx, gdispy;
     float goff_x, goff_y, gsize_x, gsize_y;
 	bool needs_reshape;
     int needs_zoom;
     bool needs_full_update;
+    unsigned char *gscreen;
 
     renderer_cool();
 
