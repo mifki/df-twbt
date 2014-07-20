@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <stdint.h>
 #include <iostream>
+#include <math.h>
 #include <map>
 #include <vector>
 
@@ -16,11 +17,19 @@
     #define WIN32_LEAN_AND_MEAN
     #define NOMINMAX
     #include <windows.h>
+
     #define GLEW_STATIC
     #include "glew/glew.h"
     #include "glew/wglew.h"
+
+    float roundf(float x)
+    {
+       return x >= 0.0f ? floorf(x + 0.5f) : ceilf(x - 0.5f);
+    }
+
 #elif defined(__APPLE__)
     #include <OpenGL/gl.h>
+
 #else
     #include <dlfcn.h>
     #define GL_GLEXT_PROTOTYPES
@@ -523,10 +532,14 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
     DEFINE_VMETHOD_INTERPOSE(void, render, ())
     {
+        //clock_t c1 = clock();
         INTERPOSE_NEXT(render)();
 
         if (shadowsloaded && maxlevels)
             render_more_layers();
+
+        //clock_t c2 = clock();
+        //*out2 << (c2-c1) << std::endl;
     }
 
     void render_more_layers()
@@ -914,6 +927,65 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
     return CR_OK;    
 }
 
+command_result colormap_cmd (color_ostream &out, std::vector <std::string> & parameters)
+{
+    if (!enabled)
+        return CR_FAILURE;
+
+    CoreSuspender suspend;
+
+    int pcnt = parameters.size();
+
+    if (pcnt == 1)
+    {
+        std::string &param1 = parameters[0];
+        if (param1 == "reload")
+        {
+            load_colormap();
+        }
+        else
+        {
+            int cidx = color_name_to_index(param1);
+
+            if (cidx != -1)
+                out << param1 << " = " <<
+                    roundf(enabler->ccolor[cidx][0]*255) << " " <<
+                    roundf(enabler->ccolor[cidx][1]*255) << " " <<
+                    roundf(enabler->ccolor[cidx][2]*255) << std::endl;
+        }
+
+        gps->force_full_display_count = 1;
+    }
+    else if (pcnt == 4)
+    {
+        int cidx = color_name_to_index(parameters[0]);
+
+        if (cidx != -1)
+        {
+            float c[3];
+            char *e;
+
+            do {
+                c[0] = strtod(parameters[1].c_str(), &e) / 255.0;
+                if (*e != 0)
+                    break;
+                c[1] = strtod(parameters[2].c_str(), &e) / 255.0;
+                if (*e != 0)
+                    break;
+                c[2] = strtod(parameters[3].c_str(), &e) / 255.0;
+                if (*e != 0)
+                    break;
+
+                memcpy(enabler->ccolor[cidx], c, sizeof(enabler->ccolor[cidx]));
+
+                gps->force_full_display_count = 1;            
+            } while(0);
+        }  
+    }
+
+    return CR_OK;    
+}
+
 DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCommand> &commands)
 {
     auto dflags = init->display.flag;
@@ -990,7 +1062,13 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         mapshot_cmd, false, /* true means that the command can't be used from non-interactive user interface */
         // Extended help string. Used by CR_WRONG_USAGE and the help command:
         ""
-    ));        
+    ));   
+    commands.push_back(PluginCommand(
+        "colormap", "Colomap manipulation",
+        colormap_cmd, false, /* true means that the command can't be used from non-interactive user interface */
+        // Extended help string. Used by CR_WRONG_USAGE and the help command:
+        ""
+    ));       
     commands.push_back(PluginCommand(
         "multilevel", "Multilivel rendering",
         multilevel_cmd, false, /* true means that the command can't be used from non-interactive user interface */

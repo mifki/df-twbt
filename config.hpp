@@ -178,3 +178,69 @@ static bool load_overrides()
     fseed.close();
     return found;
 }
+
+static int color_name_to_index(std::string &name)
+{
+    std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+
+    static const char *names[] = {
+        "black", "blue", "green", "cyan", "red", "magenta", "brown", "lgray",
+        "dgray", "lblue", "lgreen", "lcyan", "lred", "lmagenta", "yellow", "white"
+    };
+
+    for (int i = 0; i < 16; i++)
+        if (name == names[i])
+            return i;
+
+    return -1;
+}
+
+static void load_colormap()
+{
+    string small_font_path, gsmall_font_path;
+    string large_font_path, glarge_font_path;
+
+    std::ifstream fseed("data/init/colors.txt");
+    if(fseed.is_open())
+    {
+        string str;
+
+        while(std::getline(fseed,str))
+        {
+            size_t b = str.find("[");
+            size_t e = str.rfind("]");
+
+            if (b == string::npos || e == string::npos || str.find_first_not_of(" ") < b)
+                continue;
+
+            str = str.substr(b+1, e-1);
+            vector<string> tokens = split(str.c_str(), ':');
+            if (tokens.size() != 2)
+                continue;
+
+            std::string &token0 = tokens[0];
+            if (token0.length() < 3)
+                continue;
+
+            std::string name (token0.substr(0, token0.length()-2));
+            int cidx = color_name_to_index(name);
+            if (cidx == -1)
+                continue;
+
+            char *_e;
+            float val = strtod(tokens[1].c_str(), &_e) / 255.0;
+            if (*_e != 0)
+                continue;
+
+            const std::string &comp = token0.substr(token0.length()-2);
+            if (comp == "_R")
+                enabler->ccolor[cidx][0] = val;
+            else if (comp == "_G")
+                enabler->ccolor[cidx][1] = val;
+            else if (comp == "_B")
+                enabler->ccolor[cidx][2] = val;
+        }
+    }
+
+    fseed.close();
+}
