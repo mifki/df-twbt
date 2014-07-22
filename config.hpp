@@ -179,8 +179,6 @@ static bool load_overrides()
             {
                 if (tokens.size() == 8)
                 {
-                    int tile = atoi(tokens[1].c_str());
-                    
                     if (!tilesetnames.count(tokens[6]))
                     {
                         out2->color(COLOR_YELLOW);
@@ -189,7 +187,10 @@ static bool load_overrides()
 
                         continue;
                     }
+
+                    int tile = atoi(tokens[1].c_str());
                     int tsidx = tilesetnames[tokens[6]];
+                    int newtile = atoi(tokens[7].c_str());
 
                     struct override o;
                     o.building = (tokens[2] == "B");
@@ -227,8 +228,8 @@ static bool load_overrides()
                     else
                         o.subtype = -1;
 
-                    o.newtile.tilesetidx = tsidx;
-                    o.newtile.tile = atoi(tokens[7].c_str());
+                    o.small_texpos = tilesets[tsidx].small_texpos[newtile];
+                    o.large_texpos = tilesets[tsidx].large_texpos[newtile];
 
                     if (!overrides[tile])
                         overrides[tile] = new vector< struct override >;
@@ -239,12 +240,19 @@ static bool load_overrides()
                 {
                     std::map<std::string,int>::iterator it;
                     if (!tilesetnames.count(tokens[2]))
+                    {
+                        out2->color(COLOR_YELLOW);
+                        *out2 << "TWBT: no tileset with id " << tokens[2] << std::endl;
+                        out2->color(COLOR_RESET);                                
                         continue;
-                    int tsidx = tilesetnames[tokens[2]];
+                    }
 
                     int tile = atoi(tokens[1].c_str());
-                    override_defs[tile].tilesetidx = tsidx;
-                    override_defs[tile].tile = atoi(tokens[3].c_str());
+                    int tsidx = tilesetnames[tokens[2]];
+                    int newtile = atoi(tokens[3].c_str());
+
+                    tilesets[0].small_texpos[tile] = tilesets[tsidx].small_texpos[newtile];
+                    tilesets[0].large_texpos[tile] = tilesets[tsidx].large_texpos[newtile];
                 }
 
                 found = true;

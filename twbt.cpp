@@ -126,28 +126,19 @@ struct tileset {
     long small_texpos[16*16], large_texpos[16*16];
 };
 
-struct tileref {
-    int tilesetidx;
-    int tile;
-};
-
 struct override {
     bool building;
     int id, type, subtype;
-    struct tileref newtile;
+    long small_texpos, large_texpos;
 };
 
-
-
-
-
 static vector< struct tileset > tilesets;
+struct tileset *tilesets_fast;
 
 static bool enabled;
 static bool has_textfont, has_overrides;
 static color_ostream *out2;
 static vector< struct override > *overrides[256];
-static struct tileref override_defs[256];
 static df::item_flags bad_item_flags;
 
 static int maxlevels = 0;
@@ -381,8 +372,7 @@ static void screen_to_texid_map(renderer_cool *r, int tile, struct texture_fulli
 
     if (!texpos)
     {
-        int ch = s[0];
-        ret.texpos = enabler->fullscreen ? tilesets[0].large_texpos[s[0]] : tilesets[0].small_texpos[s[0]];
+        ret.texpos = enabler->fullscreen ? tilesets_fast[0].large_texpos[s[0]] : tilesets_fast[0].small_texpos[s[0]];
 
         ret.r = enabler->ccolor[fg][0];
         ret.g = enabler->ccolor[fg][1];
@@ -521,9 +511,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                         if (o.subtype != -1 && bld->getSubtype() != o.subtype)
                             continue;
 
-                        ret.texpos = enabler->fullscreen ?
-                            tilesets[o.newtile.tilesetidx].large_texpos[o.newtile.tile] :
-                            tilesets[o.newtile.tilesetidx].small_texpos[o.newtile.tile];
+                        ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
 
                         matched = true;
                         break;
@@ -544,21 +532,13 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                         if (o.subtype != -1 && item->getSubtype() != o.subtype)
                             continue;
 
-                        ret.texpos = enabler->fullscreen ?
-                            tilesets[o.newtile.tilesetidx].large_texpos[o.newtile.tile] :
-                            tilesets[o.newtile.tilesetidx].small_texpos[o.newtile.tile];
+                        ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
 
                         matched = true;
                         break;
                     }
                 }
             }
-
-            // Default
-            if (!matched && override_defs[s0].tile)
-                ret.texpos = enabler->fullscreen ?
-                    tilesets[override_defs[s0].tilesetidx].large_texpos[override_defs[s0].tile] :
-                    tilesets[override_defs[s0].tilesetidx].small_texpos[override_defs[s0].tile];
         }
     }
     
@@ -795,6 +775,8 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         out.color(COLOR_RESET);        
     }
 
+    tilesets_fast = tilesets.data();
+
     // Load shadows
     struct stat buf;
     if (stat("data/art/shadows.png", &buf) == 0)
@@ -844,7 +826,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         twbt_cmd, false, /* true means that the command can't be used from non-interactive user interface */
         // Extended help string. Used by CR_WRONG_USAGE and the help command:
         ""
-    ));       
+    ));   
 
     return CR_OK;
 }
