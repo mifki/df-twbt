@@ -70,8 +70,6 @@ static bool load_text_font()
     //Text tileset - accessible at index 1
     if (!(small_font_path == gsmall_font_path && large_font_path == glarge_font_path))
     {
-        struct tileset ts;
-
         // Load text font and set it as the main (and only) font in `init` structure
         load_tileset(small_font_path, (long *)init->font.small_font_texpos, 16, 16, (long*)&init->font.small_font_dispx, (long*)&init->font.small_font_dispy);
         if (large_font_path != small_font_path)
@@ -82,6 +80,11 @@ static bool load_text_font()
             init->font.large_font_dispx = init->font.small_font_dispx;
             init->font.large_font_dispy = init->font.small_font_dispy;
         }
+
+        struct tileset ts;
+
+        memcpy(ts.small_texpos, init->font.small_font_texpos, sizeof(ts.small_texpos));
+        memcpy(ts.large_texpos, init->font.large_font_texpos, sizeof(ts.large_texpos));        
 
         tilesets.push_back(ts);
         return true;

@@ -125,20 +125,20 @@ static void load_tileset(const string &filename, long *tex_pos, long dimx, long 
 struct tileset {
     long small_texpos[16*16], large_texpos[16*16];
 };
+static vector< struct tileset > tilesets;
 
 struct override {
     bool building;
     int id, type, subtype;
     long small_texpos, large_texpos;
 };
+static vector< struct override > *overrides[256];
 
-static vector< struct tileset > tilesets;
-struct tileset *tilesets_fast;
+long *text_texpos, *map_texpos;
 
 static bool enabled;
 static bool has_textfont, has_overrides;
 static color_ostream *out2;
-static vector< struct override > *overrides[256];
 static df::item_flags bad_item_flags;
 
 static int maxlevels = 0;
@@ -298,12 +298,12 @@ static uint8_t gscreentexpos_grayscale[256*256];
 static uint8_t gscreentexpos_cf[256*256];
 static uint8_t gscreentexpos_cbr[256*256];
 
-static unsigned char screen3[256*256*4];
-static int32_t screentexpos3[256*256];
-static int8_t screentexpos_addcolor3[256*256];
-static uint8_t screentexpos_grayscale3[256*256];
-static uint8_t screentexpos_cf3[256*256];
-static uint8_t screentexpos_cbr3[256*256];
+static unsigned char mscreen[256*256*4];
+static int32_t mscreentexpos[256*256];
+static int8_t mscreentexpos_addcolor[256*256];
+static uint8_t mscreentexpos_grayscale[256*256];
+static uint8_t mscreentexpos_cf[256*256];
+static uint8_t mscreentexpos_cbr[256*256];
 
 static void screen_to_texid_text(renderer_cool *r, int tile, struct texture_fullid &ret)
 {
@@ -317,8 +317,7 @@ static void screen_to_texid_text(renderer_cool *r, int tile, struct texture_full
 
     if (!texpos)
     {
-        int ch = s[0];
-        ret.texpos = enabler->fullscreen ? init->font.large_font_texpos[ch] : init->font.small_font_texpos[ch];
+        ret.texpos = text_texpos[s[0]];
 
         ret.r = enabler->ccolor[fg][0];
         ret.g = enabler->ccolor[fg][1];
@@ -372,7 +371,7 @@ static void screen_to_texid_map(renderer_cool *r, int tile, struct texture_fulli
 
     if (!texpos)
     {
-        ret.texpos = enabler->fullscreen ? tilesets_fast[0].large_texpos[s[0]] : tilesets_fast[0].small_texpos[s[0]];
+        ret.texpos = map_texpos[s[0]];
 
         ret.r = enabler->ccolor[fg][0];
         ret.g = enabler->ccolor[fg][1];
@@ -775,8 +774,6 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         out.color(COLOR_RESET);        
     }
 
-    tilesets_fast = tilesets.data();
-
     // Load shadows
     struct stat buf;
     if (stat("data/art/shadows.png", &buf) == 0)
@@ -790,7 +787,10 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         out2->color(COLOR_RED);
         *out2 << "TWBT: shadows.png not found in data/art folder" << std::endl;
         out2->color(COLOR_RESET);
-    }    
+    }
+
+    map_texpos = enabler->fullscreen ? tilesets[0].large_texpos : tilesets[0].small_texpos;
+    text_texpos = enabler->fullscreen ? tilesets[1].large_texpos : tilesets[1].small_texpos;
 
     hook();
 
