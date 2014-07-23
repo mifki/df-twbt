@@ -763,6 +763,14 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
         set_to_limit(look_list, 8);
         int disp_y = gps->dimy - look_list - 2;
 
+        if (mpos.z != *df::global::window_z)
+        {
+            int y = gps->dimy - 2;
+            char buf[6];
+            sprintf(buf, "@%d", mpos.z - *df::global::window_z);
+            OutputString(COLOR_GREY, disp_x, y, buf, true, left_margin);
+        }
+
         int c = 0;
         for (auto it = ulist.begin(); it != ulist.end() && c < 8; it++, c++)
         {
