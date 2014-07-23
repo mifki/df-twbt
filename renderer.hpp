@@ -8,7 +8,8 @@ renderer_cool::renderer_cool()
     gdispx = 0, gdispy = 0;
     goff_x = 0, goff_y = 0, gsize_x = 0, gsize_y = 0;
     needs_reshape = needs_zoom = 0;
-    this->gscreen = ::gscreen;
+    
+    gswap_arrays();
 }
 
 void renderer_cool::update_tile(int x, int y)
@@ -122,6 +123,8 @@ void renderer_cool::reshape_graphics()
     for (GLfloat x = 0; x < gdimx; x++)
         for (GLfloat y = 0; y < gdimy; y++, tile++)
             write_tile_vertexes(x, y, gvertexes + 6 * 2 * tile);
+
+    needs_full_update = true;
 }
 
 void renderer_cool::reshape_gl()
@@ -164,7 +167,28 @@ void renderer_cool::draw(int vertex_count)
         initial_resize = true;
     }
 
-    display_new();
+    static df::viewscreen *prevws = NULL;
+    df::viewscreen *ws = Gui::getCurViewscreen();
+    bool is_main_scr = df::viewscreen_dwarfmodest::_identity.is_direct_instance(ws);
+    if (ws != prevws)
+    {
+        gps->force_full_display_count = true;
+        prevws = ws;
+        /*if (is_main_scr)
+        {
+            for (int x = 1; x < gps->dimx-gmenu_w-1; x++)
+            {
+                for (int y = 1; y < gps->dimy-1; y++)
+                {
+                    const int tile1 = x * gps->dimy + y;
+                    for (int i = 0; i < 6; i++)
+                        *(fg + tile * 4 * i + 3) = 0;
+                }
+            }
+        }*/
+    }    
+
+    display_new(is_main_scr);
 
 #ifdef WIN32
     // We can't do this in plugin_init() because OpenGL context isn't initialized by that time
@@ -217,28 +241,6 @@ void renderer_cool::draw(int vertex_count)
         glLoadIdentity();
 
         glOrtho(0,gps->dimx,gps->dimy,0,-1,1);*/
-    }
-
-
-    static df::viewscreen *prevws = NULL;
-    df::viewscreen *ws = Gui::getCurViewscreen();
-    bool is_main_scr = df::viewscreen_dwarfmodest::_identity.is_direct_instance(ws);
-    if (ws != prevws)
-    {
-        gps->force_full_display_count = true;
-        prevws = ws;
-        /*if (is_main_scr)
-        {
-            for (int x = 1; x < gps->dimx-gmenu_w-1; x++)
-            {
-                for (int y = 1; y < gps->dimy-1; y++)
-                {
-                    const int tile1 = x * gps->dimy + y;
-                    for (int i = 0; i < 6; i++)
-                        *(fg + tile * 4 * i + 3) = 0;
-                }
-            }
-        }*/
     }
 
     if (is_main_scr)
@@ -470,7 +472,7 @@ void renderer_cool::draw(int vertex_count)
     }
 }
 
-void renderer_cool::display_new()
+void renderer_cool::display_new(bool update_graphics)
 {
 #if defined(__APPLE__) || defined(WIN32)
     // In this case this function replaces original (non-virtual) renderer::display()
@@ -517,17 +519,64 @@ void renderer_cool::display_new()
     if (gps->force_full_display_count > 0) gps->force_full_display_count--;
 #endif
 
-    // Now also update map tiles
-    if (needs_full_update)
+    // Update map tiles is current screen has a map
+    if (update_graphics)
     {
-        memset(fogcoord, 0, 256*256*6);           
-        needs_full_update = false; 
-    }
+        if (needs_full_update)
+        {
+            needs_full_update = false;
+            memset(fogcoord, 0, 256*256*6);           
+    
+            for (int x2 = 0; x2 < gdimx; x2++)
+                for (int y2 = 0; y2 < gdimy; y2++)
+                    update_map_tile(x2, y2);
+        }
+        else
+        {
+            uint32_t *gscreenp = (uint32_t*)gscreen, *goldp = (uint32_t*)gscreen_old;
+            int off = 0;
+            for (int x2=0; x2 < gdimx; x2++) {
+                for (int y2=0; y2 < gdimy; y2++, ++off, ++gscreenp, ++goldp) {
+                    // We don't use pointers for the non-screen arrays because we mostly fail at the
+                    // *first* comparison, and having pointers for the others would exceed register
+                    // count.
+                    if (*gscreenp == *goldp &&
+                    gscreentexpos[off] == gscreentexpos_old[off] &&
+                    gscreentexpos_addcolor[off] == gscreentexpos_addcolor_old[off] &&
+                    gscreentexpos_grayscale[off] == gscreentexpos_grayscale_old[off] &&
+                    gscreentexpos_cf[off] == gscreentexpos_cf_old[off] &&
+                    gscreentexpos_cbr[off] == gscreentexpos_cbr_old[off])
+                        ;
+                    else
+                        update_map_tile(x2, y2);
+                }
+            }
+        }
 
-    for (int x2 = 0; x2 < gdimx; x2++)
-        for (int y2 = 0; y2 < gdimy; y2++)
-            update_map_tile(x2, y2);
+        gswap_arrays();
+    }
 } 
+
+void renderer_cool::gswap_arrays()
+{
+    static int j = 0;
+
+    this->gscreen = ::gscreen = _gscreen[j];
+    gscreentexpos = _gscreentexpos[j];
+    gscreentexpos_addcolor = _gscreentexpos_addcolor[j];
+    gscreentexpos_grayscale = _gscreentexpos_grayscale[j];
+    gscreentexpos_cf = _gscreentexpos_cf[j];
+    gscreentexpos_cbr = _gscreentexpos_cbr[j];
+
+    j ^= 1;
+
+    gscreen_old = _gscreen[j];
+    gscreentexpos_old = _gscreentexpos[j];
+    gscreentexpos_addcolor_old = _gscreentexpos_addcolor[j];
+    gscreentexpos_grayscale_old = _gscreentexpos_grayscale[j];
+    gscreentexpos_cf_old = _gscreentexpos_cf[j];
+    gscreentexpos_cbr_old = _gscreentexpos_cbr[j];
+}
 
 extern "C" {
     uint8_t SDL_GetMouseState(int *x, int *y);

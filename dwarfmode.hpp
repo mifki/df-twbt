@@ -73,7 +73,6 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                 gmenu_w = 0;
 
             r->needs_reshape = true;
-            gps->force_full_display_count = 1;            
         }
     }
 
@@ -118,7 +117,6 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
             }
             r->needs_reshape = false;
             r->reshape_graphics();
-            gps->force_full_display_count = 1;
         }
 
 #ifdef WIN32

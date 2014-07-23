@@ -150,6 +150,42 @@ static float shadowcolor[4] = { 0, 0, 0, 0.4f };
 static int small_map_dispx, small_map_dispy;
 static int large_map_dispx, large_map_dispy;
 
+static float addcolors[][3] = { {1,0,0} };
+
+static unsigned char depth[256*256];
+static GLfloat shadowtex[256*256*2*6];
+static GLfloat shadowvert[256*256*2*6];
+static float fogcoord[256*256*6];
+static long shadow_texpos[8];
+static bool shadowsloaded;
+static int gmenu_w;
+static uint8_t skytile;
+static uint8_t chasmtile;
+
+static unsigned char _gscreen[2][256*256*4];
+static int32_t _gscreentexpos[2][256*256];
+static int8_t _gscreentexpos_addcolor[2][256*256];
+static uint8_t _gscreentexpos_grayscale[2][256*256];
+static uint8_t _gscreentexpos_cf[2][256*256];
+static uint8_t _gscreentexpos_cbr[2][256*256];
+
+static unsigned char *gscreen;
+static int32_t *gscreentexpos;
+static int8_t *gscreentexpos_addcolor;
+static uint8_t *gscreentexpos_grayscale, *gscreentexpos_cf, *gscreentexpos_cbr;
+
+static unsigned char *gscreen_old;
+static int32_t *gscreentexpos_old;
+static int8_t *gscreentexpos_addcolor_old;
+static uint8_t *gscreentexpos_grayscale_old, *gscreentexpos_cf_old, *gscreentexpos_cbr_old;
+
+static unsigned char mscreen[256*256*4];
+static int32_t mscreentexpos[256*256];
+static int8_t mscreentexpos_addcolor[256*256];
+static uint8_t mscreentexpos_grayscale[256*256];
+static uint8_t mscreentexpos_cf[256*256];
+static uint8_t mscreentexpos_cbr[256*256];
+
 bool is_text_tile(int x, int y, bool &is_map)
 {
     const int tile = x * gps->dimy + y;
@@ -278,32 +314,6 @@ bool is_text_tile(int x, int y, bool &is_map)
 
     return true;
 }
-
-static float addcolors[][3] = { {1,0,0} };
-
-static unsigned char depth[256*256];
-static GLfloat shadowtex[256*256*2*6];
-static GLfloat shadowvert[256*256*2*6];
-static float fogcoord[256*256*6];
-static long shadow_texpos[8];
-static bool shadowsloaded;
-static int gmenu_w;
-static uint8_t skytile;
-static uint8_t chasmtile;
-
-static unsigned char gscreen[256*256*4];
-static int32_t gscreentexpos[256*256];
-static int8_t gscreentexpos_addcolor[256*256];
-static uint8_t gscreentexpos_grayscale[256*256];
-static uint8_t gscreentexpos_cf[256*256];
-static uint8_t gscreentexpos_cbr[256*256];
-
-static unsigned char mscreen[256*256*4];
-static int32_t mscreentexpos[256*256];
-static int8_t mscreentexpos_addcolor[256*256];
-static uint8_t mscreentexpos_grayscale[256*256];
-static uint8_t mscreentexpos_cf[256*256];
-static uint8_t mscreentexpos_cbr[256*256];
 
 static void screen_to_texid_text(renderer_cool *r, int tile, struct texture_fullid &ret)
 {
