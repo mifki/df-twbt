@@ -38,6 +38,7 @@ struct renderer_cool : renderer_opengl
     void reshape_graphics();
     void display_new(bool update_graphics);
     void gswap_arrays();
+    void allocate_buffers(int tiles);
     void update_map_tile(int x, int y);
 
     virtual void update_tile(int x, int y);

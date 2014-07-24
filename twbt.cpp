@@ -152,39 +152,43 @@ static int large_map_dispx, large_map_dispy;
 
 static float addcolors[][3] = { {1,0,0} };
 
-static unsigned char depth[256*256];
-static GLfloat shadowtex[256*256*2*6];
-static GLfloat shadowvert[256*256*2*6];
-static float fogcoord[256*256*6];
+static uint8_t *depth;
+static GLfloat *shadowtex;
+static GLfloat *shadowvert;
+static GLfloat *fogcoord;
 static long shadow_texpos[8];
 static bool shadowsloaded;
 static int gmenu_w;
 static uint8_t skytile;
 static uint8_t chasmtile;
 
-static unsigned char _gscreen[2][256*256*4];
-static int32_t _gscreentexpos[2][256*256];
-static int8_t _gscreentexpos_addcolor[2][256*256];
-static uint8_t _gscreentexpos_grayscale[2][256*256];
-static uint8_t _gscreentexpos_cf[2][256*256];
-static uint8_t _gscreentexpos_cbr[2][256*256];
+// Buffers for map rendering
+static uint8_t *_gscreen[2];
+static int32_t *_gscreentexpos[2];
+static int8_t *_gscreentexpos_addcolor[2];
+static uint8_t *_gscreentexpos_grayscale[2];
+static uint8_t *_gscreentexpos_cf[2];
+static uint8_t *_gscreentexpos_cbr[2];
 
-static unsigned char *gscreen;
+// Current buffers
+static uint8_t *gscreen;
 static int32_t *gscreentexpos;
 static int8_t *gscreentexpos_addcolor;
 static uint8_t *gscreentexpos_grayscale, *gscreentexpos_cf, *gscreentexpos_cbr;
 
-static unsigned char *gscreen_old;
+// Previous buffers to determine changed tiles
+static uint8_t *gscreen_old;
 static int32_t *gscreentexpos_old;
 static int8_t *gscreentexpos_addcolor_old;
 static uint8_t *gscreentexpos_grayscale_old, *gscreentexpos_cf_old, *gscreentexpos_cbr_old;
 
-static unsigned char mscreen[256*256*4];
-static int32_t mscreentexpos[256*256];
-static int8_t mscreentexpos_addcolor[256*256];
-static uint8_t mscreentexpos_grayscale[256*256];
-static uint8_t mscreentexpos_cf[256*256];
-static uint8_t mscreentexpos_cbr[256*256];
+// Buffers for rendering lower levels before merging    
+static uint8_t *mscreen;
+static int32_t *mscreentexpos;
+static int8_t *mscreentexpos_addcolor;
+static uint8_t *mscreentexpos_grayscale;
+static uint8_t *mscreentexpos_cf;
+static uint8_t *mscreentexpos_cbr;
 
 bool is_text_tile(int x, int y, bool &is_map)
 {
@@ -660,6 +664,9 @@ static void hook()
     vtable_new[IDX_get_mouse_coords] = get_mouse_coords_new;
     
     memcpy(&newr->screen, &oldr->screen, (char*)&newr->dummy-(char*)&newr->screen);
+
+    newr->reshape_graphics();
+
     enabler->renderer = newr;
 
     unsigned char nop6[] = { 0x90,0x90,0x90,0x90,0x90,0x90 };

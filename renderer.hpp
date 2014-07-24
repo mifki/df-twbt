@@ -8,8 +8,6 @@ renderer_cool::renderer_cool()
     gdispx = 0, gdispy = 0;
     goff_x = 0, goff_y = 0, gsize_x = 0, gsize_y = 0;
     needs_reshape = needs_zoom = 0;
-    
-    gswap_arrays();
 }
 
 void renderer_cool::update_tile(int x, int y)
@@ -114,11 +112,17 @@ void renderer_cool::reshape_graphics()
     *df::global::window_y = std::max(0, cy - gdimy / 2);
 
     int tiles = gdimx * gdimy;
-    gvertexes = static_cast<GLfloat *>(realloc(gvertexes, sizeof(GLfloat) * tiles * 2 * 6));
-    gfg = static_cast<GLfloat *>(realloc(gfg, sizeof(GLfloat) * tiles * 4 * 6));
-    gbg = static_cast<GLfloat *>(realloc(gbg, sizeof(GLfloat) * tiles * 4 * 6));
-    gtex = static_cast<GLfloat *>(realloc(gtex, sizeof(GLfloat) * tiles * 2 * 6));
 
+    // Recreate tile buffers
+    allocate_buffers(tiles);
+
+    // Recreate OpenGL buffers
+    gvertexes = (GLfloat*)realloc(gvertexes, sizeof(GLfloat) * tiles * 2 * 6);
+    gfg = (GLfloat*)realloc(gfg, sizeof(GLfloat) * tiles * 4 * 6);
+    gbg = (GLfloat*)realloc(gbg, sizeof(GLfloat) * tiles * 4 * 6);
+    gtex = (GLfloat*)realloc(gtex, sizeof(GLfloat) * tiles * 2 * 6);
+
+    // Initialise vertex coords
     int tile = 0;   
     for (GLfloat x = 0; x < gdimx; x++)
         for (GLfloat y = 0; y < gdimy; y++, tile++)
@@ -259,7 +263,7 @@ void renderer_cool::draw(int vertex_count)
             //glClearColor(1,0,0,1);
             //glClear(GL_COLOR_BUFFER_BIT);
 
-            if (fogdensity > 0)
+            if (multi_rendered && fogdensity > 0)
             {
                 glEnable(GL_FOG);
                 glFogfv(GL_FOG_COLOR, fogcolor);
@@ -287,7 +291,7 @@ void renderer_cool::draw(int vertex_count)
             glColorPointer(4, GL_FLOAT, 0, gfg);
             glDrawArrays(GL_TRIANGLES, 0, gdimx * gdimy * 6);
 
-            if (fogdensity > 0)
+            if (multi_rendered)
                 glDisable(GL_FOG);
 
             // Prepare and render shadows
@@ -525,7 +529,6 @@ void renderer_cool::display_new(bool update_graphics)
         if (needs_full_update)
         {
             needs_full_update = false;
-            memset(fogcoord, 0, 256*256*6);           
     
             for (int x2 = 0; x2 < gdimx; x2++)
                 for (int y2 = 0; y2 < gdimy; y2++)
@@ -576,6 +579,38 @@ void renderer_cool::gswap_arrays()
     gscreentexpos_grayscale_old = _gscreentexpos_grayscale[j];
     gscreentexpos_cf_old = _gscreentexpos_cf[j];
     gscreentexpos_cbr_old = _gscreentexpos_cbr[j];
+}
+
+void renderer_cool::allocate_buffers(int tiles)
+{
+#define REALLOC(var,type,count) var = (type*)realloc(var, count)
+
+    this->gscreen = ::gscreen = _gscreen[0]                   = (uint8_t*) realloc(_gscreen[0],                 tiles * 4 * 2);
+    gscreentexpos = _gscreentexpos[0]                         = (int32_t*) realloc(_gscreentexpos[0],           sizeof(int32_t) * tiles * 2);
+    gscreentexpos_addcolor = _gscreentexpos_addcolor[0]       = (int8_t*)  realloc(_gscreentexpos_addcolor[0],  tiles * 2);
+    gscreentexpos_grayscale = _gscreentexpos_grayscale[0]     = (uint8_t*) realloc(_gscreentexpos_grayscale[0], tiles * 2);
+    gscreentexpos_cf = _gscreentexpos_cf[0]                   = (uint8_t*) realloc(_gscreentexpos_cf[0],        tiles * 2);
+    gscreentexpos_cbr = _gscreentexpos_cbr[0]                 = (uint8_t*) realloc(_gscreentexpos_cbr[0],       tiles * 2);
+
+    gscreen_old = _gscreen[1]                                 = gscreen                 + tiles * 4;
+    gscreentexpos_old = _gscreentexpos[1]                     = gscreentexpos           + tiles;
+    gscreentexpos_addcolor_old = _gscreentexpos_addcolor[1]   = gscreentexpos_addcolor  + tiles;
+    gscreentexpos_grayscale_old = _gscreentexpos_grayscale[1] = gscreentexpos_grayscale + tiles;
+    gscreentexpos_cf_old = _gscreentexpos_cf[1]               = gscreentexpos_cf        + tiles;
+    gscreentexpos_cbr_old = _gscreentexpos_cbr[1]             = gscreentexpos_cbr       + tiles;
+
+    //TODO: don't allocate arrays below if multilevel rendering is not enabled
+    depth                   = (uint8_t*) realloc(depth,                   tiles);
+    shadowtex               = (GLfloat*) realloc(shadowtex,               sizeof(GLfloat) * tiles * 2 * 6);
+    shadowvert              = (GLfloat*) realloc(shadowvert,              sizeof(GLfloat) * tiles * 2 * 6);
+    fogcoord                = (GLfloat*) realloc(fogcoord,                sizeof(GLfloat) * tiles * 6);
+
+    mscreen                 = (uint8_t*) realloc(mscreen,                 tiles * 4);
+    mscreentexpos           = (int32_t*) realloc(mscreentexpos,           sizeof(uint32_t) * tiles);
+    mscreentexpos_addcolor  = (int8_t*)  realloc(mscreentexpos_addcolor,  tiles);
+    mscreentexpos_grayscale = (uint8_t*) realloc(mscreentexpos_grayscale, tiles);
+    mscreentexpos_cf        = (uint8_t*) realloc(mscreentexpos_cf,        tiles);
+    mscreentexpos_cbr       = (uint8_t*) realloc(mscreentexpos_cbr,       tiles);
 }
 
 extern "C" {

@@ -89,14 +89,17 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
         }
 
         if (newmaxlevels && !maxlevels)
+        {
             patch_rendering(false);
+
+            ((renderer_cool*)enabler->renderer)->needs_full_update = true;
+        }
         else if (!newmaxlevels && maxlevels)
         {
             patch_rendering(true);
 
             multi_rendered = false;
 
-            // Fog coords won't be updated once multilevel rendering is off, so we need to zero all of them out
             ((renderer_cool*)enabler->renderer)->needs_full_update = true;
         }
 
