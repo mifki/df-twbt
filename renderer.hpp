@@ -95,8 +95,21 @@ void renderer_cool::reshape_graphics()
     int cx = *df::global::window_x + gdimx / 2;
     int cy = *df::global::window_y + gdimy / 2;
 
-    gsize_x = (size_x - tsx * (gmenu_w + 1 + 1));
-    gsize_y = (size_y - tsy * 2);
+    df::viewscreen *ws = Gui::getCurViewscreen();
+    if (df::viewscreen_dwarfmodest::_identity.is_direct_instance(ws))
+    {
+        gsize_x = (size_x - tsx * (gmenu_w + 1 + 1));
+        gsize_y = (size_y - tsy * 2);
+        goff_x = off_x + roundf(tsx);
+        goff_y = off_y + roundf(tsy) - (gdimy == gdimyfull ? 0 : roundf(gdispy - (gsize_y - gdispy * gdimyfull)));                
+    }
+    else //Adv. mode
+    {
+        gsize_x = size_x;
+        gsize_y = size_y;
+        goff_x = off_x;
+        goff_y = off_y;
+    }
 
     float dimx = std::min(gsize_x / gdispx, 256.0f);
     float dimy = std::min(gsize_y / gdispy, 256.0f);
@@ -105,8 +118,6 @@ void renderer_cool::reshape_graphics()
     gdimxfull = floorf(dimx);
     gdimyfull = floorf(dimy);
 
-    goff_x = off_x + roundf((float)size_x / gps->dimx);
-    goff_y = off_y + roundf((float)size_y / gps->dimy) - (gdimy == gdimyfull ? 0 : roundf(gdispy - (gsize_y - gdispy * gdimyfull)));        
 
     *df::global::window_x = std::max(0, cx - gdimx / 2);
     *df::global::window_y = std::max(0, cy - gdimy / 2);
@@ -173,7 +184,7 @@ void renderer_cool::draw(int vertex_count)
 
     static df::viewscreen *prevws = NULL;
     df::viewscreen *ws = Gui::getCurViewscreen();
-    bool is_main_scr = df::viewscreen_dwarfmodest::_identity.is_direct_instance(ws);
+    bool is_main_scr = df::viewscreen_dwarfmodest::_identity.is_direct_instance(ws) || df::viewscreen_dungeonmodest::_identity.is_direct_instance(ws);
     if (ws != prevws)
     {
         gps->force_full_display_count = true;
@@ -249,6 +260,15 @@ void renderer_cool::draw(int vertex_count)
 
     if (is_main_scr)
     {
+        bool skip = false;
+        /*if (df::viewscreen_dungeonmodest::_identity.is_direct_instance(ws))
+        {
+            int m = df::global::ui_advmode->menu;
+            if (m == df::ui_advmode_menu::Travel || m == df::ui_advmode_menu::Inventory || m == df::ui_advmode_menu::Eat)
+                skip = true;
+        }*/
+
+        if (!skip)
         {
             /////
             glViewport(goff_x, goff_y, gdimx * gdispx, gdimy * gdispy);
@@ -482,8 +502,9 @@ void renderer_cool::display_new(bool update_graphics)
     // In this case this function replaces original (non-virtual) renderer::display()
     // So update text tiles here
 
-    const int dimx = gps->dimx;
-    const int dimy = gps->dimy;
+    const int dimx = init->display.grid_x;
+    const int dimy = init->display.grid_y;
+
     if (gps->force_full_display_count) {
         update_all();
     } else {

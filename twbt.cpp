@@ -73,9 +73,10 @@
 #include "df/viewscreen_overallstatusst.h"
 #include "df/viewscreen_petst.h"
 #include "df/viewscreen_movieplayerst.h"
-#include "df/ui_sidebar_mode.h"
 #include "df/viewscreen_layer_militaryst.h"
 #include "df/viewscreen_tradegoodsst.h"
+#include "df/ui_sidebar_mode.h"
+#include "df/ui_advmode.h"
 
 #include "renderer_twbt.h"
 
@@ -90,7 +91,7 @@ using df::global::d_init;
 using df::global::gview;
 
 struct texture_fullid {
-    int texpos;
+    unsigned int texpos;
     float r, g, b;
     float br, bg, bb;
 };
@@ -442,6 +443,22 @@ static void write_tile_arrays_text(renderer_cool *r, int x, int y, GLfloat *fg, 
         }
     }
 
+    if (df::viewscreen_dungeonmodest::_identity.is_direct_instance(Gui::getCurViewscreen()))
+    {
+        int m = df::global::ui_advmode->menu;
+        bool tmode = (m == df::ui_advmode_menu::Travel || m == df::ui_advmode_menu::Inventory || m == df::ui_advmode_menu::Eat || m == df::ui_advmode_menu::Wear || m == df::ui_advmode_menu::Remove);
+        if (y < gps->dimy-2 && !tmode)
+        {
+            const unsigned char *s = r->screen + tile*4;
+            if (s[0] == 0)
+            {
+                memset(fg, 0, sizeof(GLfloat)*6*4);
+                memset(bg, 0, sizeof(GLfloat)*6*4);
+                return;
+            }
+        }
+    }    
+
     struct texture_fullid ret;
     screen_to_texid_text(r, tile, ret);
 
@@ -693,11 +710,24 @@ static void hook()
     p.write((void*)0x00c92fe1, nop6, 5);
 
     // Adv. mode
-    /*p.write((void*)0x002cbbb0, t1, sizeof(t1));
-    p.write((void*)0x002cbf8d, t1, sizeof(t1));    
-    p.write((void*)0x002cc288, t1, sizeof(t1));    
-    p.write((void*)0x002cc225, t1, sizeof(t1));*/
-    //p.write((void*)0x002cc306, t1, sizeof(t1));    
+
+    p.write((void*)0x002cbbb0, nop6, 5);
+    p.write((void*)0x002cc225, nop6, 5);
+
+    p.write((void*)(0x002cbbb0+5+3), nop6, 5);
+    p.write((void*)(0x002cc225+5+3), nop6, 5);
+
+
+    p.write((void*)0x002cbf8d, nop6, 5);
+    p.write((void*)(0x002cbf8d+5+3), nop6, 5);
+
+    p.write((void*)0x002cc288, nop6, 5);
+    p.write((void*)(0x002cc288+5+3), nop6, 5);
+    
+    p.write((void*)0x002cc306, nop6, 5);
+    p.write((void*)(0x002cc306+5+3), nop6, 5);
+
+    // set *(unsigned char*)(0x002cbbb0+0) = 0x90
 
 #else
     #error Linux not supported yet
@@ -813,7 +843,8 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 
     INTERPOSE_HOOK(dwarfmode_hook, render).apply(1);
     INTERPOSE_HOOK(dwarfmode_hook, feed).apply(1);
-    //INTERPOSE_HOOK(zzz2, render).apply(1);
+    INTERPOSE_HOOK(zzz2, render).apply(1);
+    //INTERPOSE_HOOK(zzz2, logic).apply(1);
     //INTERPOSE_HOOK(zzz2, feed).apply(1);
 
 #ifdef __APPLE__
