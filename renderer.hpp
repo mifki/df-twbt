@@ -18,7 +18,7 @@ void renderer_cool::update_tile(int x, int y)
         return;
     }
 
-    const int tile = x * gps->dimy + y;
+    const int tile = x * tdimy + y;
 
     GLfloat *_fg  = fg + tile * 4 * 6;
     GLfloat *_bg  = bg + tile * 4 * 6;
@@ -105,6 +105,7 @@ void renderer_cool::reshape_graphics()
     }
     else //Adv. mode
     {
+        *out2 << "reshape_graphics" << std::endl;
         gsize_x = size_x;
         gsize_y = size_y;
         goff_x = off_x;
@@ -145,6 +146,9 @@ void renderer_cool::reshape_graphics()
 void renderer_cool::reshape_gl()
 {
     reshape_gl_old();
+
+    tdimx = gps->dimx;
+    tdimy = gps->dimy;
 
     static int last_fullscreen = -1;
     if (last_fullscreen != enabler->fullscreen)
@@ -413,7 +417,7 @@ void renderer_cool::draw(int vertex_count)
         glViewport(off_x, off_y, size_x, size_y);
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        glOrtho(0, gps->dimx, gps->dimy, 0, -1, 1);
+        glOrtho(0, tdimx, tdimy, 0, -1, 1);
 
         glVertexPointer(2, GL_FLOAT, 0, vertexes);
 
@@ -422,7 +426,7 @@ void renderer_cool::draw(int vertex_count)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
         glEnable(GL_BLEND);
         glColorPointer(4, GL_FLOAT, 0, bg);
-        glDrawArrays(GL_TRIANGLES, 0, vertex_count);
+        glDrawArrays(GL_TRIANGLES, 0, tdimx*tdimy*6);
 
         // Render foreground
         glEnable(GL_TEXTURE_2D);
@@ -431,7 +435,7 @@ void renderer_cool::draw(int vertex_count)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glTexCoordPointer(2, GL_FLOAT, 0, tex);
         glColorPointer(4, GL_FLOAT, 0, fg);
-        glDrawArrays(GL_TRIANGLES, 0, vertex_count);
+        glDrawArrays(GL_TRIANGLES, 0, tdimx*tdimy*6);
     }
 
 
@@ -502,8 +506,8 @@ void renderer_cool::display_new(bool update_graphics)
     // In this case this function replaces original (non-virtual) renderer::display()
     // So update text tiles here
 
-    const int dimx = init->display.grid_x;
-    const int dimy = init->display.grid_y;
+    const int dimx = tdimx;//init->display.grid_x;
+    const int dimy = tdimy;//init->display.grid_y;
 
     if (gps->force_full_display_count) {
         update_all();

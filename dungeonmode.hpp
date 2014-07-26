@@ -11,47 +11,68 @@ struct zzz2 : public df::viewscreen_dungeonmodest
 
         init->display.grid_x = r->gdimxfull;
         init->display.grid_y = r->gdimyfull;
-        gps->dimx = r->gdimxfull;
-        gps->dimy = r->gdimyfull;
 
-*out2 <<oldgridx << " " << gps->dimx<< df::global::window_x << " " << *df::global::window_x << std::endl;
+//*out2 <<oldgridx << " " << gps->dimx<< df::global::window_x << " " << *df::global::window_x << std::endl;
 		gmenu_w = 0;
-		*out2 << "pre" << std::endl;
+        //*out2 << "pre_feed " << *df::global::window_x << std::endl;
         INTERPOSE_NEXT(feed)(input);
-		*out2 << "post" << std::endl;
-        init->display.grid_x = gps->dimx = oldgridx;
-        init->display.grid_y = gps->dimy = oldgridy;
+        //*out2 << "post_feed " << *df::global::window_x << std::endl;
+        init->display.grid_x = oldgridx;
+        init->display.grid_y = oldgridy;
     }
 
     DEFINE_VMETHOD_INTERPOSE(void, logic, ())
     {
-    	      INTERPOSE_NEXT(logic)();
-//*df::global::window_x = 1;
-return;
-renderer_cool *r = (renderer_cool*)enabler->renderer;
+        renderer_cool *r = (renderer_cool*)enabler->renderer;
+/*        INTERPOSE_NEXT(logic)();
+
+        df::unit *adv = world->units.active[0];
+        if (adv)
+        {
+            int ax = adv->pos.x;
+
+            int wx1 = *df::global::window_x;
+            int wx2 = wx1 + r->gdimx;
+
+            *df::global::window_x = std::max (0, ax - r->gdimx / 2);
+
+            //*out2 << world->map.x_count << std::endl;
+        }
+return;*/
+//renderer_cool *r = (renderer_cool*)enabler->renderer;
 
         int oldgridx = init->display.grid_x;
         int oldgridy = init->display.grid_y;
 
         init->display.grid_x = r->gdimxfull;
         init->display.grid_y = r->gdimyfull;
-        gps->dimx = r->gdimxfull;
-        gps->dimy = r->gdimyfull;
 
 //*out2 <<oldgridx << " " << gps->dimx<< df::global::window_x << " " << *df::global::window_x << std::endl;
 		gmenu_w = 0;    	
-//		*out2 << "pre_logic" << std::endl;
+		//*out2 << "pre_logic " << *df::global::window_x << std::endl;
         INTERPOSE_NEXT(logic)();
-//		*out2 << "post_logic" << std::endl;
-        init->display.grid_x = gps->dimx = oldgridx;
-        init->display.grid_y = gps->dimy = oldgridy;
+        //*out2 << "post_logic " << *df::global::window_x << std::endl;
+
+        init->display.grid_x = tdimx;
+        init->display.grid_y = tdimy;
 
 	}    
 
     DEFINE_VMETHOD_INTERPOSE(void, render, ())
     {
+        //*out2 << (int)df::global::ui_advmode->menu << std::endl;
+
+        /**out2<<"render "<<
+        (int)df::global::ui_advmode->unk35a << " " <<
+        (int)df::global::ui_advmode->unk35b << " "<<
+        (int)df::global::ui_advmode->unk35c << " "<<
+        (int)df::global::ui_advmode->unk35d << " "<<
+        std::endl;*/
+        df::global::ui_advmode->unk35b = 0;
+        //*out2 << "pre_render_old " << gps->dimx << " " << *df::global::window_x << std::endl;
         //clock_t c1 = clock();
         INTERPOSE_NEXT(render)();
+        //*out2 << "post_render_old " << *df::global::window_x << std::endl;
 
         static bool tmode_old;
         int m = df::global::ui_advmode->menu;
@@ -148,7 +169,6 @@ renderer_cool *r = (renderer_cool*)enabler->renderer;
 
         int oldgridx = init->display.grid_x;
         int oldgridy = init->display.grid_y;
-
         init->display.grid_x = r->gdimx;
         init->display.grid_y = r->gdimy;
         gps->dimx = r->gdimx;
@@ -235,7 +255,7 @@ renderer_cool *r = (renderer_cool*)enabler->renderer;
                         {
                             //TODO: zz0 or zz ??
                             df::map_block *block0 = world->map.block_index[xxquot][yyquot][zz];
-                            if (block0->tiletype[xxrem][yyrem] != df::tiletype::RampTop)
+                            if (block0->tiletype[xxrem][yyrem] != df::tiletype::RampTop || block0->designation[xxrem][yyrem].bits.flow_size)
                                 continue;
                         	ramp = true;                            
                         }
@@ -410,13 +430,13 @@ renderer_cool *r = (renderer_cool*)enabler->renderer;
 
 
 
-        init->display.grid_x = gps->dimx = oldgridx;
-        init->display.grid_y = gps->dimy = oldgridy;
-        gps->clipx[1] = gps->dimx - 1;
-        gps->clipy[1] = gps->dimy - 1;
+        init->display.grid_x = gps->dimx = tdimx;
+        init->display.grid_y = gps->dimy = tdimy;
+        gps->clipx[1] = tdimx - 1;
+        gps->clipy[1] = tdimy - 1;
 
         gps->screen = enabler->renderer->screen = sctop;
-        gps->screen_limit = gps->screen + gps->dimx * gps->dimy * 4;
+        gps->screen_limit = gps->screen + tdimx*tdimy * 4;
         gps->screentexpos = enabler->renderer->screentexpos = screentexpostop;
         gps->screentexpos_addcolor = enabler->renderer->screentexpos_addcolor = screentexpos_addcolortop;
         gps->screentexpos_grayscale = enabler->renderer->screentexpos_grayscale = screentexpos_grayscaletop;
@@ -425,6 +445,8 @@ renderer_cool *r = (renderer_cool*)enabler->renderer;
 
         //clock_t c2 = clock();
         //*out2 << (c2-c1) << std::endl;
+        //*out2<<"render_end"<<std::endl;
+
     }
 
 };

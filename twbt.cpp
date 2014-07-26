@@ -63,6 +63,7 @@
 #include "df/item.h"
 #include "df/item_type.h"
 #include "df/items_other_id.h"
+#include "df/unit.h"
 #include "df/viewscreen_dwarfmodest.h"
 #include "df/viewscreen_setupadventurest.h"
 #include "df/viewscreen_dungeonmodest.h"
@@ -151,6 +152,8 @@ static float shadowcolor[4] = { 0, 0, 0, 0.4f };
 static int small_map_dispx, small_map_dispy;
 static int large_map_dispx, large_map_dispy;
 
+static int tdimx, tdimy;
+
 static float addcolors[][3] = { {1,0,0} };
 
 static uint8_t *depth;
@@ -193,10 +196,10 @@ static uint8_t *mscreentexpos_cbr;
 
 bool is_text_tile(int x, int y, bool &is_map)
 {
-    const int tile = x * gps->dimy + y;
+    const int tile = x * tdimy + y;
     df::viewscreen * ws = Gui::getCurViewscreen();
 
-    int32_t w = gps->dimx, h = gps->dimy;
+    int32_t w = tdimx, h = tdimy;
 
     is_map = false;
 
@@ -430,9 +433,9 @@ static void screen_to_texid_map(renderer_cool *r, int tile, struct texture_fulli
 
 static void write_tile_arrays_text(renderer_cool *r, int x, int y, GLfloat *fg, GLfloat *bg, GLfloat *tex)
 {
-    const int tile = x * gps->dimy + y;
+    const int tile = x * tdimy + y;
 
-    if (df::viewscreen_dwarfmodest::_identity.is_direct_instance(Gui::getCurViewscreen()) && x > 0 && y > 0 && y < gps->dimy-1 && x < gps->dimx-gmenu_w-1)
+    if (df::viewscreen_dwarfmodest::_identity.is_direct_instance(Gui::getCurViewscreen()) && x > 0 && y > 0 && y < tdimy-1 && x < tdimx-gmenu_w-1)
     {
         const unsigned char *s = r->screen + tile*4;
         if (s[0] == 0)
@@ -447,7 +450,7 @@ static void write_tile_arrays_text(renderer_cool *r, int x, int y, GLfloat *fg, 
     {
         int m = df::global::ui_advmode->menu;
         bool tmode = (m == df::ui_advmode_menu::Travel || m == df::ui_advmode_menu::Inventory || m == df::ui_advmode_menu::Eat || m == df::ui_advmode_menu::Wear || m == df::ui_advmode_menu::Remove);
-        if (y < gps->dimy-2 && !tmode)
+        if (y < tdimy-2 && !tmode)
         {
             const unsigned char *s = r->screen + tile*4;
             if (s[0] == 0)
@@ -712,11 +715,13 @@ static void hook()
     // Adv. mode
 
     p.write((void*)0x002cbbb0, nop6, 5);
-    p.write((void*)0x002cc225, nop6, 5);
-
     p.write((void*)(0x002cbbb0+5+3), nop6, 5);
-    p.write((void*)(0x002cc225+5+3), nop6, 5);
 
+//    p.write((void*)0x002cc225, nop6, 5);
+//    p.write((void*)(0x002cc225+5+3), nop6, 5);
+
+
+/*
 
     p.write((void*)0x002cbf8d, nop6, 5);
     p.write((void*)(0x002cbf8d+5+3), nop6, 5);
@@ -726,7 +731,7 @@ static void hook()
     
     p.write((void*)0x002cc306, nop6, 5);
     p.write((void*)(0x002cc306+5+3), nop6, 5);
-
+*/
     // set *(unsigned char*)(0x002cbbb0+0) = 0x90
 
 #else
@@ -844,8 +849,8 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     INTERPOSE_HOOK(dwarfmode_hook, render).apply(1);
     INTERPOSE_HOOK(dwarfmode_hook, feed).apply(1);
     INTERPOSE_HOOK(zzz2, render).apply(1);
-    //INTERPOSE_HOOK(zzz2, logic).apply(1);
-    //INTERPOSE_HOOK(zzz2, feed).apply(1);
+    INTERPOSE_HOOK(zzz2, logic).apply(1);
+    INTERPOSE_HOOK(zzz2, feed).apply(1);
 
 #ifdef __APPLE__
     INTERPOSE_HOOK(traderesize_hook, render).apply(true);
