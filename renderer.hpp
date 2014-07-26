@@ -632,6 +632,9 @@ void renderer_cool::allocate_buffers(int tiles)
     mscreentexpos_grayscale = (uint8_t*) realloc(mscreentexpos_grayscale, tiles);
     mscreentexpos_cf        = (uint8_t*) realloc(mscreentexpos_cf,        tiles);
     mscreentexpos_cbr       = (uint8_t*) realloc(mscreentexpos_cbr,       tiles);
+
+    memset(_gscreentexpos[0], 0, sizeof(uint32_t) * tiles * 2);
+    memset(mscreentexpos, 0, sizeof(uint32_t) * tiles);
 }
 
 extern "C" {
