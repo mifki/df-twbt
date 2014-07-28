@@ -6,14 +6,11 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
     {
         renderer_cool *r = (renderer_cool*)enabler->renderer;
 
-        int oldgridx = init->display.grid_x;
-        int oldgridy = init->display.grid_y;
-
 
         static uint8_t menu_width_last, area_map_width_last;
         static bool menuforced_last=0;
 
-        int32_t w = gps->dimx, h = gps->dimy;
+        int32_t w = tdimx, h = tdimy;
         uint8_t menu_width, area_map_width;
         Gui::getMenuWidth(menu_width, area_map_width);
         int32_t menu_w = 0;
@@ -44,13 +41,10 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
         init->display.grid_x = r->gdimxfull+menu_w+2;
         init->display.grid_y = r->gdimyfull+2;
-        gps->dimx = r->gdimxfull+menu_w+2;
-        gps->dimy = r->gdimyfull+2;
-
 
         INTERPOSE_NEXT(feed)(input);
-        init->display.grid_x = gps->dimx = oldgridx;
-        init->display.grid_y = gps->dimy = oldgridy;
+        init->display.grid_x = tdimx;
+        init->display.grid_y = tdimy;
 
         uint8_t menu_width_new, area_map_width_new;
         Gui::getMenuWidth(menu_width_new, area_map_width_new);
@@ -151,20 +145,13 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         for (int y = 0; y < r->gdimy; y++)
         {
             for (int x = world->map.x_count-*df::global::window_x; x < r->gdimx; x++)
-            {
                 z[x*r->gdimy+y] = 0;
-            }
         }
         for (int x = 0; x < r->gdimx; x++)
         {
             for (int y = world->map.y_count-*df::global::window_y; y < r->gdimy; y++)
-            {
                 z[x*r->gdimy+y] = 0;
-            }
         }
-
-        int oldgridx = init->display.grid_x;
-        int oldgridy = init->display.grid_y;
 
         init->display.grid_x = r->gdimx;
         init->display.grid_y = r->gdimy;
@@ -246,7 +233,6 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                         int xxquot = xx >> 4, xxrem = xx & 15;
                         int yyquot = yy >> 4, yyrem = yy & 15;                    
 
-                        bool e0,h,h0;
                         if (ch == 31)
                         {
                             //TODO: zz0 or zz ??
@@ -379,7 +365,6 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                         }
     #endif
 
-                        //*out2 << p << " !" << std::endl;
                         *((int*)gscreen + tile) = *((int*)mscreen + tile2);
                         if (*(mscreentexpos+tile2))
                         {
@@ -403,23 +388,10 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
             } while(empty_tiles_left);
 
             (*df::global::window_z) = zz0;
-
-            //patch_rendering(false);
-
-
-
-
         }
 
-
-
-
-
-
-
-
-        init->display.grid_x = gps->dimx = oldgridx;
-        init->display.grid_y = gps->dimy = oldgridy;
+        init->display.grid_x = gps->dimx = tdimx;
+        init->display.grid_y = gps->dimy = tdimy;
         gps->clipx[1] = gps->dimx - 1;
         gps->clipy[1] = gps->dimy - 1;
 

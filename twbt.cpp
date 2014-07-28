@@ -156,7 +156,7 @@ static int tdimx, tdimy;
 
 static float addcolors[][3] = { {1,0,0} };
 
-static uint8_t *depth;
+static int8_t *depth;
 static GLfloat *shadowtex;
 static GLfloat *shadowvert;
 static GLfloat *fogcoord;
@@ -449,8 +449,8 @@ static void write_tile_arrays_text(renderer_cool *r, int x, int y, GLfloat *fg, 
     if (df::viewscreen_dungeonmodest::_identity.is_direct_instance(Gui::getCurViewscreen()))
     {
         int m = df::global::ui_advmode->menu;
-        bool tmode = (m == df::ui_advmode_menu::Travel || m == df::ui_advmode_menu::Inventory || m == df::ui_advmode_menu::Eat || m == df::ui_advmode_menu::Wear || m == df::ui_advmode_menu::Remove);
-        if (y < tdimy-2 && !tmode)
+        bool tmode = (m == df::ui_advmode_menu::Default || m == df::ui_advmode_menu::Look || m == df::ui_advmode_menu::ThrowAim || m == df::ui_advmode_menu::Talk);
+        if (y <= tdimy-2 && tmode)
         {
             const unsigned char *s = r->screen + tile*4;
             if (s[0] == 0)
@@ -714,12 +714,17 @@ static void hook()
 
     // Adv. mode
 
+    // Main rendering mode
     p.write((void*)0x002cbbb0, nop6, 5);
     p.write((void*)(0x002cbbb0+5+3), nop6, 5);
 
-//    p.write((void*)0x002cc225, nop6, 5);
-//    p.write((void*)(0x002cc225+5+3), nop6, 5);
+    // Some another rendering, after a movement
+     p.write((void*)0x002cc225, nop6, 5);
+     p.write((void*)(0x002cc225+5+3), nop6, 5);
 
+    // When an alert is shown
+    p.write((void*)0x002cc288, nop6, 5);
+    p.write((void*)(0x002cc288+5+3), nop6, 5);
 
 /*
 
@@ -732,7 +737,7 @@ static void hook()
     p.write((void*)0x002cc306, nop6, 5);
     p.write((void*)(0x002cc306+5+3), nop6, 5);
 */
-    // set *(unsigned char*)(0x002cbbb0+0) = 0x90
+    // set *(unsigned char*)(0x002cc288+0) = 0x90
 
 #else
     #error Linux not supported yet

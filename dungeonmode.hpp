@@ -12,11 +12,10 @@ struct zzz2 : public df::viewscreen_dungeonmodest
         init->display.grid_x = r->gdimxfull;
         init->display.grid_y = r->gdimyfull;
 
-//*out2 <<oldgridx << " " << gps->dimx<< df::global::window_x << " " << *df::global::window_x << std::endl;
 		gmenu_w = 0;
-        //*out2 << "pre_feed " << *df::global::window_x << std::endl;
+
         INTERPOSE_NEXT(feed)(input);
-        //*out2 << "post_feed " << *df::global::window_x << std::endl;
+
         init->display.grid_x = oldgridx;
         init->display.grid_y = oldgridy;
     }
@@ -24,22 +23,6 @@ struct zzz2 : public df::viewscreen_dungeonmodest
     DEFINE_VMETHOD_INTERPOSE(void, logic, ())
     {
         renderer_cool *r = (renderer_cool*)enabler->renderer;
-/*        INTERPOSE_NEXT(logic)();
-
-        df::unit *adv = world->units.active[0];
-        if (adv)
-        {
-            int ax = adv->pos.x;
-
-            int wx1 = *df::global::window_x;
-            int wx2 = wx1 + r->gdimx;
-
-            *df::global::window_x = std::max (0, ax - r->gdimx / 2);
-
-            //*out2 << world->map.x_count << std::endl;
-        }
-return;*/
-//renderer_cool *r = (renderer_cool*)enabler->renderer;
 
         int oldgridx = init->display.grid_x;
         int oldgridy = init->display.grid_y;
@@ -47,42 +30,31 @@ return;*/
         init->display.grid_x = r->gdimxfull;
         init->display.grid_y = r->gdimyfull;
 
-//*out2 <<oldgridx << " " << gps->dimx<< df::global::window_x << " " << *df::global::window_x << std::endl;
-		gmenu_w = 0;    	
-		//*out2 << "pre_logic " << *df::global::window_x << std::endl;
         INTERPOSE_NEXT(logic)();
-        //*out2 << "post_logic " << *df::global::window_x << std::endl;
 
         init->display.grid_x = tdimx;
         init->display.grid_y = tdimy;
-
 	}    
 
     DEFINE_VMETHOD_INTERPOSE(void, render, ())
     {
-        //*out2 << (int)df::global::ui_advmode->menu << std::endl;
-
-        /**out2<<"render "<<
-        (int)df::global::ui_advmode->unk35a << " " <<
-        (int)df::global::ui_advmode->unk35b << " "<<
-        (int)df::global::ui_advmode->unk35c << " "<<
-        (int)df::global::ui_advmode->unk35d << " "<<
-        std::endl;*/
-        df::global::ui_advmode->unk35b = 0;
-        //*out2 << "pre_render_old " << gps->dimx << " " << *df::global::window_x << std::endl;
-        //clock_t c1 = clock();
+        //if (df::global::ui_advmode->unk35b)
+            //return;
+        int oldwx = *df::global::window_x;
+        int oldwy = *df::global::window_y;
         INTERPOSE_NEXT(render)();
-        //*out2 << "post_render_old " << *df::global::window_x << std::endl;
+        *df::global::window_x = oldwx;
+        *df::global::window_y = oldwy;
 
         static bool tmode_old;
         int m = df::global::ui_advmode->menu;
-        bool tmode = (m == df::ui_advmode_menu::Travel || m == df::ui_advmode_menu::Inventory || m == df::ui_advmode_menu::Eat || m == df::ui_advmode_menu::Wear || m == df::ui_advmode_menu::Remove);
+        bool tmode = (m == df::ui_advmode_menu::Default || m == df::ui_advmode_menu::Look || m == df::ui_advmode_menu::ThrowAim || m == df::ui_advmode_menu::Talk);
         if (tmode != tmode_old)
         {
         	tmode_old = tmode;
         	gps->force_full_display_count = 1;
         }
-        if (tmode)
+        if (!tmode)
         	return;
 
 #ifdef WIN32
@@ -155,16 +127,12 @@ return;*/
         for (int y = 0; y < r->gdimy; y++)
         {
             for (int x = world->map.x_count-*df::global::window_x; x < r->gdimx; x++)
-            {
                 z[x*r->gdimy+y] = 0;
-            }
         }
         for (int x = 0; x < r->gdimx; x++)
         {
             for (int y = world->map.y_count-*df::global::window_y; y < r->gdimy; y++)
-            {
                 z[x*r->gdimy+y] = 0;
-            }
         }
 
         int oldgridx = init->display.grid_x;
@@ -178,6 +146,9 @@ return;*/
 
         if (maxlevels && shadowsloaded)
             patch_rendering(false);
+         
+        // if (maxlevels && shadowsloaded)
+            // (*df::global::window_z)+=1;
 
        	render_map();
 
@@ -229,10 +200,11 @@ return;*/
                     for (int y = 0; y < y1; y++)
                     {
                         const int tile = x * r->gdimy + y, stile = tile * 4;
-
-#ifndef NO_RENDERING_PATCH
+ 
+ #ifndef NO_RENDERING_PATCH
                         // Fast path. When rendering patch is available, tiles that are empty on the current level
                         // (and only them) will have symbol 00. We only also check for 31 which is a down ramp.
+                        // And for adv. mode it's a bit more complicated.
 
                         //if ((gscreen[stile+3]&0xf0))
                         //    continue;
@@ -249,20 +221,26 @@ return;*/
                         int xxquot = xx >> 4, xxrem = xx & 15;
                         int yyquot = yy >> 4, yyrem = yy & 15;                    
 
-                        bool e0,h,h0;
-                        bool ramp = false;
+                        if (ch == 0)
+                        {
+                            df::map_block *block0 = world->map.block_index[xxquot][yyquot][zz];
+                            if (!block0->designation[xxrem][yyrem].bits.pile)
+                            {
+                                *((int*)gscreen+tile) = 0;
+                                continue;
+                            }
+                        }
+
+                        bool ramp = false;                        
                         if (ch == 31)
                         {
                             //TODO: zz0 or zz ??
                             df::map_block *block0 = world->map.block_index[xxquot][yyquot][zz];
-                            if (block0->tiletype[xxrem][yyrem] != df::tiletype::RampTop || block0->designation[xxrem][yyrem].bits.flow_size)
+                            if (block0->tiletype[xxrem][yyrem] != df::tiletype::RampTop || block0->designation[xxrem][yyrem].bits.flow_size || !block0->designation[xxrem][yyrem].bits.pile)
                                 continue;
                         	ramp = true;                            
                         }
-                        //df::map_block *block0 = world->map.block_index[xxquot][yyquot][zz0];
-                        //*out2 << x << " " << y << " " << (int)block0->fog_of_war[xxrem][yyrem] << std::endl;
-                        //if (!block0->fog_of_war[xxrem][yyrem] && ch == 0)
-                        //    continue;
+                        df::map_block *block0 = world->map.block_index[xxquot][yyquot][zz0];
 
                         if (p == 1 && !rendered1st)
                         {
@@ -285,14 +263,19 @@ return;*/
 
                         int d = p;
                         ch = mscreen[stile2+0];
-                    	if (ramp && ch != 30)
+                    	if (ramp && ch != 30 && ch != '@')
                     		continue;
                         if (p < maxp)
                         {
                             if (ch == 0)
                             {
-                                empty_tiles_left = true;
-                                continue;
+                                df::map_block *block0 = world->map.block_index[xxquot][yyquot][zz-1];
+
+                                if (block0->designation[xxrem][yyrem].bits.pile)
+                                {
+                                    empty_tiles_left = true;
+                                    continue;
+                                }
                             }
                             else if (ch == 31)
                             {
@@ -309,6 +292,8 @@ return;*/
 #else
                         // Slow path. Without rendering patch we have to check all symbols that the game
                         // may render for lower levels if a tile is empty on the current level.
+
+                        #error Adv. mode without rendering patch isn't ready yet
 
                         if ((gscreen[stile+3]&0xf0))
                             continue;
@@ -390,7 +375,6 @@ return;*/
                         }
     #endif
 
-                        //*out2 << p << " !" << std::endl;
                         *((int*)gscreen + tile) = *((int*)mscreen + tile2);
                         if (*(mscreentexpos+tile2))
                         {
@@ -400,8 +384,8 @@ return;*/
                             *(gscreentexpos_cf + tile) = *(mscreentexpos_cf + tile2);
                             *(gscreentexpos_cbr + tile) = *(mscreentexpos_cbr + tile2);
                         }
-                        if (gscreen[stile+0])
-	                        gscreen[stile+3] = (0x10*d) | (gscreen[stile+3]&0x0f);
+
+                        gscreen[stile+3] = (0x10*d) | (gscreen[stile+3]&0x0f);
                     }
 
                     if (!empty_tiles_left)
@@ -416,19 +400,8 @@ return;*/
 
             (*df::global::window_z) = zz0;
 
-            //patch_rendering(false);
-
-
-
-
+            //(*df::global::window_z)-=1;
         }
-
-
-
-
-
-
-
 
         init->display.grid_x = gps->dimx = tdimx;
         init->display.grid_y = gps->dimy = tdimy;
@@ -446,9 +419,7 @@ return;*/
         //clock_t c2 = clock();
         //*out2 << (c2-c1) << std::endl;
         //*out2<<"render_end"<<std::endl;
-
     }
-
 };
 
 IMPLEMENT_VMETHOD_INTERPOSE(zzz2, render);

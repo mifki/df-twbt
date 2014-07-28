@@ -41,7 +41,7 @@ void renderer_cool::update_map_tile(int x, int y)
     {
         float d = (float)((gscreen[tile * 4 + 3] & 0xf0) >> 4);
 
-        depth[tile] = d;
+        depth[tile] = !gscreen[tile*4] ? 0x7f : d; //TODO: no need for this in fort mode
 
         if (fogdensity > 0)
         {
@@ -334,7 +334,7 @@ void renderer_cool::draw(int vertex_count)
                         int yy = tile % gdimy;
 
                         int d = depth[tile];
-                        if (d)
+                        if (d && d != 0x7f) //TODO: no need for the second check in fort mode
                         {
                             GLfloat *tex = shadowtex + elemcnt * 2;
 
@@ -568,7 +568,7 @@ void renderer_cool::display_new(bool update_graphics)
                     // We don't use pointers for the non-screen arrays because we mostly fail at the
                     // *first* comparison, and having pointers for the others would exceed register
                     // count.
-                    if (*gscreenp == *goldp &&
+                    if (0&&*gscreenp == *goldp &&
                     gscreentexpos[off] == gscreentexpos_old[off] &&
                     gscreentexpos_addcolor[off] == gscreentexpos_addcolor_old[off] &&
                     gscreentexpos_grayscale[off] == gscreentexpos_grayscale_old[off] &&
@@ -625,7 +625,7 @@ void renderer_cool::allocate_buffers(int tiles)
     gscreentexpos_cbr_old = _gscreentexpos_cbr[1]             = gscreentexpos_cbr       + tiles;
 
     //TODO: don't allocate arrays below if multilevel rendering is not enabled
-    depth                   = (uint8_t*) realloc(depth,                   tiles);
+    depth                   = (int8_t*) realloc(depth,                   tiles);
     shadowtex               = (GLfloat*) realloc(shadowtex,               sizeof(GLfloat) * tiles * 2 * 6);
     shadowvert              = (GLfloat*) realloc(shadowvert,              sizeof(GLfloat) * tiles * 2 * 6);
     fogcoord                = (GLfloat*) realloc(fogcoord,                sizeof(GLfloat) * tiles * 6);
