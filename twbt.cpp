@@ -718,26 +718,25 @@ static void hook()
     p.write((void*)0x002cbbb0, nop6, 5);
     p.write((void*)(0x002cbbb0+5+3), nop6, 5);
 
-    // Some another rendering, after a movement
-     p.write((void*)0x002cc225, nop6, 5);
-     p.write((void*)(0x002cc225+5+3), nop6, 5);
+    // Another rendering, after a movement
+    p.write((void*)0x002cc225, nop6, 5);
+    p.write((void*)(0x002cc225+5+3), nop6, 5);
 
     // When an alert is shown
     p.write((void*)0x002cc288, nop6, 5);
     p.write((void*)(0x002cc288+5+3), nop6, 5);
 
-/*
-
+    // Hero died
     p.write((void*)0x002cbf8d, nop6, 5);
     p.write((void*)(0x002cbf8d+5+3), nop6, 5);
 
-    p.write((void*)0x002cc288, nop6, 5);
+/*    p.write((void*)0x002cc288, nop6, 5);
     p.write((void*)(0x002cc288+5+3), nop6, 5);
     
     p.write((void*)0x002cc306, nop6, 5);
     p.write((void*)(0x002cc306+5+3), nop6, 5);
 */
-    // set *(unsigned char*)(0x002cc288+0) = 0x90
+    // set *(unsigned char*)(0x002cbf8d+0) = 0x90
 
 #else
     #error Linux not supported yet

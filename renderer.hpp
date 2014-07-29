@@ -101,7 +101,7 @@ void renderer_cool::reshape_graphics()
         gsize_x = (size_x - tsx * (gmenu_w + 1 + 1));
         gsize_y = (size_y - tsy * 2);
         goff_x = off_x + roundf(tsx);
-        goff_y = off_y + roundf(tsy) - (gdimy == gdimyfull ? 0 : roundf(gdispy - (gsize_y - gdispy * gdimyfull)));                
+        goff_y = off_y + roundf(tsy);        
     }
     else //Adv. mode
     {
@@ -109,7 +109,7 @@ void renderer_cool::reshape_graphics()
         gsize_x = size_x;
         gsize_y = size_y;
         goff_x = off_x;
-        goff_y = off_y;
+        goff_y = goff_y_gl = off_y;
     }
 
     float dimx = std::min(gsize_x / gdispx, 256.0f);
@@ -119,6 +119,8 @@ void renderer_cool::reshape_graphics()
     gdimxfull = floorf(dimx);
     gdimyfull = floorf(dimy);
 
+    if (df::viewscreen_dwarfmodest::_identity.is_direct_instance(ws))
+        goff_y_gl = goff_y - (gdimy == gdimyfull ? 0 : roundf(gdispy - (gsize_y - gdispy * gdimyfull)));                
 
     *df::global::window_x = std::max(0, cx - gdimx / 2);
     *df::global::window_y = std::max(0, cy - gdimy / 2);
@@ -275,7 +277,7 @@ void renderer_cool::draw(int vertex_count)
         if (!skip)
         {
             /////
-            glViewport(goff_x, goff_y, gdimx * gdispx, gdimy * gdispy);
+            glViewport(goff_x, goff_y_gl, gdimx * gdispx, gdimy * gdispy);
 
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();

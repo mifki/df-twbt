@@ -163,7 +163,20 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         if (maxlevels && shadowsloaded)
             patch_rendering(false);
 
+        //XXX: what the fuck is this? why is this required? what about other modes?
+        if (df::global::ui->main.mode == ui_sidebar_mode::Build)
+        {
+            df::global::cursor->x--;
+            df::global::cursor->y--;
+        }
+        
         render_map();
+        
+        if (df::global::ui->main.mode == ui_sidebar_mode::Build)
+        {
+            df::global::cursor->x++;
+            df::global::cursor->y++;
+        }
 
         if (maxlevels && shadowsloaded)
         {
