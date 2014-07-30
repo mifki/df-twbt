@@ -146,12 +146,6 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         
         render_map();
         
-        if (df::global::ui->main.mode == ui_sidebar_mode::Build)
-        {
-            df::global::cursor->x++;
-            df::global::cursor->y++;
-        }
-
         if (maxlevels && shadowsloaded)
         {
             multi_rendered = false;
@@ -376,6 +370,12 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
             (*df::global::window_z) = zz0;
         }
+
+        if (df::global::ui->main.mode == ui_sidebar_mode::Build)
+        {
+            df::global::cursor->x++;
+            df::global::cursor->y++;
+        }        
 
         init->display.grid_x = gps->dimx = tdimx;
         init->display.grid_y = gps->dimy = tdimy;

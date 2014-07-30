@@ -81,13 +81,14 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
             int yy = *df::global::window_y + y;
             int zz = *df::global::window_z - ((s[3]&0xf0)>>4);
             bool matched = false;
+            int tiletype = -1;
 
             // Items / buildings
             for (int j = 0; j < overrides[s0]->size(); j++)
             {
                 struct override &o = (*overrides[s0])[j];
 
-                if (o.building)
+                if (o.kind == 'B')
                 {
                     auto ilist = world->buildings.other[o.id];
                     for (auto it = ilist.begin(); it != ilist.end(); it++)
@@ -106,7 +107,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                         break;
                     }
                 }
-                else
+                else if (o.kind == 'I')
                 {
                     auto ilist = world->items.other[o.id];
                     for (auto it = ilist.begin(); it != ilist.end(); it++)
@@ -125,6 +126,22 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
 
                         matched = true;
                         break;
+                    }
+                }
+                else //if (o.kind == 'T')
+                {
+                    if (tiletype == -1)
+                    {
+                        df::map_block *block = world->map.block_index[xx>>4][yy>>4][zz];
+                        tiletype = block->tiletype[xx&15][yy&15];
+                    }
+
+                    if (tiletype == o.type)
+                    {
+                        ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
+
+                        matched = true;
+                        break;                        
                     }
                 }
             }

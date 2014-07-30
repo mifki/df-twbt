@@ -15,14 +15,14 @@ static bool parse_float(std::string &str, float &ret)
 template <class T>
 static bool parse_enum_or_int(std::string &str, int &ret, int def=-1)
 {
-    T id;
+    T val;
 
     if (str.length())
     {
         if (!parse_int(str, ret))
         {  
-            if (find_enum_item(&id, str))
-                ret = id;
+            if (find_enum_item(&val, str))
+                ret = val;
             else
                 return false;
         }
@@ -232,21 +232,23 @@ static bool load_overrides()
                     int newtile = atoi(tokens[7].c_str());
 
                     struct override o;
-                    o.building = (tokens[2] == "B");
-                    if (o.building)
+                    o.kind = tokens[2][0];
+                    if (o.kind == 'B')
                     {
                         if (!parse_enum_or_int<buildings_other_id::buildings_other_id>(tokens[3], o.id))
                             continue;
                         if (!parse_enum_or_int<building_type::building_type>(tokens[4], o.type))
                             continue;
                     }
-                    else
+                    else if (o.kind == 'I')
                     {
                         if (!parse_enum_or_int<items_other_id::items_other_id>(tokens[3], o.id))
                             continue;
                         if (!parse_enum_or_int<item_type::item_type>(tokens[4], o.type))
                             continue;
                     }
+                    else
+                        continue;
 
                     if (tokens[5].length() > 0)
                         o.subtype = atoi(tokens[5].c_str());
@@ -260,6 +262,58 @@ static bool load_overrides()
                         overrides[tile] = new vector< struct override >;
                     overrides[tile]->push_back(o);
                 }
+
+                else if (tokens.size() == 6)
+                {
+                    if (!tilesetnames.count(tokens[4]))
+                    {
+                        out2->color(COLOR_YELLOW);
+                        *out2 << "TWBT: no tileset with id " << tokens[4] << std::endl;
+                        out2->color(COLOR_RESET);                                
+
+                        continue;
+                    }
+
+                    int tile = atoi(tokens[1].c_str());
+                    int tsidx = tilesetnames[tokens[4]];
+                    int newtile = atoi(tokens[5].c_str());
+
+                    struct override o;
+                    o.kind = tokens[2][0];
+                    if (o.kind == 'T')
+                    {
+                        std::string &typestr = tokens[3];
+                        int ln = typestr.length();
+                        if (!ln)
+                            continue;
+
+                        if (typestr[0] == '"' && typestr[ln-1] == '"')
+                        {
+                            std::string tn = typestr.substr(1, ln-2);
+
+                            FOR_ENUM_ITEMS(tiletype, tt)
+                            {
+                                const char *ttn = tileName(tt);
+                                if (ttn && tn == ttn)
+                                {
+                                    o.type = tt;
+                                    break;
+                                }
+                            }
+                        }
+                        else if (!parse_enum_or_int<tiletype::tiletype>(tokens[3], o.type))
+                            continue;
+                    }
+                    else
+                        continue;
+
+                    o.small_texpos = tilesets[tsidx].small_texpos[newtile];
+                    o.large_texpos = tilesets[tsidx].large_texpos[newtile];
+
+                    if (!overrides[tile])
+                        overrides[tile] = new vector< struct override >;
+                    overrides[tile]->push_back(o);
+                }                
 
                 else if (tokens.size() == 4)
                 {

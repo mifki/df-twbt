@@ -43,6 +43,7 @@
 #include "VTableInterpose.h"
 #include "MemAccess.h"
 #include "VersionInfo.h"
+#include "TileTypes.h"
 #include "modules/Maps.h"
 #include "modules/World.h"
 #include "modules/MapCache.h"
@@ -127,7 +128,7 @@ struct tileset {
 static vector< struct tileset > tilesets;
 
 struct override {
-    bool building;
+    char kind;
     int id, type, subtype;
     long small_texpos, large_texpos;
 };
