@@ -1,4 +1,4 @@
-struct zzz2 : public df::viewscreen_dungeonmodest
+struct dungeonmode_hook : public df::viewscreen_dungeonmodest
 {
     typedef df::viewscreen_dungeonmodest interpose_base;
 
@@ -69,31 +69,7 @@ struct zzz2 : public df::viewscreen_dungeonmodest
 #endif
 
     	renderer_cool *r = (renderer_cool*)enabler->renderer;
-
-        if (r->needs_reshape)
-        {
-            if (r->needs_zoom)
-            {
-                if (r->needs_zoom > 0)
-                {
-                    r->gdispx++;
-                    r->gdispy++;
-                }
-                else
-                {
-                    r->gdispx--;
-                    r->gdispy--;
-
-                    if (r->gsize_x / r->gdispx > world->map.x_count)
-                        r->gdispx = r->gdispy = r->gsize_x / world->map.x_count;
-                    else if (r->gsize_y / r->gdispy > world->map.y_count)
-                        r->gdispx = r->gdispy = r->gsize_y / world->map.y_count;
-                }
-                r->needs_zoom = 0;
-            }
-            r->needs_reshape = false;
-            r->reshape_graphics();
-        }
+        r->handle_reshape_zoom_requests();       
 
 #ifdef WIN32
         void (*_render_map)(int) = (void (*)(int))(0x008f65c0+(Core::getInstance().vinfo->getRebaseDelta()));
@@ -422,6 +398,6 @@ struct zzz2 : public df::viewscreen_dungeonmodest
     }
 };
 
-IMPLEMENT_VMETHOD_INTERPOSE(zzz2, render);
-IMPLEMENT_VMETHOD_INTERPOSE(zzz2, logic);
-IMPLEMENT_VMETHOD_INTERPOSE(zzz2, feed);
+IMPLEMENT_VMETHOD_INTERPOSE(dungeonmode_hook, render);
+IMPLEMENT_VMETHOD_INTERPOSE(dungeonmode_hook, logic);
+IMPLEMENT_VMETHOD_INTERPOSE(dungeonmode_hook, feed);

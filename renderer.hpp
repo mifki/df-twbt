@@ -612,22 +612,22 @@ void renderer_cool::allocate_buffers(int tiles)
 {
 #define REALLOC(var,type,count) var = (type*)realloc(var, count)
 
-    this->gscreen = ::gscreen = _gscreen[0]                   = (uint8_t*) realloc(_gscreen[0],                 tiles * 4 * 2);
-    gscreentexpos = _gscreentexpos[0]                         = (int32_t*) realloc(_gscreentexpos[0],           sizeof(int32_t) * tiles * 2);
-    gscreentexpos_addcolor = _gscreentexpos_addcolor[0]       = (int8_t*)  realloc(_gscreentexpos_addcolor[0],  tiles * 2);
-    gscreentexpos_grayscale = _gscreentexpos_grayscale[0]     = (uint8_t*) realloc(_gscreentexpos_grayscale[0], tiles * 2);
-    gscreentexpos_cf = _gscreentexpos_cf[0]                   = (uint8_t*) realloc(_gscreentexpos_cf[0],        tiles * 2);
-    gscreentexpos_cbr = _gscreentexpos_cbr[0]                 = (uint8_t*) realloc(_gscreentexpos_cbr[0],       tiles * 2);
+    this->gscreen = ::gscreen   = _gscreen[0]                 = (uint8_t*) realloc(_gscreen[0],                 tiles * 4 * 2);
+    gscreentexpos               = _gscreentexpos[0]           = (int32_t*) realloc(_gscreentexpos[0],           sizeof(int32_t) * tiles * 2);
+    gscreentexpos_addcolor      = _gscreentexpos_addcolor[0]  = (int8_t*)  realloc(_gscreentexpos_addcolor[0],  tiles * 2);
+    gscreentexpos_grayscale     = _gscreentexpos_grayscale[0] = (uint8_t*) realloc(_gscreentexpos_grayscale[0], tiles * 2);
+    gscreentexpos_cf            = _gscreentexpos_cf[0]        = (uint8_t*) realloc(_gscreentexpos_cf[0],        tiles * 2);
+    gscreentexpos_cbr           = _gscreentexpos_cbr[0]       = (uint8_t*) realloc(_gscreentexpos_cbr[0],       tiles * 2);
 
-    gscreen_old = _gscreen[1]                                 = gscreen                 + tiles * 4;
-    gscreentexpos_old = _gscreentexpos[1]                     = gscreentexpos           + tiles;
-    gscreentexpos_addcolor_old = _gscreentexpos_addcolor[1]   = gscreentexpos_addcolor  + tiles;
+    gscreen_old                 = _gscreen[1]                 = gscreen                 + tiles * 4;
+    gscreentexpos_old           = _gscreentexpos[1]           = gscreentexpos           + tiles;
+    gscreentexpos_addcolor_old  = _gscreentexpos_addcolor[1]  = gscreentexpos_addcolor  + tiles;
     gscreentexpos_grayscale_old = _gscreentexpos_grayscale[1] = gscreentexpos_grayscale + tiles;
-    gscreentexpos_cf_old = _gscreentexpos_cf[1]               = gscreentexpos_cf        + tiles;
-    gscreentexpos_cbr_old = _gscreentexpos_cbr[1]             = gscreentexpos_cbr       + tiles;
+    gscreentexpos_cf_old        = _gscreentexpos_cf[1]        = gscreentexpos_cf        + tiles;
+    gscreentexpos_cbr_old       = _gscreentexpos_cbr[1]       = gscreentexpos_cbr       + tiles;
 
     //TODO: don't allocate arrays below if multilevel rendering is not enabled
-    depth                   = (int8_t*) realloc(depth,                   tiles);
+    depth                   = (int8_t*)  realloc(depth,                   tiles);
     shadowtex               = (GLfloat*) realloc(shadowtex,               sizeof(GLfloat) * tiles * 2 * 6);
     shadowvert              = (GLfloat*) realloc(shadowvert,              sizeof(GLfloat) * tiles * 2 * 6);
     fogcoord                = (GLfloat*) realloc(fogcoord,                sizeof(GLfloat) * tiles * 6);
@@ -641,6 +641,36 @@ void renderer_cool::allocate_buffers(int tiles)
 
     memset(_gscreentexpos[0], 0, sizeof(uint32_t) * tiles * 2);
     memset(mscreentexpos, 0, sizeof(uint32_t) * tiles);
+}
+
+void renderer_cool::handle_reshape_zoom_requests()
+{
+    if (needs_reshape)
+    {
+        if (needs_zoom)
+        {
+            if (needs_zoom > 0)
+            {
+                gdispx++;
+                gdispy++;
+            }
+            else
+            {
+                gdispx--;
+                gdispy--;
+
+                if (gsize_x / gdispx > world->map.x_count)
+                    gdispx = gdispy = gsize_x / world->map.x_count;
+                else if (gsize_y / gdispy > world->map.y_count)
+                    gdispx = gdispy = gsize_y / world->map.y_count;
+            }
+        
+            needs_zoom = 0;
+        }
+        
+        needs_reshape = false;
+        reshape_graphics();
+    }    
 }
 
 extern "C" {

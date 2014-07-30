@@ -21,71 +21,59 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
 
     if (pcnt >= 1)
     {
-        std::string &param1 = parameters[0];
+        std::string &param0 = parameters[0];
         int newmaxlevels = maxlevels;
 
-        if (param1 == "shadowcolor" && pcnt >= 5)
+        if (param0 == "shadowcolor" && pcnt >= 5)
         {
             float c[4];
-            char *e;
-            do {
-                c[0] = strtod(parameters[1].c_str(), &e);
-                if (*e != 0)
-                    break;
-                c[1] = strtod(parameters[2].c_str(), &e);
-                if (*e != 0)
-                    break;
-                c[2] = strtod(parameters[3].c_str(), &e);
-                if (*e != 0)
-                    break;
-                c[3] = strtod(parameters[4].c_str(), &e);
-                if (*e != 0)
-                    break;
+            bool ok = parse_float(parameters[1], c[0]) &&
+                      parse_float(parameters[2], c[1]) &&
+                      parse_float(parameters[3], c[2]) &&
+                      parse_float(parameters[4], c[3]);
 
-                shadowcolor[0] = c[0], shadowcolor[1] = c[1], shadowcolor[2] = c[2], shadowcolor[3] = c[3];
-            } while(0);
+            if (ok)
+                memcpy(shadowcolor, c, sizeof(shadowcolor));
+            else
+                return CR_WRONG_USAGE;
         }        
-        else if (param1 == "fogcolor" && pcnt >= 4)
+        else if (param0 == "fogcolor" && pcnt >= 4)
         {
             float c[3];
-            char *e;
-            do {
-                c[0] = strtod(parameters[1].c_str(), &e);
-                if (*e != 0)
-                    break;
-                c[1] = strtod(parameters[2].c_str(), &e);
-                if (*e != 0)
-                    break;
-                c[2] = strtod(parameters[3].c_str(), &e);
-                if (*e != 0)
-                    break;
+            bool ok = parse_float(parameters[1], c[0]) &&
+                      parse_float(parameters[2], c[1]) &&
+                      parse_float(parameters[3], c[2]);
 
-                fogcolor[0] = c[0], fogcolor[1] = c[1], fogcolor[2] = c[2];
-            } while(0);
+            if (ok)
+                memcpy(fogcolor, c, sizeof(fogcolor));
+            else
+                return CR_WRONG_USAGE;
         }
-        else if (param1 == "fogdensity" && pcnt >= 2)
+        else if (param0 == "fogdensity" && pcnt >= 2)
         {
-            char *e;
-            float l = strtod(parameters[1].c_str(), &e);
-            if (*e == 0)
-                fogdensity = l;
+            float val;
+            if (parse_float(parameters[1], val))
+                fogdensity = val;
+            else
+                return CR_WRONG_USAGE;
         }
-        else if (param1 == "more")
+        else if (param0 == "more")
         {
             if (maxlevels < 15)
                 newmaxlevels = maxlevels + 1;
         }
-        else if (param1 == "less")
+        else if (param0 == "less")
         {
             if (maxlevels > 0)
                 newmaxlevels = maxlevels - 1;
         }        
         else 
         {
-            char *e;
-            int l = (int)strtol(param1.c_str(), &e, 10);
-            if (*e == 0)
-                newmaxlevels = std::max (std::min(l, 15), 0);
+            int val;
+            if (parse_int(param0, val))
+                newmaxlevels = std::max (std::min(val, 15), 0);
+            else
+                return CR_WRONG_USAGE;
         }
 
         if (newmaxlevels && !maxlevels)
@@ -105,6 +93,8 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
 
         maxlevels = newmaxlevels;            
     }
+    else
+        return CR_WRONG_USAGE;
 
     return CR_OK;    
 }
@@ -120,20 +110,20 @@ command_result twbt_cmd (color_ostream &out, std::vector <std::string> & paramet
 
     if (pcnt >= 1)
     {
-        std::string &param1 = parameters[0];
+        std::string &param0 = parameters[0];
 
-        if (param1 == "tilesize" && pcnt >= 2)
+        if (param0 == "tilesize" && pcnt >= 2)
         {
             renderer_cool *r = (renderer_cool*) enabler->renderer;
             std::string &param2 = parameters[1];
 
-            if (param2 == "bigger")
+            if (param0 == "bigger")
             {
                 r->gdispx++;
                 r->gdispy++;
                 r->needs_reshape = true;
             }
-            else if (param2 == "smaller")
+            else if (param0 == "smaller")
             {
                 if (r->gdispx > 0 && r->gdispy > 0)
                 {
@@ -145,20 +135,21 @@ command_result twbt_cmd (color_ostream &out, std::vector <std::string> & paramet
             else if (pcnt >= 3)
             {
                 int w, h;
-                char *e;
-                do {
-                    w = strtol(parameters[1].c_str(), &e, 10);
-                    if (*e != 0)
-                        break;
-                    h = strtol(parameters[2].c_str(), &e, 10);
-                    if (*e != 0)
-                        break;
+                bool ok = parse_int(parameters[1], w) &&
+                          parse_int(parameters[2], h);
 
+                if (ok)
+                {
                     r->gdispx = w;
                     r->gdispy = h;
                     r->needs_reshape = true;
-                } while(0);
+                }
+                else
+                    return CR_WRONG_USAGE;   
+
             }
+            else
+                return CR_WRONG_USAGE;
         }
     }
 
@@ -176,20 +167,20 @@ command_result colormap_cmd (color_ostream &out, std::vector <std::string> & par
 
     if (pcnt == 1)
     {
-        std::string &param1 = parameters[0];
-        if (param1 == "reload")
+        std::string &param0 = parameters[0];
+        if (param0 == "reload")
         {
             load_colormap();
         }
         else
         {
-            int cidx = color_name_to_index(param1);
+            int cidx = color_name_to_index(param0);
 
             if (cidx != -1)
-                out << param1 << " = " <<
-                    roundf(enabler->ccolor[cidx][0]*255) << " " <<
-                    roundf(enabler->ccolor[cidx][1]*255) << " " <<
-                    roundf(enabler->ccolor[cidx][2]*255) << std::endl;
+                out << param0 << " = " <<
+                    roundf(enabler->ccolor[cidx][0] * 255) << " " <<
+                    roundf(enabler->ccolor[cidx][1] * 255) << " " <<
+                    roundf(enabler->ccolor[cidx][2] * 255) << std::endl;
         }
 
         gps->force_full_display_count = 1;
@@ -202,24 +193,20 @@ command_result colormap_cmd (color_ostream &out, std::vector <std::string> & par
         if (cidx != -1)
         {
             float c[3];
-            char *e;
+            bool ok = parse_float(parameters[1], c[0]) &&
+                      parse_float(parameters[2], c[1]) &&
+                      parse_float(parameters[3], c[2]);
 
-            do {
-                c[0] = strtod(parameters[1].c_str(), &e) / 255.0;
-                if (*e != 0)
-                    break;
-                c[1] = strtod(parameters[2].c_str(), &e) / 255.0;
-                if (*e != 0)
-                    break;
-                c[2] = strtod(parameters[3].c_str(), &e) / 255.0;
-                if (*e != 0)
-                    break;
-
+            if (ok)
+            {
+                c[0] /= 255.0f, c[1] /= 255.0f, c[2] /= 255.0f;
                 memcpy(enabler->ccolor[cidx], c, sizeof(enabler->ccolor[cidx]));
 
                 gps->force_full_display_count = 1;
-                ((renderer_cool*)enabler->renderer)->needs_full_update = true;                
-            } while(0);
+                ((renderer_cool*)enabler->renderer)->needs_full_update = true; 
+            }
+            else
+                return CR_WRONG_USAGE;            
         }  
     }
 

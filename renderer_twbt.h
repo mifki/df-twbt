@@ -41,6 +41,7 @@ struct renderer_cool : renderer_opengl
     void gswap_arrays();
     void allocate_buffers(int tiles);
     void update_map_tile(int x, int y);
+    void handle_reshape_zoom_requests();
 
     virtual void update_tile(int x, int y);
     virtual void draw(int vertex_count);

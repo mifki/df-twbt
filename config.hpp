@@ -1,3 +1,38 @@
+static bool parse_int(std::string &str, int &ret, int base=10)
+{
+    char *e;
+    ret = strtol(str.c_str(), &e, base);
+    return (*e == 0);
+}
+
+static bool parse_float(std::string &str, float &ret)
+{
+    char *e;
+    ret = strtod(str.c_str(), &e);
+    return (*e == 0);
+}
+
+template <class T>
+static bool parse_enum_or_int(std::string &str, int &ret, int def=-1)
+{
+    T id;
+
+    if (str.length())
+    {
+        if (!parse_int(str, ret))
+        {  
+            if (find_enum_item(&id, str))
+                ret = id;
+            else
+                return false;
+        }
+    }
+    else
+        ret = def;
+
+    return true;
+}
+
 static vector<string> split(const char *str, char c = ' ')
 {
     vector<string> result;
@@ -14,6 +49,7 @@ static vector<string> split(const char *str, char c = ' ')
 
     return result;
 }
+
 
 static bool load_text_font()
 {
@@ -199,31 +235,17 @@ static bool load_overrides()
                     o.building = (tokens[2] == "B");
                     if (o.building)
                     {
-                        buildings_other_id::buildings_other_id id;
-                        if (find_enum_item(&id, tokens[3]))
-                            o.id = id;
-                        else
-                            o.id = -1;
-
-                        building_type::building_type type;
-                        if (find_enum_item(&type, tokens[4]))
-                            o.type = type;
-                        else
-                            o.type = -1;
+                        if (!parse_enum_or_int<buildings_other_id::buildings_other_id>(tokens[3], o.id))
+                            continue;
+                        if (!parse_enum_or_int<building_type::building_type>(tokens[4], o.type))
+                            continue;
                     }
                     else
                     {
-                        items_other_id::items_other_id id;
-                        if (find_enum_item(&id, tokens[3]))
-                            o.id = id;
-                        else
-                            o.id = -1;
-
-                        item_type::item_type type;
-                        if (find_enum_item(&type, tokens[4]))
-                            o.type = type;
-                        else
-                            o.type = -1;
+                        if (!parse_enum_or_int<items_other_id::items_other_id>(tokens[3], o.id))
+                            continue;
+                        if (!parse_enum_or_int<item_type::item_type>(tokens[4], o.type))
+                            continue;
                     }
 
                     if (tokens[5].length() > 0)
@@ -316,10 +338,11 @@ static void load_colormap()
             if (cidx == -1)
                 continue;
 
-            char *_e;
-            float val = strtod(tokens[1].c_str(), &_e) / 255.0;
-            if (*_e != 0)
+            float val;
+            if (!parse_float(tokens[1], val))
                 continue;
+
+            val /= 255.0f;
 
             const std::string &comp = token0.substr(token0.length()-2);
             if (comp == "_R")

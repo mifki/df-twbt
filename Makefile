@@ -5,7 +5,7 @@ DF ?= /Users/vit/Desktop/df-r5
 DH ?= /Users/vit/Downloads/dfhack-$(DFHACKREL)
 
 SRC = twbt.cpp
-DEP = renderer.hpp config.hpp tradefix.hpp dungeonmode.hpp dwarfmode.hpp renderer_twbt.h commands.hpp
+DEP = renderer.hpp config.hpp tradefix.hpp dungeonmode.hpp dwarfmode.hpp renderer_twbt.h commands.hpp plugin.hpp tileupdate_text.hpp tileupdate_map.hpp
 OUT = dist/$(DFHACKVER)-$(DFHACKREL)/twbt.plug.so
 
 INC = -I"$(DH)/library/include" -I"$(DH)/library/proto" -I"$(DH)/depends/protobuf" -I"$(DH)/depends/lua/include"

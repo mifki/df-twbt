@@ -43,6 +43,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         init->display.grid_y = r->gdimyfull+2;
 
         INTERPOSE_NEXT(feed)(input);
+
         init->display.grid_x = tdimx;
         init->display.grid_y = tdimy;
 
@@ -52,13 +53,9 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         if (menu_width != menu_width_new || area_map_width != area_map_width_new || menuforced != menuforced_new)
         {
             if ((menuforced_new || menu_width_new == 1) && area_map_width_new == 2) // Menu + area map
-            {
                 gmenu_w = 55;
-            }
             else if (menu_width_new == 2 && area_map_width_new == 2) // Area map only
-            {
                 gmenu_w = 24;
-            }
             else if (menu_width_new == 1) // Wide menu
                 gmenu_w = 55;
             else if (menuforced_new || (menu_width_new == 2 && area_map_width_new == 3)) // Menu only
@@ -87,31 +84,8 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 #endif
 
     	renderer_cool *r = (renderer_cool*)enabler->renderer;
+        r->handle_reshape_zoom_requests();       
 
-        if (r->needs_reshape)
-        {
-            if (r->needs_zoom)
-            {
-                if (r->needs_zoom > 0)
-                {
-                    r->gdispx++;
-                    r->gdispy++;
-                }
-                else
-                {
-                    r->gdispx--;
-                    r->gdispy--;
-
-                    if (r->gsize_x / r->gdispx > world->map.x_count)
-                        r->gdispx = r->gdispy = r->gsize_x / world->map.x_count;
-                    else if (r->gsize_y / r->gdispy > world->map.y_count)
-                        r->gdispx = r->gdispy = r->gsize_y / world->map.y_count;
-                }
-                r->needs_zoom = 0;
-            }
-            r->needs_reshape = false;
-            r->reshape_graphics();
-        }
 
 #ifdef WIN32
         void (*_render_map)(int) = (void (*)(int))(0x008f65c0+(Core::getInstance().vinfo->getRebaseDelta()));
