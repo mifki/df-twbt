@@ -645,6 +645,13 @@ void renderer_cool::allocate_buffers(int tiles)
 
 void renderer_cool::handle_reshape_zoom_requests()
 {
+    static int game_mode = 3;
+    if (game_mode != *df::global::gamemode)
+    {
+        needs_reshape = true;
+        game_mode = *df::global::gamemode;
+    }
+
     if (needs_reshape)
     {
         if (needs_zoom)
