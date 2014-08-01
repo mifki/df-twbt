@@ -235,14 +235,14 @@ static bool load_overrides()
                     o.kind = tokens[2][0];
                     if (o.kind == 'B')
                     {
-                        if (!parse_enum_or_int<buildings_other_id::buildings_other_id>(tokens[3], o.id))
+                        if (!parse_enum_or_int<buildings_other_id::buildings_other_id>(tokens[3], o.id, buildings_other_id::IN_PLAY))
                             continue;
                         if (!parse_enum_or_int<building_type::building_type>(tokens[4], o.type))
                             continue;
                     }
                     else if (o.kind == 'I')
                     {
-                        if (!parse_enum_or_int<items_other_id::items_other_id>(tokens[3], o.id))
+                        if (!parse_enum_or_int<items_other_id::items_other_id>(tokens[3], o.id, items_other_id::IN_PLAY))
                             continue;
                         if (!parse_enum_or_int<item_type::item_type>(tokens[4], o.type))
                             continue;

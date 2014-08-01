@@ -5,18 +5,20 @@
 
 # Load additional tileset if you ran out of tiles in main and text fonts
 # [TILESET:font.png:fullscreenfont.png:Id] 
+# File names are relative to data/art folder
+# Id is arbitrary string to refer this tileset in OVERRIDE commands
 
 # Add an override
 # [OVERRIDE:Tile:Kind:Id:Type:Subtype:Tileset:NewTile]
 # Tile is the original tile number
 # Kind is I for item or B for building
-# Id see buildings_other_id.h or items_other_id.h
-# Type see building_type.h or item_type.h, may be empty
+# Id see buildings_other_id.h or items_other_id.h (case-sensitive!)
+# Type see building_type.h or item_type.h, may be empty (case-sensitive!)
 # Subtype is some numeric value, don't know what values correspond to what
 # Tileset is the tileset to use
 #   map  is the main tileset
 #   text is the text tileset loaded by this plugin
-#   <Id> tilesets id specified in TILESET command
+#   <Id> tileset identifier specified in TILESET command
 # NewTile is the new tile number
 
 # Override tile if it didn't match any other rules

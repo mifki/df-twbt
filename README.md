@@ -4,6 +4,34 @@ This is a plugin for [Dwarf Fortress](http://bay12games.com) / [DFHack](http://g
 
 Originally I wrote a small plugin because I was tired seeing coffins instead of zeroes and all that stuff. It has greately evolved since then. Requires OpenGL PRINT_MODE (STANDARD or VBO). Some functions may not work or have issues in Adventurer Mode.
 
+### Features ###
+
+[Text and Map Tilesets](#text-and-map-tilesets)  
+Use separate fonts for text and map, possibly with different tile size.
+
+[Overrides](#overrides)  
+Change images used for specific buildings, items and tile types.
+
+[Multi-level Rendering](#multi-level-rendering)
+
+[Additional Colours](#additional-colours)
+
+[Colormap Manipulation](#colormap-manipulation)  
+Change and reload colours without restarting the game.
+
+[Mapshot!](#mapshot)  
+A command to save full-size screenshot of the map.
+
+[Other Improvements](#other-improvements)
+
+[Authors and Links](#authors-and-links)
+
+### Authors and Links ###
+
+Vitaly Pronkin aka mifki <pronvit@me.com>
+
+[Home Page / Sources](https://github.com/mifki/df-twbt) -- [Latest Release](https://github.com/mifki/df-twbt/releases) -- [Discussion](http://www.bay12forums.com/smf/index.php?topic=138754.0) -- [Report an Issue](https://github.com/mifki/df-twbt/issues)
+
 ### Text and Map Tilesets ###
 
 Main function is to use separate fonts (tilesets) for map tiles in Fortress Mode and for text. These fonts may have different tile size, usually square for the map and non-square for text.
@@ -16,7 +44,7 @@ In your `init.txt` set FONT and FULLFONT to the font you want to use for **text*
 
 Allows to override tile numbers for buildings and items, see `overrides.txt` for details.
 
-### Multi-Level Rendering ###
+### Multi-level Rendering ###
 
 Copy `shadows.png` to `data/art` folder.
 
@@ -46,8 +74,3 @@ Not yet.
 
 Trade screen divided equally on OS X.
 
-### Authors and Links ###
-
-Vitaly Pronkin aka mifki <pronvit@me.com>
-
-[Home Page / Sources](https://github.com/mifki/df-twbt) -- [Latest Release](https://github.com/mifki/df-twbt/releases) -- [Discussion](http://www.bay12forums.com/smf/index.php?topic=138754.0) -- [Report an Issue](https://github.com/mifki/df-twbt/issues)
