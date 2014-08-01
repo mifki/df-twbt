@@ -1,3 +1,38 @@
+static bool parse_int(std::string &str, int &ret, int base=10)
+{
+    char *e;
+    ret = strtol(str.c_str(), &e, base);
+    return (*e == 0);
+}
+
+static bool parse_float(std::string &str, float &ret)
+{
+    char *e;
+    ret = strtod(str.c_str(), &e);
+    return (*e == 0);
+}
+
+template <class T>
+static bool parse_enum_or_int(std::string &str, int &ret, int def=-1)
+{
+    T val;
+
+    if (str.length())
+    {
+        if (!parse_int(str, ret))
+        {  
+            if (find_enum_item(&val, str))
+                ret = val;
+            else
+                return false;
+        }
+    }
+    else
+        ret = def;
+
+    return true;
+}
+
 static vector<string> split(const char *str, char c = ' ')
 {
     vector<string> result;
@@ -93,6 +128,12 @@ static bool load_overrides()
     {
         string str;
 
+        std::map<string, int> tilesetnames;
+        tilesetnames["map"] = 0;
+        tilesetnames["0"] = 0;
+        tilesetnames["text"] = 1;
+        tilesetnames["1"] = 1;        
+
         while(std::getline(fseed,str))
         {
             size_t b = str.find("[");
@@ -109,7 +150,33 @@ static bool load_overrides()
                 struct tileset ts;
                 ts.small_font_path = "data/art/" + tokens[1];
                 ts.large_font_path = "data/art/" + tokens[2];
+
+                struct stat buf;
+                if (stat(ts.small_font_path.c_str(), &buf) != 0)
+                {
+                    out2->color(COLOR_YELLOW);
+                    *out2 << "TWBT: " << ts.small_font_path << " not found" << std::endl;
+                    out2->color(COLOR_RESET);                                
+
+                    continue;
+                }
+                if (stat(ts.large_font_path.c_str(), &buf) != 0)
+                {
+                    out2->color(COLOR_YELLOW);
+                    *out2 << "TWBT: " << ts.large_font_path << " not found" << std::endl;
+                    out2->color(COLOR_RESET);                                
+
+                    ts.large_font_path = ts.small_font_path;                    
+                }
+
                 tilesets.push_back(ts);
+
+                int idx = tilesets.size() - 1;
+                string n = (tokens.size() == 4) ?
+                    tokens[3] :
+                    static_cast<std::ostringstream*>(&(std::ostringstream() << idx))->str();
+                tilesetnames[n] = idx;
+
                 continue;
             }
             
@@ -117,37 +184,36 @@ static bool load_overrides()
             {
                 if (tokens.size() == 8)
                 {
+                    if (!tilesetnames.count(tokens[6]))
+                    {
+                        out2->color(COLOR_YELLOW);
+                        *out2 << "TWBT: no tileset with id " << tokens[6] << std::endl;
+                        out2->color(COLOR_RESET);                                
+
+                        continue;
+                    }
+
                     int tile = atoi(tokens[1].c_str());
+                    int tsidx = tilesetnames[tokens[6]];
 
                     struct override o;
                     o.building = (tokens[2] == "B");
                     if (o.building)
                     {
-                        buildings_other_id::buildings_other_id id;
-                        if (find_enum_item(&id, tokens[3]))
-                            o.id = id;
-                        else
-                            o.id = -1;
+                        if (!parse_enum_or_int<buildings_other_id::buildings_other_id>(tokens[3], o.id, buildings_other_id::IN_PLAY))
+                            continue;
+                        if (!parse_enum_or_int<building_type::building_type>(tokens[4], o.type))
+                            continue;
 
-                        building_type::building_type type;
-                        if (find_enum_item(&type, tokens[4]))
-                            o.type = type;
-                        else
-                            o.type = -1;
+                        if (o.id == buildings_other_id::WORKSHOP_CUSTOM || o.id == buildings_other_id::FURNACE_CUSTOM)
+                            o.subtypename = tokens[5];
                     }
                     else
                     {
-                        items_other_id::items_other_id id;
-                        if (find_enum_item(&id, tokens[3]))
-                            o.id = id;
-                        else
-                            o.id = -1;
-
-                        item_type::item_type type;
-                        if (find_enum_item(&type, tokens[4]))
-                            o.type = type;
-                        else
-                            o.type = -1;
+                        if (!parse_enum_or_int<items_other_id::items_other_id>(tokens[3], o.id, items_other_id::IN_PLAY))
+                            continue;
+                        if (!parse_enum_or_int<item_type::item_type>(tokens[4], o.type))
+                            continue;
                     }
 
                     if (tokens[5].length() > 0)
@@ -155,7 +221,7 @@ static bool load_overrides()
                     else
                         o.subtype = -1;
 
-                    o.newtile.tilesetidx = atoi(tokens[6].c_str());
+                    o.newtile.tilesetidx = tsidx;
                     o.newtile.tile = atoi(tokens[7].c_str());
 
                     if (!overrides[tile])
@@ -164,8 +230,18 @@ static bool load_overrides()
                 }
                 else if (tokens.size() == 4)
                 {
+                    std::map<std::string,int>::iterator it;
+                    if (!tilesetnames.count(tokens[2]))
+                    {
+                        out2->color(COLOR_YELLOW);
+                        *out2 << "TWBT: no tileset with id " << tokens[2] << std::endl;
+                        out2->color(COLOR_RESET);                                
+                        continue;
+                    }
+
                     int tile = atoi(tokens[1].c_str());
-                    override_defs[tile].tilesetidx = atoi(tokens[2].c_str());
+                    int tsidx = tilesetnames[tokens[2]];
+                    override_defs[tile].tilesetidx = tsidx;
                     override_defs[tile].tile = atoi(tokens[3].c_str());
                 }
 
@@ -243,4 +319,45 @@ static void load_colormap()
     }
 
     fseed.close();
+}
+
+void update_custom_building_overrides()
+{
+    for (int j = 0; j < 256; j++)
+    {
+        if (!overrides[j])
+            continue;
+
+        for (int k = 0; k < overrides[j]->size(); k++)
+        {
+            struct override &o = (*overrides[j])[k];
+
+            if (o.building &&
+                (o.id == buildings_other_id::WORKSHOP_CUSTOM || o.id == buildings_other_id::FURNACE_CUSTOM) &&
+                o.subtypename.length())
+            {
+                o.subtype = -2;
+                auto ilist = world->raws.buildings.all; //TODO: should use different arrays for workshops and furnaces
+
+                for (auto it = ilist.begin(); it != ilist.end(); it++)
+                {
+                    df::building_def *bdef = *it;
+
+                    if (bdef->code == o.subtypename)
+                    {
+                        o.subtype = bdef->id;
+                        break;
+                    }
+                }
+
+                if (o.subtype == -2)
+                {
+                    out2->color(COLOR_YELLOW);
+                    *out2 << "TWBT: no custom building for name " << o.subtypename << std::endl;
+                    out2->color(COLOR_RESET);                                
+                    continue;
+                }                    
+            }
+        }
+    }
 }
