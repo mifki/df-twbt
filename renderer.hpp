@@ -570,7 +570,7 @@ void renderer_cool::display_new(bool update_graphics)
                     // We don't use pointers for the non-screen arrays because we mostly fail at the
                     // *first* comparison, and having pointers for the others would exceed register
                     // count.
-                    if (0&&*gscreenp == *goldp &&
+                    if (*gscreenp == *goldp &&
                     gscreentexpos[off] == gscreentexpos_old[off] &&
                     gscreentexpos_addcolor[off] == gscreentexpos_addcolor_old[off] &&
                     gscreentexpos_grayscale[off] == gscreentexpos_grayscale_old[off] &&
