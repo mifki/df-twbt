@@ -134,214 +134,239 @@ static bool load_text_font()
 
 static bool load_overrides()
 {
-    bool found = false;
+    bool any_overrides = false;
 
     std::ifstream fseed("data/init/overrides.txt");
-    if(fseed.is_open())
+    if(!fseed.is_open())
+        return false;
+
+    std::map<string, int> tilesetnames;
+    tilesetnames["map"] = 0;
+    tilesetnames["0"] = 0;
+    tilesetnames["text"] = 1;
+    tilesetnames["1"] = 1;
+
+    string str;
+    while(std::getline(fseed,str))
     {
-        string str;
+        size_t b = str.find("[");
+        size_t e = str.rfind("]");
 
-        std::map<string, int> tilesetnames;
-        tilesetnames["map"] = 0;
-        tilesetnames["0"] = 0;
-        tilesetnames["text"] = 1;
-        tilesetnames["1"] = 1;
+        if (b == string::npos || e == string::npos || str.find_first_not_of(" ") < b)
+            continue;
 
-        while(std::getline(fseed,str))
+        str = str.substr(b+1, e-1);
+        vector<string> tokens = split(str.c_str(), ':');
+
+        if (tokens[0] == "TILESET")
         {
-            size_t b = str.find("[");
-            size_t e = str.rfind("]");
-
-            if (b == string::npos || e == string::npos || str.find_first_not_of(" ") < b)
-                continue;
-
-            str = str.substr(b+1, e-1);
-            vector<string> tokens = split(str.c_str(), ':');
-
-            if (tokens[0] == "TILESET")
+            if (tokens.size() == 3 || tokens.size() == 4)
             {
-                if (tokens.size() == 3 || tokens.size() == 4)
+                if (tokens.size() == 4 && tilesetnames.count(tokens[3]))
                 {
-                    if (tokens.size() == 4 && tilesetnames.count(tokens[3]))
-                    {
-                        out2->color(COLOR_YELLOW);
-                        *out2 << "TWBT: ignoring duplicate tileset with id " << tokens[3] << std::endl;
-                        out2->color(COLOR_RESET);                                
+                    out2->color(COLOR_YELLOW);
+                    *out2 << "TWBT: ignoring duplicate tileset with id " << tokens[3] << std::endl;
+                    out2->color(COLOR_RESET);                                
 
-                        continue;
-                    }
-
-                    struct tileset ts;
-                    string small_font_path = "data/art/" + tokens[1];
-                    string large_font_path = "data/art/" + tokens[2];
-
-                    struct stat buf;
-                    if (stat(small_font_path.c_str(), &buf) != 0)
-                    {
-                        out2->color(COLOR_YELLOW);
-                        *out2 << "TWBT: " << small_font_path << " not found" << std::endl;
-                        out2->color(COLOR_RESET);                                
-
-                        continue;
-                    }
-
-                    long dx, dy;        
-                    load_tileset(small_font_path, ts.small_texpos, 16, 16, &dx, &dy);
-
-                    if (stat(large_font_path.c_str(), &buf) != 0)
-                    {
-                        out2->color(COLOR_YELLOW);
-                        *out2 << "TWBT: " << small_font_path << " not found" << std::endl;
-                        out2->color(COLOR_RESET);                                
-
-                        large_font_path = small_font_path;
-                    }
-
-                    if (large_font_path != small_font_path)
-                        load_tileset(large_font_path, ts.large_texpos, 16, 16, &dx, &dy);
-                    else
-                        memcpy(ts.large_texpos, ts.small_texpos, sizeof(ts.large_texpos));
-
-                    tilesets.push_back(ts);
-
-                    int idx = tilesets.size() - 1;
-                    string n = (tokens.size() == 4) ?
-                        tokens[3] :
-                        static_cast<std::ostringstream*>(&(std::ostringstream() << idx))->str();
-                    tilesetnames[n] = idx;
+                    continue;
                 }
 
-                continue;
+                struct tileset ts;
+                string small_font_path = "data/art/" + tokens[1];
+                string large_font_path = "data/art/" + tokens[2];
+
+                struct stat buf;
+                if (stat(small_font_path.c_str(), &buf) != 0)
+                {
+                    out2->color(COLOR_YELLOW);
+                    *out2 << "TWBT: " << small_font_path << " not found" << std::endl;
+                    out2->color(COLOR_RESET);                                
+
+                    continue;
+                }
+
+                long dx, dy;        
+                load_tileset(small_font_path, ts.small_texpos, 16, 16, &dx, &dy);
+
+                if (stat(large_font_path.c_str(), &buf) != 0)
+                {
+                    out2->color(COLOR_YELLOW);
+                    *out2 << "TWBT: " << small_font_path << " not found" << std::endl;
+                    out2->color(COLOR_RESET);                                
+
+                    large_font_path = small_font_path;
+                }
+
+                if (large_font_path != small_font_path)
+                    load_tileset(large_font_path, ts.large_texpos, 16, 16, &dx, &dy);
+                else
+                    memcpy(ts.large_texpos, ts.small_texpos, sizeof(ts.large_texpos));
+
+                tilesets.push_back(ts);
+
+                int idx = tilesets.size() - 1;
+                string n = (tokens.size() == 4) ?
+                    tokens[3] :
+                    static_cast<std::ostringstream*>(&(std::ostringstream() << idx))->str();
+                tilesetnames[n] = idx;
             }
-            
-            if (tokens[0] == "OVERRIDE")
+
+            continue;
+        }
+        
+        if (tokens[0] == "OVERRIDE")
+        {
+            if (tokens.size() == 8)
             {
-                if (tokens.size() == 8)
+                if (!tilesetnames.count(tokens[6]))
                 {
-                    if (!tilesetnames.count(tokens[6]))
-                    {
-                        out2->color(COLOR_YELLOW);
-                        *out2 << "TWBT: no tileset with id " << tokens[6] << std::endl;
-                        out2->color(COLOR_RESET);                                
+                    out2->color(COLOR_YELLOW);
+                    *out2 << "TWBT: no tileset with id " << tokens[6] << std::endl;
+                    out2->color(COLOR_RESET);                                
 
-                        continue;
-                    }
-
-                    int tile = atoi(tokens[1].c_str());
-                    int tsidx = tilesetnames[tokens[6]];
-                    int newtile = atoi(tokens[7].c_str());
-
-                    struct override o;
-                    o.kind = tokens[2][0];
-                    if (o.kind == 'B')
-                    {
-                        if (!parse_enum_or_int<buildings_other_id::buildings_other_id>(tokens[3], o.id, buildings_other_id::IN_PLAY))
-                            continue;
-                        if (!parse_enum_or_int<building_type::building_type>(tokens[4], o.type))
-                            continue;
-                    }
-                    else if (o.kind == 'I')
-                    {
-                        if (!parse_enum_or_int<items_other_id::items_other_id>(tokens[3], o.id, items_other_id::IN_PLAY))
-                            continue;
-                        if (!parse_enum_or_int<item_type::item_type>(tokens[4], o.type))
-                            continue;
-                    }
-                    else
-                        continue;
-
-                    if (tokens[5].length() > 0)
-                        o.subtype = atoi(tokens[5].c_str());
-                    else
-                        o.subtype = -1;
-
-                    o.small_texpos = tilesets[tsidx].small_texpos[newtile];
-                    o.large_texpos = tilesets[tsidx].large_texpos[newtile];
-
-                    if (!overrides[tile])
-                        overrides[tile] = new vector< struct override >;
-                    overrides[tile]->push_back(o);
+                    continue;
                 }
 
-                else if (tokens.size() == 6)
+                int tile = atoi(tokens[1].c_str());
+                int tsidx = tilesetnames[tokens[6]];
+                int newtile = atoi(tokens[7].c_str());
+
+                struct override o;
+                o.kind = tokens[2][0];
+                if (o.kind == 'B')
                 {
-                    if (!tilesetnames.count(tokens[4]))
-                    {
-                        out2->color(COLOR_YELLOW);
-                        *out2 << "TWBT: no tileset with id " << tokens[4] << std::endl;
-                        out2->color(COLOR_RESET);                                
-
+                    if (!parse_enum_or_int<buildings_other_id::buildings_other_id>(tokens[3], o.id, buildings_other_id::IN_PLAY))
                         continue;
-                    }
+                    if (!parse_enum_or_int<building_type::building_type>(tokens[4], o.type))
+                        continue;
 
-                    int tile = atoi(tokens[1].c_str());
-                    int tsidx = tilesetnames[tokens[4]];
-                    int newtile = atoi(tokens[5].c_str());
+                    if (o.id == buildings_other_id::WORKSHOP_CUSTOM || o.id == buildings_other_id::FURNACE_CUSTOM)
+                        o.subtypename = tokens[5];
+                }
+                else if (o.kind == 'I')
+                {
+                    if (!parse_enum_or_int<items_other_id::items_other_id>(tokens[3], o.id, items_other_id::IN_PLAY))
+                        continue;
+                    if (!parse_enum_or_int<item_type::item_type>(tokens[4], o.type))
+                        continue;
+                }
+                else
+                    continue;
 
-                    struct override o;
-                    o.kind = tokens[2][0];
-                    if (o.kind == 'T')
+                if (tokens[5].length() > 0)
+                    o.subtype = atoi(tokens[5].c_str());
+                else
+                    o.subtype = -1;
+
+                o.small_texpos = tilesets[tsidx].small_texpos[newtile];
+                o.large_texpos = tilesets[tsidx].large_texpos[newtile];
+
+                if (!overrides[tile])
+                    overrides[tile] = new vector< struct override >;
+                overrides[tile]->push_back(o);
+                any_overrides = true;
+            }
+
+            else if (tokens.size() == 6)
+            {
+                if (!tilesetnames.count(tokens[4]))
+                {
+                    out2->color(COLOR_YELLOW);
+                    *out2 << "TWBT: no tileset with id " << tokens[4] << std::endl;
+                    out2->color(COLOR_RESET);                                
+
+                    continue;
+                }
+
+                int tile = atoi(tokens[1].c_str());
+                int tsidx = tilesetnames[tokens[4]];
+                int newtile = atoi(tokens[5].c_str());
+
+                struct override o;
+                o.kind = tokens[2][0];
+                if (o.kind == 'T')
+                {
+                    std::string &typestr = tokens[3];
+                    int ln = typestr.length();
+                    if (!ln)
+                        continue;
+
+                    if (typestr[0] == '"' && typestr[ln-1] == '"')
                     {
-                        std::string &typestr = tokens[3];
-                        int ln = typestr.length();
-                        if (!ln)
-                            continue;
+                        std::string tn = typestr.substr(1, ln-2);
 
-                        if (typestr[0] == '"' && typestr[ln-1] == '"')
+                        FOR_ENUM_ITEMS(tiletype, tt)
                         {
-                            std::string tn = typestr.substr(1, ln-2);
-
-                            FOR_ENUM_ITEMS(tiletype, tt)
+                            const char *ttn = tileName(tt);
+                            if (ttn && tn == ttn)
                             {
-                                const char *ttn = tileName(tt);
-                                if (ttn && tn == ttn)
-                                {
-                                    o.type = tt;
-                                    break;
-                                }
+                                o.type = tt;
+                                break;
                             }
                         }
-                        else if (!parse_enum_or_int<tiletype::tiletype>(tokens[3], o.type))
-                            continue;
                     }
-                    else
+                    else if (!parse_enum_or_int<tiletype::tiletype>(tokens[3], o.type))
                         continue;
+                }
+                else
+                    continue;
 
-                    o.small_texpos = tilesets[tsidx].small_texpos[newtile];
-                    o.large_texpos = tilesets[tsidx].large_texpos[newtile];
+                o.small_texpos = tilesets[tsidx].small_texpos[newtile];
+                o.large_texpos = tilesets[tsidx].large_texpos[newtile];
 
-                    if (!overrides[tile])
-                        overrides[tile] = new vector< struct override >;
-                    overrides[tile]->push_back(o);
-                }                
+                if (!overrides[tile])
+                    overrides[tile] = new vector< struct override >;
+                overrides[tile]->push_back(o);
+                any_overrides = true;
+            }                
 
-                else if (tokens.size() == 4)
+            /*else if (tokens.size() == 4)
+            {
+                std::map<std::string,int>::iterator it;
+                if (!tilesetnames.count(tokens[2]))
                 {
-                    std::map<std::string,int>::iterator it;
-                    if (!tilesetnames.count(tokens[2]))
-                    {
-                        out2->color(COLOR_YELLOW);
-                        *out2 << "TWBT: no tileset with id " << tokens[2] << std::endl;
-                        out2->color(COLOR_RESET);                                
-                        continue;
-                    }
-
-                    int tile = atoi(tokens[1].c_str());
-                    int tsidx = tilesetnames[tokens[2]];
-                    int newtile = atoi(tokens[3].c_str());
-
-                    tilesets[0].small_texpos[tile] = tilesets[tsidx].small_texpos[newtile];
-                    tilesets[0].large_texpos[tile] = tilesets[tsidx].large_texpos[newtile];
+                    out2->color(COLOR_YELLOW);
+                    *out2 << "TWBT: no tileset with id " << tokens[2] << std::endl;
+                    out2->color(COLOR_RESET);                                
+                    continue;
                 }
 
-                found = true;
+                int tile = atoi(tokens[1].c_str());
+                int tsidx = tilesetnames[tokens[2]];
+                int newtile = atoi(tokens[3].c_str());
+
+                tilesets[0].small_texpos[tile] = tilesets[tsidx].small_texpos[newtile];
+                tilesets[0].large_texpos[tile] = tilesets[tsidx].large_texpos[newtile];
+                any_overrides = true;                
+            }*/
+
+            continue;
+        }
+
+        if (tokens[0] == "CURSOR")
+        {
+            if (!tilesetnames.count(tokens[1]))
+            {
+                out2->color(COLOR_YELLOW);
+                *out2 << "TWBT: no tileset with id " << tokens[1] << std::endl;
+                out2->color(COLOR_RESET);                                
+
                 continue;
             }
+
+            int tsidx = tilesetnames[tokens[1]];
+            int newtile = atoi(tokens[2].c_str());
+
+            cursor_small_texpos = tilesets[tsidx].small_texpos[newtile];
+            cursor_large_texpos = tilesets[tsidx].large_texpos[newtile];            
+
+            any_overrides = true;
+            continue;
         }
     }
 
     fseed.close();
-    return found;
+    return any_overrides;
 }
 
 static int color_name_to_index(std::string &name)
@@ -409,4 +434,45 @@ static void load_colormap()
     }
 
     fseed.close();
+}
+
+void update_custom_building_overrides()
+{
+    for (int j = 0; j < 256; j++)
+    {
+        if (!overrides[j])
+            continue;
+
+        for (int k = 0; k < overrides[j]->size(); k++)
+        {
+            struct override &o = (*overrides[j])[k];
+
+            if (o.kind == 'B' &&
+                (o.id == buildings_other_id::WORKSHOP_CUSTOM || o.id == buildings_other_id::FURNACE_CUSTOM) &&
+                o.subtypename.length())
+            {
+                o.subtype = -2;
+                auto ilist = world->raws.buildings.all; //TODO: should use different arrays for workshops and furnaces
+
+                for (auto it = ilist.begin(); it != ilist.end(); it++)
+                {
+                    df::building_def *bdef = *it;
+
+                    if (bdef->code == o.subtypename)
+                    {
+                        o.subtype = bdef->id;
+                        break;
+                    }
+                }
+
+                if (o.subtype == -2)
+                {
+                    out2->color(COLOR_YELLOW);
+                    *out2 << "TWBT: no custom building for name " << o.subtypename << std::endl;
+                    out2->color(COLOR_RESET);                                
+                    continue;
+                }                    
+            }
+        }
+    }
 }

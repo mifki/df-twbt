@@ -123,6 +123,14 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     return CR_OK;
 }
 
+DFhackCExport command_result plugin_onstatechange(color_ostream &out, state_change_event event)
+{
+    if (event == SC_WORLD_LOADED)
+        update_custom_building_overrides();
+
+    return CR_OK;
+}
+
 DFhackCExport command_result plugin_shutdown ( color_ostream &out )
 {
     return CR_FAILURE;

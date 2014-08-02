@@ -58,7 +58,10 @@
 #include "df/d_init.h"
 #include "df/renderer.h"
 #include "df/interfacest.h"
+#include "df/world_raws.h"
 #include "df/building.h"
+#include "df/building_workshopst.h"
+#include "df/building_def_workshopst.h"
 #include "df/building_type.h"
 #include "df/buildings_other_id.h"
 #include "df/item.h"
@@ -131,10 +134,13 @@ struct override {
     char kind;
     int id, type, subtype;
     long small_texpos, large_texpos;
+    std::string subtypename;
 };
 static vector< struct override > *overrides[256];
 
 long *text_texpos, *map_texpos;
+
+long cursor_small_texpos, cursor_large_texpos;
 
 static bool enabled;
 static bool has_textfont, has_overrides;
