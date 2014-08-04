@@ -1,34 +1,5 @@
-# This file is a part of Text Will Be Text plugin
-
-# This file should be placed into data/init and allows to load additional tilesets
-# and override tile numbers for certain item/building types.
-
-# [TILESET:font.png:fullscreenfont.png:Id] 
-# Loads additional tileset if you ran out of tiles in main and text fonts
-# File names are relative to data/art folder
-# Id is arbitrary string to refer this tileset in OVERRIDE commands
-
-# [OVERRIDE:Tile:Kind:Id:Type:Subtype:Tileset:NewTile]
-# Adds an override
-# Tile is the original tile number
-# Kind is I for item or B for building
-# Id see buildings_other_id.h or items_other_id.h (case-sensitive!)
-# Type see building_type.h or item_type.h, may be empty (case-sensitive!)
-# Subtype is some numeric value, don't know what values correspond to what.
-#   Also this can be identifier of a custom building if Id is set to WORKSHOP_CUSTOM or FURNACE_CUSTOM
-# Tileset is the tileset to use
-#   map  is the main tileset
-#   text is the text tileset loaded by this plugin
-#   <Id> tileset identifier specified in TILESET command
-# NewTile is the new tile number
-
-# [OVERRIDE:Tile:Tileset:NewTile]
-# Overrides tile if it didn't match any other rules
-# Behaviour of this may change in future
-# DISABLED FOR NOW
-
-# [CURSOR:Tileset:NewTile]
-# Change tile image used for cursor
+# This file is a part of Text Will Be Text plugin and should be placed in data/init folder.
+# See README for documentation.
 
 # Examples - will show coffins instead of some tiles
 # [OVERRIDE:177:B:WINDOW_ANY:WindowGem::map:48]
