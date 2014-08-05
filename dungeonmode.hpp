@@ -77,9 +77,9 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
 #elif defined(__APPLE__)
         void (*_render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
     #ifdef DFHACK_r5
-        #define render_map() _render_map(df::global::map_renderer, 1)
+        #define render_map() _render_map(df::global::map_renderer, 0)
     #else
-        #define render_map() _render_map(df::global::cursor_unit_list, 1)
+        #define render_map() _render_map(df::global::cursor_unit_list, 0)
     #endif
 #else
 #endif
@@ -91,15 +91,7 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         uint8_t *screentexpos_cftop = enabler->renderer->screentexpos_cf;
         uint8_t *screentexpos_cbrtop = enabler->renderer->screentexpos_cbr;
 
-        gps->screen = enabler->renderer->screen = gscreen;
-        gps->screen_limit = gscreen + r->gdimx * r->gdimy * 4;
-        gps->screentexpos = enabler->renderer->screentexpos = gscreentexpos;
-        gps->screentexpos_addcolor = enabler->renderer->screentexpos_addcolor = gscreentexpos_addcolor;
-        gps->screentexpos_grayscale = enabler->renderer->screentexpos_grayscale = gscreentexpos_grayscale;
-        gps->screentexpos_cf = enabler->renderer->screentexpos_cf = gscreentexpos_cf;
-        gps->screentexpos_cbr = enabler->renderer->screentexpos_cbr = gscreentexpos_cbr;
-
-        long *z = (long*)r->screen;
+        long *z = (long*)gscreen;
         for (int y = 0; y < r->gdimy; y++)
         {
             for (int x = world->map.x_count-*df::global::window_x; x < r->gdimx; x++)
@@ -109,16 +101,24 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         {
             for (int y = world->map.y_count-*df::global::window_y; y < r->gdimy; y++)
                 z[x*r->gdimy+y] = 0;
-        }
+        }        
+
+        gps->screen = enabler->renderer->screen = gscreen;
+        gps->screen_limit = gscreen + r->gdimx * r->gdimy * 4;
+        gps->screentexpos = enabler->renderer->screentexpos = gscreentexpos;
+        gps->screentexpos_addcolor = enabler->renderer->screentexpos_addcolor = gscreentexpos_addcolor;
+        gps->screentexpos_grayscale = enabler->renderer->screentexpos_grayscale = gscreentexpos_grayscale;
+        gps->screentexpos_cf = enabler->renderer->screentexpos_cf = gscreentexpos_cf;
+        gps->screentexpos_cbr = enabler->renderer->screentexpos_cbr = gscreentexpos_cbr;
 
         int oldgridx = init->display.grid_x;
         int oldgridy = init->display.grid_y;
         init->display.grid_x = r->gdimx;
-        init->display.grid_y = r->gdimy;
+        init->display.grid_y = r->gdimy+1;
         gps->dimx = r->gdimx;
         gps->dimy = r->gdimy;
         gps->clipx[1] = r->gdimx-1;
-        gps->clipy[1] = r->gdimy-1;
+        gps->clipy[1] = r->gdimy+1;
 
         if (maxlevels && shadowsloaded)
             patch_rendering(false);

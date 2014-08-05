@@ -39,8 +39,8 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
             menu_w = 31; 
 
 
-        init->display.grid_x = r->gdimxfull+menu_w+2;
-        init->display.grid_y = r->gdimyfull+2;
+        init->display.grid_x = r->gdimxfull + menu_w + 2;
+        init->display.grid_y = r->gdimyfull + 2;
 
         INTERPOSE_NEXT(feed)(input);
 
@@ -93,29 +93,14 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 #elif defined(__APPLE__)
         void (*_render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
     #ifdef DFHACK_r5
-        #define render_map() _render_map(df::global::map_renderer, 1)
+        #define render_map() _render_map(df::global::map_renderer, 0)
     #else
-        #define render_map() _render_map(df::global::cursor_unit_list, 1)
+        #define render_map() _render_map(df::global::cursor_unit_list, 0)
     #endif
 #else
 #endif
 
-        uint8_t *sctop = enabler->renderer->screen;
-        int32_t *screentexpostop = enabler->renderer->screentexpos;
-        int8_t *screentexpos_addcolortop = enabler->renderer->screentexpos_addcolor;
-        uint8_t *screentexpos_grayscaletop = enabler->renderer->screentexpos_grayscale;
-        uint8_t *screentexpos_cftop = enabler->renderer->screentexpos_cf;
-        uint8_t *screentexpos_cbrtop = enabler->renderer->screentexpos_cbr;
-
-        gps->screen = enabler->renderer->screen = gscreen;
-        gps->screen_limit = gscreen + r->gdimx * r->gdimy * 4;
-        gps->screentexpos = enabler->renderer->screentexpos = gscreentexpos;
-        gps->screentexpos_addcolor = enabler->renderer->screentexpos_addcolor = gscreentexpos_addcolor;
-        gps->screentexpos_grayscale = enabler->renderer->screentexpos_grayscale = gscreentexpos_grayscale;
-        gps->screentexpos_cf = enabler->renderer->screentexpos_cf = gscreentexpos_cf;
-        gps->screentexpos_cbr = enabler->renderer->screentexpos_cbr = gscreentexpos_cbr;
-
-        long *z = (long*)r->screen;
+        long *z = (long*)gscreen;
         for (int y = 0; y < r->gdimy; y++)
         {
             for (int x = world->map.x_count-*df::global::window_x; x < r->gdimx; x++)
@@ -125,24 +110,36 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         {
             for (int y = world->map.y_count-*df::global::window_y; y < r->gdimy; y++)
                 z[x*r->gdimy+y] = 0;
-        }
+        }        
 
-        init->display.grid_x = r->gdimx;
-        init->display.grid_y = r->gdimy;
+        uint8_t *sctop                     = enabler->renderer->screen;
+        int32_t *screentexpostop           = enabler->renderer->screentexpos;
+        int8_t *screentexpos_addcolortop   = enabler->renderer->screentexpos_addcolor;
+        uint8_t *screentexpos_grayscaletop = enabler->renderer->screentexpos_grayscale;
+        uint8_t *screentexpos_cftop        = enabler->renderer->screentexpos_cf;
+        uint8_t *screentexpos_cbrtop       = enabler->renderer->screentexpos_cbr;
+
+        // In fort mode render_map() will render starting at (1,1)
+        // and will use dimensions from init->display.grid to calculate map region to render
+        // but dimensions from gps to calculate offsets into screen buffer.
+        // So we adjust all this so that it renders to our gdimx x gdimy buffer starting at (0,0).
+        gps->screen                 = enabler->renderer->screen                 = gscreen - 4*r->gdimy - 4;
+        gps->screen_limit           = gscreen + r->gdimx * r->gdimy * 4;
+        gps->screentexpos           = enabler->renderer->screentexpos           = gscreentexpos           - r->gdimy - 1;
+        gps->screentexpos_addcolor  = enabler->renderer->screentexpos_addcolor  = gscreentexpos_addcolor  - r->gdimy - 1;
+        gps->screentexpos_grayscale = enabler->renderer->screentexpos_grayscale = gscreentexpos_grayscale - r->gdimy - 1;
+        gps->screentexpos_cf        = enabler->renderer->screentexpos_cf        = gscreentexpos_cf        - r->gdimy - 1;
+        gps->screentexpos_cbr       = enabler->renderer->screentexpos_cbr       = gscreentexpos_cbr       - r->gdimy - 1;
+
+        init->display.grid_x = r->gdimx + gmenu_w + 2;
+        init->display.grid_y = r->gdimy + 2;
         gps->dimx = r->gdimx;
         gps->dimy = r->gdimy;
-        gps->clipx[1] = r->gdimx-1;
-        gps->clipy[1] = r->gdimy-1;
+        gps->clipx[1] = r->gdimx;
+        gps->clipy[1] = r->gdimy;
 
         if (maxlevels && shadowsloaded)
             patch_rendering(false);
-
-        //XXX: what the fuck is this? why is this required? what about other modes?
-        if (df::global::ui->main.mode == ui_sidebar_mode::Build)
-        {
-            df::global::cursor->x--;
-            df::global::cursor->y--;
-        }
         
         render_map();
         
@@ -150,14 +147,13 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         {
             multi_rendered = false;
 
-            gps->screen = mscreen;
-            gps->screen_limit = mscreen + r->gdimx * r->gdimy * 4;
-            gps->screentexpos = mscreentexpos;
-            gps->screentexpos_addcolor = mscreentexpos_addcolor;
-            gps->screentexpos_grayscale = mscreentexpos_grayscale;
-            gps->screentexpos_cf = mscreentexpos_cf;
-            gps->screentexpos_cbr = mscreentexpos_cbr;
-
+            gps->screen                 = mscreen - 4*r->gdimy - 4;
+            gps->screen_limit           = mscreen + r->gdimx * r->gdimy * 4;
+            gps->screentexpos           = mscreentexpos           - r->gdimy - 1;
+            gps->screentexpos_addcolor  = mscreentexpos_addcolor  - r->gdimy - 1;
+            gps->screentexpos_grayscale = mscreentexpos_grayscale - r->gdimy - 1;
+            gps->screentexpos_cf        = mscreentexpos_cf        - r->gdimy - 1;
+            gps->screentexpos_cbr       = mscreentexpos_cbr       - r->gdimy - 1;
 
             bool empty_tiles_left, rendered1st = false;
             int p = 1;
@@ -371,17 +367,10 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
             (*df::global::window_z) = zz0;
         }
 
-        if (df::global::ui->main.mode == ui_sidebar_mode::Build)
-        {
-            df::global::cursor->x++;
-            df::global::cursor->y++;
-        }        
-
         init->display.grid_x = gps->dimx = tdimx;
         init->display.grid_y = gps->dimy = tdimy;
         gps->clipx[1] = gps->dimx - 1;
         gps->clipy[1] = gps->dimy - 1;
-
 
         gps->screen = enabler->renderer->screen = sctop;
         gps->screen_limit = gps->screen + gps->dimx * gps->dimy * 4;
