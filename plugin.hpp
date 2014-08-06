@@ -5,9 +5,8 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     auto dflags = init->display.flag;
     if (!dflags.is_set(init_display_flags::USE_GRAPHICS))
     {
-        out.color(COLOR_RED);
-        out << "TWBT: GRAPHICS is not enabled in init.txt" << std::endl;
-        out.color(COLOR_RESET);
+        *out2 << COLOR_RED << "TWBT: GRAPHICS is not enabled in init.txt" << std::endl;
+        *out2 << COLOR_RESET;
         return CR_OK;
     }
     if (dflags.is_set(init_display_flags::RENDER_2D) ||
@@ -17,9 +16,8 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         dflags.is_set(init_display_flags::VBO) ||
         dflags.is_set(init_display_flags::PARTIAL_PRINT))
     {
-        out.color(COLOR_RED);
-        out << "TWBT: PRINT_MODE must be set to STANDARD in init.txt" << std::endl;
-        out.color(COLOR_RESET);
+        *out2 << COLOR_RED << "TWBT: PRINT_MODE must be set to STANDARD in init.txt" << std::endl;
+        *out2 << COLOR_RESET;
         return CR_OK;        
     }
 
@@ -63,9 +61,8 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 
     if (!has_textfont)
     {
-        out.color(COLOR_YELLOW);
-        out << "TWBT: FONT and GRAPHICS_FONT are the same" << std::endl;
-        out.color(COLOR_RESET);        
+        *out2 << COLOR_YELLOW << "TWBT: FONT and GRAPHICS_FONT are the same" << std::endl;
+        *out2 << COLOR_RESET;
     }
 
     // Load shadows
@@ -78,9 +75,8 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     }
     else
     {
-        out2->color(COLOR_RED);
-        *out2 << "TWBT: shadows.png not found in data/art folder" << std::endl;
-        out2->color(COLOR_RESET);
+        *out2 << COLOR_RED << "TWBT: shadows.png not found in data/art folder" << std::endl;
+        *out2 << COLOR_RESET;
     }
 
     map_texpos = enabler->fullscreen ? tilesets[0].large_texpos : tilesets[0].small_texpos;
