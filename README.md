@@ -82,7 +82,7 @@ Commands described below are to be placed in `data/init/overrides.txt` file and 
 
 ## Multi-level Rendering ##
 
-Copy `shadows.png` to `data/art` folder. Multi-level rendering is disabled by default, you can enable it manually with `multilevel` command (see below), or put it into your `dfhack.init` script.
+Copy `shadows.png` to `data/art` folder. Multi-level rendering is disabled by default, you can enable it with `multilevel` command (see below) manually or put it into your `dfhack.init` script.
 
 **`multilevel`**  
 Set number of *additional* levels to render. Possible parameters are `more`, `less` or number `0-15`.

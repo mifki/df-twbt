@@ -105,7 +105,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         ""
     ));        
     commands.push_back(PluginCommand(
-        "multilevel", "Multilivel rendering",
+        "multilevel", "Multi-level rendering",
         multilevel_cmd, false,
         ""
     ));       
