@@ -193,7 +193,7 @@ void renderer_cool::draw(int vertex_count)
     bool is_main_scr = df::viewscreen_dwarfmodest::_identity.is_direct_instance(ws) || df::viewscreen_dungeonmodest::_identity.is_direct_instance(ws);
     if (ws != prevws)
     {
-        gps->force_full_display_count = true;
+        gps->force_full_display_count = 1;
         prevws = ws;
         /*if (is_main_scr)
         {
@@ -677,6 +677,7 @@ void renderer_cool::handle_reshape_zoom_requests()
         
         needs_reshape = false;
         reshape_graphics();
+        gps->force_full_display_count = 1;
     }    
 }
 

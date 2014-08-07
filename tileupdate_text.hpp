@@ -201,7 +201,7 @@ static void write_tile_arrays_text(renderer_cool *r, int x, int y, GLfloat *fg, 
     {
         int m = df::global::ui_advmode->menu;
         bool tmode = (m == df::ui_advmode_menu::Default || m == df::ui_advmode_menu::Look || m == df::ui_advmode_menu::ThrowAim || m == df::ui_advmode_menu::Talk);
-        if (y <= tdimy-2 && tmode)
+        if (y < tdimy-2 && tmode)
         {
             const unsigned char *s = r->screen + tile*4;
             if (s[0] == 0)
