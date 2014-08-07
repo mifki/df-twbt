@@ -2,9 +2,9 @@
 
 This is a plugin for [Dwarf Fortress](http://bay12games.com) / [DFHack](http://github.com/dfhack/dfhack) that improves various aspects the game interface.
 
-Originally I wrote a small plugin because I was tired seeing coffins instead of zeroes and all that stuff. It has greately evolved since then. Requires OpenGL PRINT_MODE (STANDARD or VBO). Some functions may not work or have issues in Adventurer Mode.
+Originally I wrote a small plugin because I was tired seeing coffins instead of zeroes and all that stuff. It has greately evolved since then. Requires OpenGL PRINT_MODE (STANDARD or VBO). The primary goal is to improve Fortress Mode. Adventure Mode is generally supported but may have issues.
 
-Our primary goal is to improve Fortress Mode
+Compatible with Dwarf Fortress version 0.34.11 and DFHack r5.
 
 ## Features ##
 
@@ -109,6 +109,8 @@ Change display colours. Colour names are as in `init/colors.txt` without `_R/G/B
 Reload all colours from `init/colors.txt`.
 
 ## Mapshot! ##
+
+*This feature is currently broken.*
 
 **`mapshot`**  
 Save an image of entire map in full size to `mapshot.tga` in your DF folder.
