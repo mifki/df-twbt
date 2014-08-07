@@ -109,7 +109,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         "colormap", "Colomap manipulation",
         colormap_cmd, false,
         ""
-    ));       
+    ));
     commands.push_back(PluginCommand(
         "twbt", "Text Will Be Text",
         twbt_cmd, false,
@@ -122,7 +122,10 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 DFhackCExport command_result plugin_onstatechange(color_ostream &out, state_change_event event)
 {
     if (event == SC_WORLD_LOADED)
+    {
         update_custom_building_overrides();
+        gmenu_w = -1;
+    }
 
     return CR_OK;
 }

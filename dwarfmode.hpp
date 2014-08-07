@@ -2,33 +2,16 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 {
     typedef df::viewscreen_dwarfmodest interpose_base;
 
-    DEFINE_VMETHOD_INTERPOSE(void, feed, (std::set<df::interface_key> *input))
+    int get_menu_width()
     {
-        renderer_cool *r = (renderer_cool*)enabler->renderer;
-
-
-        static uint8_t menu_width_last, area_map_width_last;
-        static bool menuforced_last=0;
-
-        int32_t w = tdimx, h = tdimy;
         uint8_t menu_width, area_map_width;
         Gui::getMenuWidth(menu_width, area_map_width);
         int32_t menu_w = 0;
 
         bool menuforced = (ui->main.mode != df::ui_sidebar_mode::Default || df::global::cursor->x != -30000);
 
-        /*if (menu_width != menu_width_last || area_map_width != area_map_width_last || menuforced != menuforced_last)
-        {
-            needs_reshape = true;
-            menu_width_last = menu_width;
-            area_map_width_last = area_map_width;
-            menuforced_last = menuforced;
-        }*/
-
         if ((menuforced || menu_width == 1) && area_map_width == 2) // Menu + area map
-        {
             menu_w = 55;
-        }
         else if (menu_width == 2 && area_map_width == 2) // Area map only
         {
             menu_w = 24;
@@ -38,8 +21,14 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         else if (menuforced || (menu_width == 2 && area_map_width == 3)) // Menu only
             menu_w = 31; 
 
+        return menu_w;
+    }
 
-        init->display.grid_x = r->gdimxfull + menu_w + 2;
+    DEFINE_VMETHOD_INTERPOSE(void, feed, (std::set<df::interface_key> *input))
+    {
+        renderer_cool *r = (renderer_cool*)enabler->renderer;
+
+        init->display.grid_x = r->gdimxfull + gmenu_w + 2;
         init->display.grid_y = r->gdimyfull + 2;
 
         INTERPOSE_NEXT(feed)(input);
@@ -47,22 +36,10 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         init->display.grid_x = tdimx;
         init->display.grid_y = tdimy;
 
-        uint8_t menu_width_new, area_map_width_new;
-        Gui::getMenuWidth(menu_width_new, area_map_width_new);
-        bool menuforced_new = (ui->main.mode != df::ui_sidebar_mode::Default || df::global::cursor->x != -30000);
-        if (menu_width != menu_width_new || area_map_width != area_map_width_new || menuforced != menuforced_new)
+        int menu_w_new = get_menu_width();
+        if (gmenu_w != menu_w_new)
         {
-            if ((menuforced_new || menu_width_new == 1) && area_map_width_new == 2) // Menu + area map
-                gmenu_w = 55;
-            else if (menu_width_new == 2 && area_map_width_new == 2) // Area map only
-                gmenu_w = 24;
-            else if (menu_width_new == 1) // Wide menu
-                gmenu_w = 55;
-            else if (menuforced_new || (menu_width_new == 2 && area_map_width_new == 3)) // Menu only
-                gmenu_w = 31;
-            else
-                gmenu_w = 0;
-
+            gmenu_w = menu_w_new;
             r->needs_reshape = true;
         }
     }
@@ -83,7 +60,14 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         }
 #endif
 
-    	renderer_cool *r = (renderer_cool*)enabler->renderer;
+        renderer_cool *r = (renderer_cool*)enabler->renderer;
+
+        if (gmenu_w < 0)
+        {
+            gmenu_w = get_menu_width();
+            r->needs_reshape = true;
+        }
+
         r->handle_reshape_zoom_requests();       
 
 

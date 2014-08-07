@@ -413,14 +413,14 @@ void renderer_cool::draw(int vertex_count)
             }
 
             glDisable(GL_SCISSOR_TEST);
+
+            glViewport(off_x, off_y, size_x, size_y);
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            glOrtho(0, tdimx, tdimy, 0, -1, 1);            
         }
     }
     {
-        glViewport(off_x, off_y, size_x, size_y);
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrtho(0, tdimx, tdimy, 0, -1, 1);
-
         glVertexPointer(2, GL_FLOAT, 0, vertexes);
 
         // Render background colors
@@ -703,3 +703,4 @@ bool renderer_cool::get_mouse_coords(int32_t *x, int32_t *y)
     
     return true;
 }
+    
