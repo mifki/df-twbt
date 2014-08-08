@@ -37,7 +37,7 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
 	}    
 
     DEFINE_VMETHOD_INTERPOSE(void, render, ())
-    {
+    {   
         //if (df::global::ui_advmode->unk35b)
             //return;
         int oldwx = *df::global::window_x;
@@ -45,6 +45,23 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         INTERPOSE_NEXT(render)();
         *df::global::window_x = oldwx;
         *df::global::window_y = oldwy;
+
+#ifdef WIN32
+        static bool patched = false;
+        if (!patched)
+        {
+            unsigned char t1[] = {  0x90,0x90, 0x90,0x90,0x90,0x90,0x90, 0x90,0x90,0x90,0x90,0x90 };
+            Core::getInstance().p->patchMemory((void*)(0x00536cc0+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+            Core::getInstance().p->patchMemory((void*)(0x00536d07+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+
+            Core::getInstance().p->patchMemory((void*)(0x00536d52+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+            Core::getInstance().p->patchMemory((void*)(0x00536da0+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+
+            Core::getInstance().p->patchMemory((void*)(0x00537053+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+
+            patched = true;
+        }
+#endif             
 
         static bool tmode_old;
         int m = df::global::ui_advmode->menu;
@@ -56,17 +73,6 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         }
         if (!tmode)
         	return;
-
-#ifdef WIN32
-        static bool patched = false;
-        if (!patched)
-        {
-            unsigned char t1[] = {  0x90,0x90, 0x90, 0x90,0x90,0x90,0x90,0x90 };
-            Core::getInstance().p->patchMemory((void*)(0x0058eabd+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
-
-            patched = true;
-        }
-#endif
 
     	renderer_cool *r = (renderer_cool*)enabler->renderer;
         r->handle_reshape_zoom_requests();       
