@@ -73,7 +73,7 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
 
 #ifdef WIN32
         void (*_render_map)(int) = (void (*)(int))(0x008f65c0+(Core::getInstance().vinfo->getRebaseDelta()));
-        #define render_map() _render_map(1)
+        #define render_map() _render_map(0)
 #elif defined(__APPLE__)
         void (*_render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
     #ifdef DFHACK_r5
