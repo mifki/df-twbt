@@ -582,8 +582,6 @@ void renderer_cool::display_new(bool update_graphics)
                 }
             }
         }
-
-        gswap_arrays();
     }
 } 
 
@@ -626,7 +624,7 @@ void renderer_cool::allocate_buffers(int tiles)
     _gscreentexpos_cf[1]        = _gscreentexpos_cf[0]        + tiles;
     _gscreentexpos_cbr[1]       = _gscreentexpos_cbr[0]       + tiles;
 
-    gswap_arrays();
+    //gswap_arrays();
 
     //TODO: don't allocate arrays below if multilevel rendering is not enabled
     REALLOC(depth,      int8_t,  tiles)

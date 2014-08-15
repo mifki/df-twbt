@@ -69,7 +69,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         }
 
         r->handle_reshape_zoom_requests();       
-
+        r->gswap_arrays();
 
 #ifdef WIN32
         void (*_render_map)(int) = (void (*)(int))(0x008f65c0+(Core::getInstance().vinfo->getRebaseDelta()));
