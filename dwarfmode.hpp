@@ -84,6 +84,12 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 #else
 #endif
 
+        // These values may change from the main thread while being accessed from the rendering thread,
+        // and that will cause flickering of overridden tiles at least, so save them here
+        gwindow_x = *df::global::window_x;
+        gwindow_y = *df::global::window_y;
+        gwindow_z = *df::global::window_z;
+
         long *z = (long*)gscreen;
         for (int y = 0; y < r->gdimy; y++)
         {

@@ -77,8 +77,8 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
 
         if (overrides[s0])
         {
-            int xx = *df::global::window_x + x;
-            int yy = *df::global::window_y + y;
+            int xx = gwindow_x + x;
+            int yy = gwindow_y + y;
 
             if (xx < world->map.x_count && yy < world->map.y_count)
             {
@@ -91,7 +91,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
             }
             else
             {
-                int zz = *df::global::window_z - ((s[3]&0xf0)>>4);
+                int zz = gwindow_z - ((s[3]&0xf0)>>4);
                 bool matched = false;
                 int tiletype = -1;
 

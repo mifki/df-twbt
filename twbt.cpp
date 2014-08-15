@@ -157,6 +157,7 @@ static int small_map_dispx, small_map_dispy;
 static int large_map_dispx, large_map_dispy;
 
 static int tdimx, tdimy;
+static int gwindow_x, gwindow_y, gwindow_z;
 
 static float addcolors[][3] = { {1,0,0} };
 

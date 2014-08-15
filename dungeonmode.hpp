@@ -90,6 +90,12 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
 #else
 #endif
 
+        // These values may change from the main thread while being accessed from the rendering thread,
+        // and that will cause flickering of overridden tiles at least, so save them here
+        gwindow_x = *df::global::window_x;
+        gwindow_y = *df::global::window_y;
+        gwindow_z = *df::global::window_z;        
+
         uint8_t *sctop = enabler->renderer->screen;
         int32_t *screentexpostop = enabler->renderer->screentexpos;
         int8_t *screentexpos_addcolortop = enabler->renderer->screentexpos_addcolor;

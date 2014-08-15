@@ -327,8 +327,8 @@ void renderer_cool::draw(int vertex_count)
                 //TODO: don't do this if view not moved and tiles with shadows not changed
                 {
                     gl_texpos *txt = (gl_texpos *) enabler->textures.gl_texpos;
-                    int x1 = std::min(gdimx, world->map.x_count-*df::global::window_x);                
-                    int y1 = std::min(gdimy, world->map.y_count-*df::global::window_y);
+                    int x1 = std::min(gdimx, world->map.x_count-gwindow_x);                
+                    int y1 = std::min(gdimy, world->map.y_count-gwindow_y);
 
                     for (int tile = 0; tile < gdimx * gdimy; tile++)
                     {
