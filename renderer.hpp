@@ -565,7 +565,6 @@ void renderer_cool::display_new(bool update_graphics)
         {
             uint32_t *gscreenp = (uint32_t*)gscreen, *goldp = (uint32_t*)gscreen_old;
             int off = 0;
-            int zz = 0;
             for (int x2=0; x2 < gdimx; x2++) {
                 for (int y2=0; y2 < gdimy; y2++, ++off, ++gscreenp, ++goldp) {
                     // We don't use pointers for the non-screen arrays because we mostly fail at the
@@ -579,11 +578,9 @@ void renderer_cool::display_new(bool update_graphics)
                     gscreentexpos_cbr[off] == gscreentexpos_cbr_old[off])
                         ;
                     else
-                        update_map_tile(x2, y2),zz++;
+                        update_map_tile(x2, y2);
                 }
             }
-            if (zz > 0)
-            *out2 << zz << std::endl;
         }
 
         gswap_arrays();
