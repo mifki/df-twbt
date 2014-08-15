@@ -147,6 +147,7 @@ static color_ostream *out2;
 static vector< struct override > *overrides[256];
 static struct tileref override_defs[256];
 static df::item_flags bad_item_flags;
+static int gwindow_x, gwindow_y, gwindow_z;
 
 static int maxlevels = 0;
 static float fogdensity = 0.15f;
@@ -377,12 +378,12 @@ static void write_tile_arrays(df::renderer *r, int x, int y, GLfloat *fg, GLfloa
         int s0 = s[0];
         if (overrides[s0])
         {                
-            int xx = *df::global::window_x + x-1;
-            int yy = *df::global::window_y + y-1;
+            int xx = gwindow_x + x-1;
+            int yy = gwindow_y + y-1;
 
             if (!(s0 == 88 && df::global::cursor->x == xx && df::global::cursor->y == yy)) // Prevent overriding cursor
             {
-                int zz = *df::global::window_z - ((s[3]&0xf0)>>4);
+                int zz = gwindow_z - ((s[3]&0xf0)>>4);
                 bool matched = false;
 
                 // Items
@@ -550,6 +551,12 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
     DEFINE_VMETHOD_INTERPOSE(void, render, ())
     {
+        // These values may change from the main thread while being accessed from the rendering thread,
+        // and that will cause flickering of overridden tiles at least, so save them here
+        gwindow_x = *df::global::window_x;
+        gwindow_y = *df::global::window_y;
+        gwindow_z = *df::global::window_z;
+
         //clock_t c1 = clock();
         INTERPOSE_NEXT(render)();
 
