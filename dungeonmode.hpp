@@ -75,8 +75,7 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         	return;
 
     	renderer_cool *r = (renderer_cool*)enabler->renderer;
-        r->handle_reshape_zoom_requests();       
-        r->gswap_arrays();                
+        r->reshape_zoom_swap();
 
 #ifdef WIN32
         void (*_render_map)(int) = (void (*)(int))(0x008f65c0+(Core::getInstance().vinfo->getRebaseDelta()));
@@ -381,8 +380,6 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
                         x0 = x + 1;
                 }
 
-                if (!empty_tiles_left)
-                    break;
                 if (p++ >= maxp)
                     break;
             } while(empty_tiles_left);

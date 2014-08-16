@@ -295,7 +295,6 @@ static void replace_renderer()
     memcpy(&newr->screen, &oldr->screen, (char*)&newr->dummy-(char*)&newr->screen);
 
     newr->reshape_graphics();
-    newr->gswap_arrays();
 
     enabler->renderer = newr;
 

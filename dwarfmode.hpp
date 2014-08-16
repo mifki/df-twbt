@@ -68,8 +68,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
             r->needs_reshape = true;
         }
 
-        r->handle_reshape_zoom_requests();       
-        r->gswap_arrays();
+        r->reshape_zoom_swap();
 
 #ifdef WIN32
         void (_stdcall *_render_map)(int) = (void (_stdcall *)(int))(0x008f65c0+(Core::getInstance().vinfo->getRebaseDelta()));
@@ -161,12 +160,12 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                 if (p > 1)
                 {
                     (*df::global::window_x) += x0;
-                    init->display.grid_x -= x0-1;
+                    init->display.grid_x -= x0;
 
                     render_map();
 
                     (*df::global::window_x) -= x0;
-                    init->display.grid_x += x0-1;
+                    init->display.grid_x += x0;
                 }
 
                 empty_tiles_left = false;
@@ -213,12 +212,12 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                             multi_rendered = true;
 
                             (*df::global::window_x) += x0;
-                            init->display.grid_x -= x0-1;
+                            init->display.grid_x -= x0;
 
                             render_map();
 
                             (*df::global::window_x) -= x0;
-                            init->display.grid_x += x0-1;
+                            init->display.grid_x += x0;
 
                             x00 = x0;
 
@@ -281,12 +280,12 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                         if (p == 1 && !rendered1st)
                         {
                             (*df::global::window_x) += x0;
-                            init->display.grid_x -= x0-1;
+                            init->display.grid_x -= x0;
 
                             render_map();
 
                             (*df::global::window_x) -= x0;
-                            init->display.grid_x += x0-1;
+                            init->display.grid_x += x0;
 
                             x00 = x0;
 
@@ -348,8 +347,6 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                         x0 = x + 1;
                 }
 
-                if (!empty_tiles_left)
-                    break;
                 if (p++ >= maxp)
                     break;
             } while(empty_tiles_left);

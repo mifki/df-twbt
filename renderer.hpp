@@ -624,7 +624,7 @@ void renderer_cool::allocate_buffers(int tiles)
     _gscreentexpos_cf[1]        = _gscreentexpos_cf[0]        + tiles;
     _gscreentexpos_cbr[1]       = _gscreentexpos_cbr[0]       + tiles;
 
-    //gswap_arrays();
+    gswap_arrays();
 
     //TODO: don't allocate arrays below if multilevel rendering is not enabled
     REALLOC(depth,      int8_t,  tiles)
@@ -649,7 +649,7 @@ void renderer_cool::allocate_buffers(int tiles)
     memset(mscreentexpos,               0, tiles * sizeof(int32_t));
 }
 
-void renderer_cool::handle_reshape_zoom_requests()
+void renderer_cool::reshape_zoom_swap()
 {
     static int game_mode = 3;
     if (game_mode != *df::global::gamemode)
@@ -684,7 +684,9 @@ void renderer_cool::handle_reshape_zoom_requests()
         needs_reshape = false;
         reshape_graphics();
         gps->force_full_display_count = 1;
-    }    
+    }
+    else
+        gswap_arrays();
 }
 
 extern "C" {
