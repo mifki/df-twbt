@@ -38,13 +38,17 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
 
     DEFINE_VMETHOD_INTERPOSE(void, render, ())
     {   
-        //if (df::global::ui_advmode->unk35b)
-            //return;
-        int oldwx = *df::global::window_x;
-        int oldwy = *df::global::window_y;
+        // These values may change from the main thread while being accessed from the rendering thread,
+        // and that will cause flickering of overridden tiles at least, so save them here
+        gwindow_x = *df::global::window_x;
+        gwindow_y = *df::global::window_y;
+        gwindow_z = *df::global::window_z;        
+
         INTERPOSE_NEXT(render)();
-        *df::global::window_x = oldwx;
-        *df::global::window_y = oldwy;
+
+        // It's a way around something
+        *df::global::window_x = gwindow_x;
+        *df::global::window_y = gwindow_y;
 
 #ifdef WIN32
         static bool patched = false;
@@ -78,23 +82,22 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         r->reshape_zoom_swap();
 
 #ifdef WIN32
-        void (*_render_map)(int) = (void (*)(int))(0x008f65c0+(Core::getInstance().vinfo->getRebaseDelta()));
+        void (_stdcall *_render_map)(int) = (void (_stdcall *)(int))(0x008f65c0+(Core::getInstance().vinfo->getRebaseDelta()));
+        void (_stdcall *_render_updown)() = (void (_stdcall *)())(0x007510c0+(Core::getInstance().vinfo->getRebaseDelta()));
         #define render_map() _render_map(0)
+        #define render_updown() _render_updown()
 #elif defined(__APPLE__)
         void (*_render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
+        void (*_render_updown)(void *) = (void (*)(void *))0x00619fe0;
     #ifdef DFHACK_r5
         #define render_map() _render_map(df::global::map_renderer, 0)
+        #define render_updown() _render_updown(df::global::map_renderer)
     #else
         #define render_map() _render_map(df::global::cursor_unit_list, 0)
+        #define render_updown() _render_updown(df::global::cursor_unit_list)
     #endif
 #else
 #endif
-
-        // These values may change from the main thread while being accessed from the rendering thread,
-        // and that will cause flickering of overridden tiles at least, so save them here
-        gwindow_x = *df::global::window_x;
-        gwindow_y = *df::global::window_y;
-        gwindow_z = *df::global::window_z;        
 
         uint8_t *sctop = enabler->renderer->screen;
         int32_t *screentexpostop = enabler->renderer->screentexpos;
@@ -388,6 +391,8 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
 
             //(*df::global::window_z)-=1;
         }
+        else
+            render_updown();
 
         init->display.grid_x = gps->dimx = tdimx;
         init->display.grid_y = gps->dimy = tdimy;

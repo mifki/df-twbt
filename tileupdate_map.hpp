@@ -155,7 +155,10 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                         if (tiletype == -1)
                         {
                             df::map_block *block = world->map.block_index[xx>>4][yy>>4][zz];
-                            tiletype = block->tiletype[xx&15][yy&15];
+                            if (block)
+                                tiletype = block->tiletype[xx&15][yy&15];
+                            else
+                                tiletype = -2;
                         }
 
                         if (tiletype == o.type)
