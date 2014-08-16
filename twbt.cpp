@@ -517,7 +517,7 @@ static void hook()
 #endif
     
     memcpy(&newr->screen, &oldr->screen, (char*)&newr->dummy-(char*)&newr->screen);
-    enabler->renderer = newr;
+    enabler->renderer = (df::renderer*)newr;
     //free(oldr);
 
     enabled = true;   
@@ -531,7 +531,7 @@ static void unhook()
     enabled = false;
 
     //TODO: !!!
-    enabler->renderer = oldr;
+    enabler->renderer = (df::renderer*)oldr;
 
     gps->force_full_display_count = true;
 }
@@ -758,7 +758,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
 IMPLEMENT_VMETHOD_INTERPOSE_PRIO(dwarfmode_hook, render, 1000);
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && defined(DF_34)
 //0x0079cb2a+4 0x14 - item name length
 //0x0079cb18+3 0x14 - item name length
 
@@ -858,6 +858,8 @@ struct traderesize_hook : public df::viewscreen_tradegoodsst
 };
 
 IMPLEMENT_VMETHOD_INTERPOSE(traderesize_hook, render);
+#else
+#define NO_TRADEFIX
 #endif
 
 
@@ -1035,15 +1037,24 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     }
 
     out2 = &out;
-    
-#ifdef WIN32
-    load_multi_pdim = (LOAD_MULTI_PDIM) (0x00a52670 + Core::getInstance().vinfo->getRebaseDelta());
-#elif defined(__APPLE__)
-    load_multi_pdim = (LOAD_MULTI_PDIM) 0x00cfbbb0;    
-#else
-    load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
-#endif
 
+#if defined(DF_34)
+    #ifdef WIN32
+        load_multi_pdim = (LOAD_MULTI_PDIM) (0x00a52670 + Core::getInstance().vinfo->getRebaseDelta());
+    #elif defined(__APPLE__)
+        load_multi_pdim = (LOAD_MULTI_PDIM) 0x00cfbbb0;    
+    #else
+        load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
+    #endif
+#elif defined(DF_40)
+    #ifdef WIN32
+        load_multi_pdim = (LOAD_MULTI_PDIM) (0x00b6a680 + Core::getInstance().vinfo->getRebaseDelta());
+    #elif defined(__APPLE__)
+        load_multi_pdim = (LOAD_MULTI_PDIM) 0x00f6e4e0;    
+    #else
+        load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
+    #endif
+#endif
     bad_item_flags.whole = 0;
     bad_item_flags.bits.in_building = true;
     bad_item_flags.bits.garbage_collect = true;
@@ -1078,7 +1089,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     hook();
 
     INTERPOSE_HOOK(dwarfmode_hook, render).apply(true);
-#ifdef __APPLE__
+#ifndef NO_TRADEFIX
     INTERPOSE_HOOK(traderesize_hook, render).apply(true);
 #endif
 
@@ -1117,7 +1128,7 @@ DFhackCExport command_result plugin_onstatechange(color_ostream &out, state_chan
 DFhackCExport command_result plugin_shutdown ( color_ostream &out )
 {    
     INTERPOSE_HOOK(dwarfmode_hook, render).apply(false);
-#ifdef __APPLE__
+#ifndef NO_TRADEFIX
     INTERPOSE_HOOK(traderesize_hook, render).apply(false);
 #endif        
 

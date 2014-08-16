@@ -1,7 +1,35 @@
 static volatile int domapshot = 0;
 
+// Something bad happens if we try to instantiate class inheriting from df::renderer,
+// so this is just its copy
+struct renderer_noconflict {
+    uint8_t* screen;
+    int32_t* screentexpos;
+    int8_t* screentexpos_addcolor;
+    uint8_t* screentexpos_grayscale;
+    uint8_t* screentexpos_cf;
+    uint8_t* screentexpos_cbr;
+    uint8_t* screen_old;
+    int32_t* screentexpos_old;
+    int8_t* screentexpos_addcolor_old;
+    uint8_t* screentexpos_grayscale_old;
+    uint8_t* screentexpos_cf_old;
+    uint8_t* screentexpos_cbr_old;
+
+    virtual void update_tile(int32_t, int32_t) { /*0*/ };
+    virtual void update_all() { /*1*/ };
+    virtual void render() { /*2*/ };
+    virtual void set_fullscreen() { /*3*/ };
+    virtual void zoom(df::zoom_commands) { /*4*/ };
+    virtual void resize(int32_t, int32_t) { /*5*/ };
+    virtual void grid_resize(int32_t, int32_t) { /*6*/ };
+    virtual ~renderer_noconflict() { /*7*/ };
+    virtual bool get_mouse_coords(int32_t*, int32_t*) { return bool(); /*8*/ };
+    virtual bool uses_opengl() { return bool(); /*9*/ };
+};
+
 // This is from g_src/renderer_opengl.hpp
-struct renderer_opengl_noconflict : df::renderer
+struct renderer_opengl_noconflict : renderer_noconflict
 {
     void *sdlscreen;
     int dispx, dispy;
@@ -44,7 +72,7 @@ void renderer_cool::update_tile(int x, int y)
     GLfloat *_bg  = bg + tile * 4 * 6;
     GLfloat *_tex = tex + tile * 2 * 6;
 
-    write_tile_arrays(this, x, y, _fg, _bg, _tex);
+    write_tile_arrays((df::renderer *)this, x, y, _fg, _bg, _tex);
 
     //const int tile = x * gps->dimy + y;
     float d = (float)((screen[tile*4+3]&0xf0)>>4);
