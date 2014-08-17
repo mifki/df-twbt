@@ -55,7 +55,8 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         //clock_t c1 = clock();
         INTERPOSE_NEXT(render)();
 
-#ifdef WIN32
+#if defined(DF_03411)
+    #ifdef WIN32
         static bool patched = false;
         if (!patched)
         {
@@ -64,6 +65,18 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
             patched = true;
         }
+    #endif
+#elif defined(DF_04008)
+    #ifdef WIN32
+        static bool patched = false;
+        if (!patched)
+        {
+            unsigned char t1[] = {  0x90,0x90, 0x90, 0x90,0x90,0x90,0x90,0x90 };
+            Core::getInstance().p->patchMemory((void*)(0x006211dd+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+
+            patched = true;
+        }
+    #endif            
 #endif
 
         renderer_cool *r = (renderer_cool*)enabler->renderer;
@@ -76,17 +89,26 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
         r->reshape_zoom_swap();
 
-#ifdef WIN32
+#if defined(DF_03411)
+    #ifdef WIN32
         void (_stdcall *_render_map)(int) = (void (_stdcall *)(int))(0x008f65c0+(Core::getInstance().vinfo->getRebaseDelta()));
         #define render_map() _render_map(0)
-#elif defined(__APPLE__)
+    #elif defined(__APPLE__)
         void (*_render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
-    #ifdef DFHACK_r5
         #define render_map() _render_map(df::global::map_renderer, 0)
     #else
-        #define render_map() _render_map(df::global::cursor_unit_list, 0)
+        #error Linux not supported yet
     #endif
-#else
+#elif defined(DF_04008)
+    #ifdef WIN32
+        void (_stdcall *_render_map)(int) = (void (_stdcall *)(int))(0x009b7240+(Core::getInstance().vinfo->getRebaseDelta()));
+        #define render_map() _render_map(0)
+    #elif defined(__APPLE__)
+        void (*_render_map)(void *, int) = (void (*)(void *, int))0x009a1ad0;
+        #define render_map() _render_map(df::global::map_renderer, 0)
+    #else
+        #error Linux not supported yet
+    #endif
 #endif
 
         long *z = (long*)gscreen;
@@ -279,6 +301,8 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
                         if (p == 1 && !rendered1st)
                         {
+                            multi_rendered = true;
+
                             (*df::global::window_x) += x0;
                             init->display.grid_x -= x0;
 

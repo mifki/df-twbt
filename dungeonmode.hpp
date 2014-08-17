@@ -50,7 +50,8 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         *df::global::window_x = gwindow_x;
         *df::global::window_y = gwindow_y;
 
-#ifdef WIN32
+#if defined(DF_32)
+    #ifdef WIN32
         static bool patched = false;
         if (!patched)
         {
@@ -65,11 +66,29 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
 
             patched = true;
         }
-#endif             
+    #endif             
+#elif defined(DF_04008)
+    #ifdef WIN32
+        static bool patched = false;
+        if (!patched)
+        {
+            unsigned char t1[] = {  0x90,0x90, 0x90,0x90,0x90,0x90,0x90, 0x90,0x90,0x90,0x90,0x90 };
+            Core::getInstance().p->patchMemory((void*)(0x005a1865+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+            Core::getInstance().p->patchMemory((void*)(0x005a18b0+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+
+            Core::getInstance().p->patchMemory((void*)(0x005a18ff+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+            Core::getInstance().p->patchMemory((void*)(0x005a1954+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+
+            Core::getInstance().p->patchMemory((void*)(0x005a1de9+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+
+            patched = true;
+        }
+    #endif        
+#endif        
 
         static bool tmode_old;
         int m = df::global::ui_advmode->menu;
-        bool tmode = (m == df::ui_advmode_menu::Default || m == df::ui_advmode_menu::Look || m == df::ui_advmode_menu::ThrowAim || m == df::ui_advmode_menu::Talk);
+        bool tmode = (m == df::ui_advmode_menu::Default || m == df::ui_advmode_menu::Look || m == df::ui_advmode_menu::ThrowAim || m == df::ui_advmode_menu::Talk || m == 14);
         if (tmode != tmode_old)
         {
         	tmode_old = tmode;
@@ -81,22 +100,34 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
     	renderer_cool *r = (renderer_cool*)enabler->renderer;
         r->reshape_zoom_swap();
 
-#ifdef WIN32
-        void (_stdcall *_render_map)(int) = (void (_stdcall *)(int))(0x008f65c0+(Core::getInstance().vinfo->getRebaseDelta()));
-        void (_stdcall *_render_updown)() = (void (_stdcall *)())(0x007510c0+(Core::getInstance().vinfo->getRebaseDelta()));
-        #define render_map() _render_map(0)
-        #define render_updown() _render_updown()
-#elif defined(__APPLE__)
-        void (*_render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
-        void (*_render_updown)(void *) = (void (*)(void *))0x00619fe0;
-    #ifdef DFHACK_r5
-        #define render_map() _render_map(df::global::map_renderer, 0)
-        #define render_updown() _render_updown(df::global::map_renderer)
+#if defined(DF_03411)
+    #ifdef WIN32
+            void (_stdcall *_render_map)(int) = (void (_stdcall *)(int))(0x008f65c0+(Core::getInstance().vinfo->getRebaseDelta()));
+            void (_stdcall *_render_updown)() = (void (_stdcall *)())(0x007510c0+(Core::getInstance().vinfo->getRebaseDelta()));
+            #define render_map() _render_map(0)
+            #define render_updown() _render_updown()
+    #elif defined(__APPLE__)
+            void (*_render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
+            void (*_render_updown)(void *) = (void (*)(void *))0x00619fe0;
+            #define render_map() _render_map(df::global::map_renderer, 0)
+            #define render_updown() _render_updown(df::global::map_renderer)
     #else
-        #define render_map() _render_map(df::global::cursor_unit_list, 0)
-        #define render_updown() _render_updown(df::global::cursor_unit_list)
+            #error Linux not supported yet
     #endif
-#else
+#elif defined(DF_04008)
+    #ifdef WIN32
+            void (_stdcall *_render_map)(int) = (void (_stdcall *)(int))(0x009b7240+(Core::getInstance().vinfo->getRebaseDelta()));
+            void (_stdcall *_render_updown)() = (void (_stdcall *)())(0x007fa740+(Core::getInstance().vinfo->getRebaseDelta()));
+            #define render_map() _render_map(0)
+            #define render_updown() _render_updown()
+    #elif defined(__APPLE__)
+            void (*_render_map)(void *, int) = (void (*)(void *, int))0x009a1ad0;
+            void (*_render_updown)(void *) = (void (*)(void *))0x0075d950;
+            #define render_map() _render_map(df::global::map_renderer, 0)
+            #define render_updown() _render_updown(df::global::map_renderer)
+    #else
+            #error Linux not supported yet
+    #endif
 #endif
 
         uint8_t *sctop = enabler->renderer->screen;
@@ -284,7 +315,7 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
                         // Slow path. Without rendering patch we have to check all symbols that the game
                         // may render for lower levels if a tile is empty on the current level.
 
-                        #error Adv. mode without rendering patch isn't ready yet
+                        #warning Adv. mode without rendering patch isn't ready yet
 
                         if ((gscreen[stile+3]&0xf0))
                             continue;
@@ -314,6 +345,8 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
 
                         if (p == 1 && !rendered1st)
                         {
+                            multi_rendered = true;
+
                             (*df::global::window_x) += x0;
                             init->display.grid_x -= x0-1;
 

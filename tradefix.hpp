@@ -1,4 +1,4 @@
-#ifdef __APPLE__
+#if defined(__APPLE__) && defined(DF_03411)
 //0x0079cb2a+4 0x14 - item name length
 //0x0079cb18+3 0x14 - item name length
 

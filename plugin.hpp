@@ -23,13 +23,24 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 
     out2 = &out;
 
-#ifdef WIN32
-    load_multi_pdim = (LOAD_MULTI_PDIM) (0x00a52670 + Core::getInstance().vinfo->getRebaseDelta());
-#elif defined(__APPLE__)
-    load_multi_pdim = (LOAD_MULTI_PDIM) 0x00cfbbb0;    
-#else
-    load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
-    #error Linux not supported yet
+#if defined(DF_03411)
+    #ifdef WIN32
+        load_multi_pdim = (LOAD_MULTI_PDIM) (0x00a52670 + Core::getInstance().vinfo->getRebaseDelta());
+    #elif defined(__APPLE__)
+        load_multi_pdim = (LOAD_MULTI_PDIM) 0x00cfbbb0;    
+    #else
+        load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
+        #error Linux not supported yet
+    #endif
+#elif defined(DF_04008)
+    #ifdef WIN32
+        load_multi_pdim = (LOAD_MULTI_PDIM) (0x00b6a680 + Core::getInstance().vinfo->getRebaseDelta());
+    #elif defined(__APPLE__)
+        load_multi_pdim = (LOAD_MULTI_PDIM) 0x00f6e4e0;    
+    #else
+        load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
+        #error Linux not supported yet
+    #endif
 #endif
 
     bad_item_flags.whole = 0;
@@ -91,7 +102,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     INTERPOSE_HOOK(dungeonmode_hook, logic).apply(true);
     INTERPOSE_HOOK(dungeonmode_hook, feed).apply(true);
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && defined(DF_03411)
     INTERPOSE_HOOK(traderesize_hook, render).apply(true);
 #endif    
 
@@ -137,7 +148,7 @@ DFhackCExport command_result plugin_shutdown ( color_ostream &out )
     /*if (enabled)
         restore_renderer();
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && defined(DF_03411)
     INTERPOSE_HOOK(traderesize_hook, render).apply(false);
 #endif            
 

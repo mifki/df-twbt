@@ -2,7 +2,7 @@
 #define _RENDERER_TWBT_H
 
 // This is from g_src/renderer_opengl.hpp
-struct _renderer_opengl : df::renderer
+struct _renderer_opengl : public df::renderer
 {
     void *sdlscreen;
     int dispx, dispy;

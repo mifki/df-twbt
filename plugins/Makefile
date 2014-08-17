@@ -1,6 +1,8 @@
 DFHACKVER ?= 0.34.11
 DFHACKREL ?= r5
 
+DFMAJOR = `echo $(DFHACKVER) | sed s/\\\\.//g`
+
 DF ?= /Users/vit/Desktop/df-r5
 DH ?= /Users/vit/Downloads/dfhack-$(DFHACKREL)
 
@@ -27,7 +29,7 @@ all: $(OUT)
 
 $(OUT): $(SRC) $(DEP)
 	-@mkdir -p `dirname $(OUT)`
-	$(CXX) $(SRC) -o $(OUT) -DDFHACK_VERSION=\"$(DFHACKVER)-$(DFHACKREL)\" -DDFHACK_$(DFHACKREL) $(CFLAGS) $(LDFLAGS)
+	$(CXX) $(SRC) -o $(OUT) -DDFHACK_VERSION=\"$(DFHACKVER)-$(DFHACKREL)\" -DDFHACK_$(DFHACKREL) -DDF_$(DFMAJOR) $(CFLAGS) $(LDFLAGS)
 
 inst: $(OUT)
 	cp $(OUT) "$(DF)/hack/plugins/"

@@ -37,7 +37,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>DFHACK_VERSION="0.34.11-$(dfhackrel)";WIN32;NDEBUG;_WINDOWS;_USRDLL;TWBT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DFHACK_VERSION="$(dfhackver)-$(dfhackrel)";DF_$(dfmajor);WIN32;NDEBUG;_WINDOWS;_USRDLL;TWBT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(dfhack)\depends\protobuf;$(dfhack)\depends\lua\include;$(dfhack)\library\proto;$(dfhack)\library\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CallingConvention>Cdecl</CallingConvention>
     </ClCompile>

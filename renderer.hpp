@@ -504,7 +504,7 @@ void renderer_cool::draw(int vertex_count)
 
 void renderer_cool::display_new(bool update_graphics)
 {
-#if defined(__APPLE__) || defined(WIN32)
+#ifndef NO_DISPLAY_PATCH
     // In this case this function replaces original (non-virtual) renderer::display()
     // So update text tiles here
 
