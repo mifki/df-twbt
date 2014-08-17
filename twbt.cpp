@@ -758,7 +758,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
 IMPLEMENT_VMETHOD_INTERPOSE_PRIO(dwarfmode_hook, render, 1000);
 
-#if defined(__APPLE__) && defined(DF_34)
+#if defined(__APPLE__) && defined(DF_03411)
 //0x0079cb2a+4 0x14 - item name length
 //0x0079cb18+3 0x14 - item name length
 
@@ -1038,7 +1038,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 
     out2 = &out;
 
-#if defined(DF_34)
+#if defined(DF_03411)
     #ifdef WIN32
         load_multi_pdim = (LOAD_MULTI_PDIM) (0x00a52670 + Core::getInstance().vinfo->getRebaseDelta());
     #elif defined(__APPLE__)
@@ -1046,7 +1046,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     #else
         load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
     #endif
-#elif defined(DF_40)
+#elif defined(DF_04008)
     #ifdef WIN32
         load_multi_pdim = (LOAD_MULTI_PDIM) (0x00b6a680 + Core::getInstance().vinfo->getRebaseDelta());
     #elif defined(__APPLE__)
@@ -1055,6 +1055,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
     #endif
 #endif
+
     bad_item_flags.whole = 0;
     bad_item_flags.bits.in_building = true;
     bad_item_flags.bits.garbage_collect = true;

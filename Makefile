@@ -1,7 +1,7 @@
 DFHACKVER ?= 0.34.11
 DFHACKREL ?= r5
 
-DFMAJOR = `echo $(DFHACKVER) | awk '{print(substr($$1,3,2))}'`
+DFMAJOR = `echo $(DFHACKVER) | sed s/\\\\.//g`
 
 DF ?= /Users/vit/Desktop/df-r5
 DH ?= /Users/vit/Downloads/dfhack-$(DFHACKREL)
