@@ -627,9 +627,10 @@ void renderer_cool::allocate_buffers(int tiles)
     gswap_arrays();
 
     //TODO: don't allocate arrays below if multilevel rendering is not enabled
+    //TODO: calculate maximum possible number of shadows
     REALLOC(depth,      int8_t,  tiles)
-    REALLOC(shadowtex,  GLfloat, tiles * 2 * 6)
-    REALLOC(shadowvert, GLfloat, tiles * 2 * 6)
+    REALLOC(shadowtex,  GLfloat, tiles * 4 * 2 * 6)
+    REALLOC(shadowvert, GLfloat, tiles * 4 * 2 * 6)
     REALLOC(fogcoord,   GLfloat, tiles * 6)
 
     REALLOC(mscreen,                 uint8_t, tiles * 4)
