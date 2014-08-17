@@ -286,8 +286,8 @@ bool is_text_tile(int x, int y, bool &is_map)
 static float addcolors[][3] = { {1,0,0} };
 static unsigned char depth[256*256];
 static float fogcoord[256*256*6];
-static GLfloat shadowtex[256*256*2*6];
-static GLfloat shadowvert[256*256*2*6];
+static GLfloat shadowtex[256*256*4*2*6];
+static GLfloat shadowvert[256*256*4*2*6];
 static long shadow_texpos[8];
 static bool shadowsloaded;
 
