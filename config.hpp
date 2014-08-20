@@ -446,40 +446,46 @@ static void load_colormap()
 
 void update_custom_building_overrides()
 {
-    /*for (int j = 0; j < 256; j++)
+    for (int j = 0; j < 256; j++)
     {
         if (!overrides[j])
             continue;
 
-        for (int k = 0; k < overrides[j]->size(); k++)
+        for (auto it = overrides[j]->building_overrides.begin(); it != overrides[j]->building_overrides.end(); it++)
         {
-            struct override &o = (*overrides[j])[k];
+            override_group &og = *it;
 
-            if (o.kind == 'B' &&
-                (o.id == buildings_other_id::WORKSHOP_CUSTOM || o.id == buildings_other_id::FURNACE_CUSTOM) &&
-                o.subtypename.length())
+            if (og.other_id == buildings_other_id::WORKSHOP_CUSTOM || og.other_id == buildings_other_id::FURNACE_CUSTOM)
             {
-                o.subtype = -2;
-                auto ilist = world->raws.buildings.all; //TODO: should use different arrays for workshops and furnaces
-
-                for (auto it = ilist.begin(); it != ilist.end(); it++)
+                for (auto it3 = og.overrides.begin(); it3 != og.overrides.end(); it3++)
                 {
-                    df::building_def *bdef = *it;
+                    override &o = *it3;
 
-                    if (bdef->code == o.subtypename)
+                    if (o.subtypename.length())
                     {
-                        o.subtype = bdef->id;
-                        break;
+                        o.subtype = -2;
+                        auto ilist = world->raws.buildings.all; //TODO: should use different arrays for workshops and furnaces?
+
+                        for (auto it = ilist.begin(); it != ilist.end(); it++)
+                        {
+                            df::building_def *bdef = *it;
+
+                            if (bdef->code == o.subtypename)
+                            {
+                                o.subtype = bdef->id;
+                                break;
+                            }
+                        }
+
+                        if (o.subtype == -2)
+                        {
+                            *out2 << COLOR_YELLOW << "TWBT: no custom building for name " << o.subtypename << std::endl;
+                            *out2 << COLOR_RESET;
+                            continue;
+                        }                    
                     }
                 }
-
-                if (o.subtype == -2)
-                {
-                    *out2 << COLOR_YELLOW << "TWBT: no custom building for name " << o.subtypename << std::endl;
-                    *out2 << COLOR_RESET;
-                    continue;
-                }                    
             }
         }
-    }*/
+    }
 }

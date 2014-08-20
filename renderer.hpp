@@ -556,10 +556,13 @@ void renderer_cool::display_new(bool update_graphics)
         if (needs_full_update)
         {
             needs_full_update = false;
-    
+
+            //clock_t c1 = clock();
             for (int x2 = 0; x2 < gdimx; x2++)
                 for (int y2 = 0; y2 < gdimy; y2++)
                     update_map_tile(x2, y2);
+            //clock_t c2 = clock();
+            //*out2 << (c2-c1) << std::endl;
         }
         else
         {
