@@ -95,8 +95,96 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                 bool matched = false;
                 int tiletype = -1;
 
+                tile_overrides *to = overrides[s0];
+
+                // Items
+                for (auto it = to->item_overrides.begin(); it != to->item_overrides.end(); it++)
+                {
+                    override_group &og = *it;
+
+                    auto ilist = world->items.other[og.other_id];
+                    for (auto it2 = ilist.begin(); it2 != ilist.end(); it2++)
+                    {
+                        df::item *item = *it2;
+                        if (!(zz == item->pos.z && xx == item->pos.x && yy == item->pos.y))
+                            continue;
+                        if (item->flags.whole & bad_item_flags.whole)
+                            continue;
+
+                        for (auto it3 = og.overrides.begin(); it3 != og.overrides.end(); it3++)
+                        {
+                            override &o = *it3;
+
+                            if (o.type != -1 && item->getType() != o.type)
+                                continue;
+                            if (o.subtype != -1 && item->getSubtype() != o.subtype)
+                                continue;
+
+                            ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
+
+                            goto matched;
+                        }
+                    }
+                }
+
+                // Buildings
+                for (auto it = to->building_overrides.begin(); it != to->building_overrides.end(); it++)
+                {
+                    override_group &og = *it;
+
+                    auto ilist = world->buildings.other[og.other_id];
+                    for (auto it2 = ilist.begin(); it2 != ilist.end(); it2++)
+                    {
+                        df::building *bld = *it2;
+                        if (zz != bld->z || xx < bld->x1 || xx > bld->x2 || yy < bld->y1 || yy > bld->y2)
+                            continue;
+
+
+                        for (auto it3 = og.overrides.begin(); it3 != og.overrides.end(); it3++)
+                        {
+                            override &o = *it3;
+
+                            if (o.type != -1 && bld->getType() != o.type)
+                                continue;
+                            
+                            if (o.subtype != -1)
+                            {
+                                int subtype = (og.other_id == buildings_other_id::WORKSHOP_CUSTOM || og.other_id == buildings_other_id::FURNACE_CUSTOM) ?
+                                    bld->getCustomType() : bld->getSubtype();
+
+                                if (subtype != o.subtype)
+                                    continue;
+                            }
+
+                            ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
+
+                            goto matched;
+                        }
+                    }
+                }
+
+                // Tile types
+                df::map_block *block = world->map.block_index[xx>>4][yy>>4][zz];
+                if (block)
+                {
+                    int tiletype = block->tiletype[xx&15][yy&15];
+
+                    for (auto it3 = to->tiletype_overrides.begin(); it3 != to->tiletype_overrides.end(); it3++)
+                    {
+                        override &o = *it3;
+
+                        if (tiletype == o.type)
+                        {
+                            ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
+
+                            matched = true;
+                            break;                        
+                        }
+                    }
+                }
+
                 // Items / buildings
-                for (int j = 0; j < overrides[s0]->size(); j++)
+                /*for (int j = 0; j < overrides[s0]->size(); j++)
                 {
                     struct override &o = (*overrides[s0])[j];
 
@@ -169,11 +257,12 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                             break;                        
                         }
                     }
-                }
+                }*/
             }
         }
         }
     }
+    matched:;
     
     // Set texture coordinates
     gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;

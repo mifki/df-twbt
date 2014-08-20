@@ -155,24 +155,25 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     int tsidx = tilesetnames[tsname];
 
     struct override o;
-    o.kind = tokens[1][0];
+    char kind = tokens[1][0];
+    int id;
 
     // Building or Item
     if (tokens.size() == 7)
     {
-        if (o.kind == 'B')
+        if (kind == 'B')
         {
-            if (!parse_enum_or_int<buildings_other_id::buildings_other_id>(tokens[2], o.id, buildings_other_id::IN_PLAY))
+            if (!parse_enum_or_int<buildings_other_id::buildings_other_id>(tokens[2], id, buildings_other_id::IN_PLAY))
                 return false;
             if (!parse_enum_or_int<building_type::building_type>(tokens[3], o.type))
                 return false;
 
-            if (o.id == buildings_other_id::WORKSHOP_CUSTOM || o.id == buildings_other_id::FURNACE_CUSTOM)
+            if (id == buildings_other_id::WORKSHOP_CUSTOM || id == buildings_other_id::FURNACE_CUSTOM)
                 o.subtypename = tokens[4];
         }
-        else if (o.kind == 'I')
+        else if (kind == 'I')
         {
-            if (!parse_enum_or_int<items_other_id::items_other_id>(tokens[2], o.id, items_other_id::IN_PLAY))
+            if (!parse_enum_or_int<items_other_id::items_other_id>(tokens[2], id, items_other_id::IN_PLAY))
                 return false;
             if (!parse_enum_or_int<item_type::item_type>(tokens[3], o.type))
                 return false;
@@ -187,7 +188,7 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     }
 
     // Tiletype
-    else if (tokens.size() == 5 && o.kind == 'T')
+    else if (tokens.size() == 5 && kind == 'T')
     {
         std::string &typestr = tokens[2];
         int ln = typestr.length();
@@ -229,8 +230,31 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     o.large_texpos = tilesets[tsidx].large_texpos[newtile];
 
     if (!overrides[tile])
-        overrides[tile] = new vector< struct override >;
-    overrides[tile]->push_back(o);
+        overrides[tile] = new tile_overrides;
+
+    if (kind == 'T')
+    {
+        overrides[tile]->tiletype_overrides.push_back(o);
+        return true;
+    }
+
+    auto &groups = (kind == 'I') ? overrides[tile]->item_overrides : overrides[tile]->building_overrides;
+
+    for (auto it = groups.begin(); it != groups.end(); it++)
+    {
+        override_group &grp = *it;
+
+        if (grp.other_id == id)
+        {
+            grp.overrides.push_back(o);
+            return true;
+        }
+    }
+
+    override_group grp;
+    grp.other_id = id;
+    grp.overrides.push_back(o);
+    groups.push_back(grp);
 
     return true;
 }
@@ -422,7 +446,7 @@ static void load_colormap()
 
 void update_custom_building_overrides()
 {
-    for (int j = 0; j < 256; j++)
+    /*for (int j = 0; j < 256; j++)
     {
         if (!overrides[j])
             continue;
@@ -457,5 +481,5 @@ void update_custom_building_overrides()
                 }                    
             }
         }
-    }
+    }*/
 }

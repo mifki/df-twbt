@@ -131,12 +131,24 @@ struct tileset {
 static vector< struct tileset > tilesets;
 
 struct override {
-    char kind;
-    int id, type, subtype;
+    int type, subtype;
     long small_texpos, large_texpos;
     std::string subtypename;
 };
-static vector< struct override > *overrides[256];
+
+struct override_group {
+    int other_id;
+
+    vector< struct override > overrides;
+};
+
+struct tile_overrides {
+    vector< struct override_group > item_overrides;
+    vector< struct override_group > building_overrides;
+    vector< struct override > tiletype_overrides;
+};
+
+static struct tile_overrides *overrides[256];
 
 long *text_texpos, *map_texpos;
 
