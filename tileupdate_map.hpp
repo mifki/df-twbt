@@ -83,97 +83,103 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
             if (xx < world->map.x_count && yy < world->map.y_count)
             {
 
-            if (s0 == 88 && df::global::cursor->x == xx && df::global::cursor->y == yy)
-            {
-                long texpos = enabler->fullscreen ? cursor_large_texpos : cursor_small_texpos;
-                if (texpos)
-                    ret.texpos = texpos;
-            }
-            else
-            {
-                int zz = gwindow_z - ((s[3]&0xf0)>>4);
-                bool matched = false;
-                int tiletype = -1;
-
-                // Items / buildings
-                for (int j = 0; j < overrides[s0]->size(); j++)
+                if (s0 == 88 && df::global::cursor->x == xx && df::global::cursor->y == yy)
                 {
-                    struct override &o = (*overrides[s0])[j];
+                    long texpos = enabler->fullscreen ? cursor_large_texpos : cursor_small_texpos;
+                    if (texpos)
+                        ret.texpos = texpos;
+                }
+                else
+                {
+                    int zz = gwindow_z - ((s[3]&0xf0)>>4);
 
-                    if (o.kind == 'B')
+                    tile_overrides *to = overrides[s0];
+
+                    // Items
+                    for (auto it = to->item_overrides.begin(); it != to->item_overrides.end(); it++)
                     {
-                        if (o.subtype == -2)
-                            continue;
+                        override_group &og = *it;
 
-                        auto ilist = world->buildings.other[o.id];
-                        for (auto it = ilist.begin(); it != ilist.end(); it++)
+                        auto ilist = world->items.other[og.other_id];
+                        for (auto it2 = ilist.begin(); it2 != ilist.end(); it2++)
                         {
-                            df::building *bld = *it;
-                            if (zz != bld->z || xx < bld->x1 || xx > bld->x2 || yy < bld->y1 || yy > bld->y2)
-                                continue;
-                            if (o.type != -1 && bld->getType() != o.type)
-                                continue;
-                            
-                            if (o.subtype != -1)
-                            {
-                                int subtype = (o.id == buildings_other_id::WORKSHOP_CUSTOM || o.id == buildings_other_id::FURNACE_CUSTOM) ?
-                                    bld->getCustomType() : bld->getSubtype();
-
-                                if (subtype != o.subtype)
-                                    continue;
-                            }
-
-                            ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
-
-                            matched = true;
-                            break;
-                        }
-                    }
-                    else if (o.kind == 'I')
-                    {
-                        auto ilist = world->items.other[o.id];
-                        for (auto it = ilist.begin(); it != ilist.end(); it++)
-                        {
-                            df::item *item = *it;
+                            df::item *item = *it2;
                             if (!(zz == item->pos.z && xx == item->pos.x && yy == item->pos.y))
                                 continue;
                             if (item->flags.whole & bad_item_flags.whole)
                                 continue;
-                            if (o.type != -1 && item->getType() != o.type)
-                                continue;
-                            if (o.subtype != -1 && item->getSubtype() != o.subtype)
-                                continue;
 
-                            ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
+                            for (auto it3 = og.overrides.begin(); it3 != og.overrides.end(); it3++)
+                            {
+                                override &o = *it3;
 
-                            matched = true;
-                            break;
+                                if (o.type != -1 && item->getType() != o.type)
+                                    continue;
+                                if (o.subtype != -1 && item->getSubtype() != o.subtype)
+                                    continue;
+
+                                ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
+                                goto matched;
+                            }
                         }
                     }
-                    else //if (o.kind == 'T')
+
+                    // Buildings
+                    for (auto it = to->building_overrides.begin(); it != to->building_overrides.end(); it++)
                     {
-                        if (tiletype == -1)
+                        override_group &og = *it;
+
+                        auto ilist = world->buildings.other[og.other_id];
+                        for (auto it2 = ilist.begin(); it2 != ilist.end(); it2++)
                         {
-                            df::map_block *block = world->map.block_index[xx>>4][yy>>4][zz];
-                            if (block)
-                                tiletype = block->tiletype[xx&15][yy&15];
-                            else
-                                tiletype = -2;
+                            df::building *bld = *it2;
+                            if (zz != bld->z || xx < bld->x1 || xx > bld->x2 || yy < bld->y1 || yy > bld->y2)
+                                continue;
+
+                            for (auto it3 = og.overrides.begin(); it3 != og.overrides.end(); it3++)
+                            {
+                                override &o = *it3;
+
+                                if (o.type != -1 && bld->getType() != o.type)
+                                    continue;
+                                
+                                if (o.subtype != -1)
+                                {
+                                    int subtype = (og.other_id == buildings_other_id::WORKSHOP_CUSTOM || og.other_id == buildings_other_id::FURNACE_CUSTOM) ?
+                                        bld->getCustomType() : bld->getSubtype();
+
+                                    if (subtype != o.subtype)
+                                        continue;
+                                }
+
+                                ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
+                                goto matched;
+                            }
                         }
+                    }
 
-                        if (tiletype == o.type)
+                    // Tile types
+                    df::map_block *block = world->map.block_index[xx>>4][yy>>4][zz];
+                    if (block)
+                    {
+                        int tiletype = block->tiletype[xx&15][yy&15];
+
+                        for (auto it3 = to->tiletype_overrides.begin(); it3 != to->tiletype_overrides.end(); it3++)
                         {
-                            ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
+                            override &o = *it3;
 
-                            matched = true;
-                            break;                        
+                            if (tiletype == o.type)
+                            {
+                                ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
+                                goto matched;
+                            }
                         }
                     }
                 }
             }
         }
-        }
     }
+    matched:;
     
     // Set texture coordinates
     gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;

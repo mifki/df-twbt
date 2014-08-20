@@ -155,24 +155,25 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     int tsidx = tilesetnames[tsname];
 
     struct override o;
-    o.kind = tokens[1][0];
+    char kind = tokens[1][0];
+    int id;
 
     // Building or Item
     if (tokens.size() == 7)
     {
-        if (o.kind == 'B')
+        if (kind == 'B')
         {
-            if (!parse_enum_or_int<buildings_other_id::buildings_other_id>(tokens[2], o.id, buildings_other_id::IN_PLAY))
+            if (!parse_enum_or_int<buildings_other_id::buildings_other_id>(tokens[2], id, buildings_other_id::IN_PLAY))
                 return false;
             if (!parse_enum_or_int<building_type::building_type>(tokens[3], o.type))
                 return false;
 
-            if (o.id == buildings_other_id::WORKSHOP_CUSTOM || o.id == buildings_other_id::FURNACE_CUSTOM)
+            if (id == buildings_other_id::WORKSHOP_CUSTOM || id == buildings_other_id::FURNACE_CUSTOM)
                 o.subtypename = tokens[4];
         }
-        else if (o.kind == 'I')
+        else if (kind == 'I')
         {
-            if (!parse_enum_or_int<items_other_id::items_other_id>(tokens[2], o.id, items_other_id::IN_PLAY))
+            if (!parse_enum_or_int<items_other_id::items_other_id>(tokens[2], id, items_other_id::IN_PLAY))
                 return false;
             if (!parse_enum_or_int<item_type::item_type>(tokens[3], o.type))
                 return false;
@@ -187,7 +188,7 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     }
 
     // Tiletype
-    else if (tokens.size() == 5 && o.kind == 'T')
+    else if (tokens.size() == 5 && kind == 'T')
     {
         std::string &typestr = tokens[2];
         int ln = typestr.length();
@@ -229,8 +230,31 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     o.large_texpos = tilesets[tsidx].large_texpos[newtile];
 
     if (!overrides[tile])
-        overrides[tile] = new vector< struct override >;
-    overrides[tile]->push_back(o);
+        overrides[tile] = new tile_overrides;
+
+    if (kind == 'T')
+    {
+        overrides[tile]->tiletype_overrides.push_back(o);
+        return true;
+    }
+
+    auto &groups = (kind == 'I') ? overrides[tile]->item_overrides : overrides[tile]->building_overrides;
+
+    for (auto it = groups.begin(); it != groups.end(); it++)
+    {
+        override_group &grp = *it;
+
+        if (grp.other_id == id)
+        {
+            grp.overrides.push_back(o);
+            return true;
+        }
+    }
+
+    override_group grp;
+    grp.other_id = id;
+    grp.overrides.push_back(o);
+    groups.push_back(grp);
 
     return true;
 }
@@ -427,34 +451,40 @@ void update_custom_building_overrides()
         if (!overrides[j])
             continue;
 
-        for (int k = 0; k < overrides[j]->size(); k++)
+        for (auto it = overrides[j]->building_overrides.begin(); it != overrides[j]->building_overrides.end(); it++)
         {
-            struct override &o = (*overrides[j])[k];
+            override_group &og = *it;
 
-            if (o.kind == 'B' &&
-                (o.id == buildings_other_id::WORKSHOP_CUSTOM || o.id == buildings_other_id::FURNACE_CUSTOM) &&
-                o.subtypename.length())
+            if (og.other_id == buildings_other_id::WORKSHOP_CUSTOM || og.other_id == buildings_other_id::FURNACE_CUSTOM)
             {
-                o.subtype = -2;
-                auto ilist = world->raws.buildings.all; //TODO: should use different arrays for workshops and furnaces
-
-                for (auto it = ilist.begin(); it != ilist.end(); it++)
+                for (auto it3 = og.overrides.begin(); it3 != og.overrides.end(); it3++)
                 {
-                    df::building_def *bdef = *it;
+                    override &o = *it3;
 
-                    if (bdef->code == o.subtypename)
+                    if (o.subtypename.length())
                     {
-                        o.subtype = bdef->id;
-                        break;
+                        o.subtype = -2;
+                        auto ilist = world->raws.buildings.all; //TODO: should use different arrays for workshops and furnaces?
+
+                        for (auto it = ilist.begin(); it != ilist.end(); it++)
+                        {
+                            df::building_def *bdef = *it;
+
+                            if (bdef->code == o.subtypename)
+                            {
+                                o.subtype = bdef->id;
+                                break;
+                            }
+                        }
+
+                        if (o.subtype == -2)
+                        {
+                            *out2 << COLOR_YELLOW << "TWBT: no custom building for name " << o.subtypename << std::endl;
+                            *out2 << COLOR_RESET;
+                            continue;
+                        }                    
                     }
                 }
-
-                if (o.subtype == -2)
-                {
-                    *out2 << COLOR_YELLOW << "TWBT: no custom building for name " << o.subtypename << std::endl;
-                    *out2 << COLOR_RESET;
-                    continue;
-                }                    
             }
         }
     }
