@@ -125,145 +125,70 @@ Please note that values from these lists are **case-sensitive** when used in `OV
 ### Item IDs ###
 This list comes from `df/items_other_id.h` include file in DFHack source code.
 
-> AMMO, AMULET, ANIMALTRAP, ANVIL, ANY_ARMOR_GLOVES, ANY_ARMOR_HELM, ANY_ARMOR_PANTS, ANY_ARMOR_SHOES, ANY_ARTIFACT, ANY_AUTO_CLEAN, ANY_CAGE_OR_TRAP, ANY_CAN_ROT, ANY_COOKABLE, ANY_CORPSE, ANY_CRITTER, ANY_DEAD_DWARF, ANY_DRINK, ANY_EDIBLE_BONECARN, ANY_EDIBLE_CARNIVORE, ANY_EDIBLE_RAW, ANY_EDIBLE_VERMIN, ANY_EDIBLE_VERMIN_BOX, ANY_ENCASED, ANY_FURNITURE, ANY_GENERIC123, ANY_GENERIC23, ANY_GENERIC24, ANY_GENERIC35, ANY_GENERIC36, ANY_GENERIC37, ANY_GENERIC38, ANY_GENERIC82, ANY_GOOD_FOOD, ANY_IN_CONSTRUCTION, ANY_MELT_DESIGNATED, ANY_MURDERED, ANY_RECENTLY_DROPPED, ANY_REFUSE, ANY_SPIKE, ANY_TRUE_ARMOR, ANY_WEAPON, ANY_WEBS, ARMOR, ARMORSTAND, BACKPACK, BAD BALLISTAARROWHEAD, BALLISTAPARTS, BAR, BARREL, BED, BIN, BLOCKS, BOOK, BOULDER, BOX, BRACELET, BUCKET, CABINET, CAGE, CATAPULTPARTS, CHAIN, CHAIR, CHEESE, CLOTH, COFFIN, COIN, CORPSE, CORPSEPIECE, CROWN, CRUTCH, DOOR, DRINK, EARRING, EGG, FIGURINE, FISH, FISH_RAW, FLASK, FLOODGATE, FOOD, FOOD_STORAGE, GEM, GLOB, GLOVES, GOBLET, GRATE, HATCH_COVER, HELM, INSTRUMENT, LEAVES, LIQUID_MISC, MEAT, MILLSTONE, ORTHOPEDIC_CAST, PANTS, PET, PIPE_SECTION, PLANT, POWDER_MISC, QUERN, QUIVER, REMAINS, RING, ROCK, ROUGH, SCEPTER, SEEDS, SHIELD, SHOES, SIEGEAMMO, SKIN_TANNED, SLAB, SMALLGEM, SPLINT, STATUE, TABLE, THREAD, TOOL, TOTEM, TOY, TRACTION_BENCH, TRAPCOMP, TRAPPARTS, VERMIN, WEAPON, WEAPONRACK, WINDOW, WOOD,
+> AMMO, AMULET, ANIMALTRAP, ANVIL, ANY_ARMOR_GLOVES, ANY_ARMOR_HELM, ANY_ARMOR_PANTS, ANY_ARMOR_SHOES, ANY_ARTIFACT, ANY_AUTO_CLEAN, ANY_CAGE_OR_TRAP, ANY_CAN_ROT, ANY_COOKABLE, ANY_CORPSE, ANY_CRITTER, ANY_DEAD_DWARF, ANY_DRINK, ANY_EDIBLE_BONECARN, ANY_EDIBLE_CARNIVORE, ANY_EDIBLE_RAW, ANY_EDIBLE_VERMIN, ANY_EDIBLE_VERMIN_BOX, ANY_ENCASED, ANY_FURNITURE, ANY_GENERIC123, ANY_GENERIC23, ANY_GENERIC24, ANY_GENERIC35, ANY_GENERIC36, ANY_GENERIC37, ANY_GENERIC38, ANY_GENERIC82, ANY_GOOD_FOOD, ANY_IN_CONSTRUCTION, ANY_MELT_DESIGNATED, ANY_MURDERED, ANY_RECENTLY_DROPPED, ANY_REFUSE, ANY_SPIKE, ANY_TRUE_ARMOR, ANY_WEAPON, ANY_WEBS, ARMOR, ARMORSTAND, BACKPACK, BAD, BALLISTAARROWHEAD, BALLISTAPARTS, BAR, BARREL, BED, BIN, BLOCKS, BOOK, BOULDER, BOX, BRACELET, BUCKET, CABINET, CAGE, CATAPULTPARTS, CHAIN, CHAIR, CHEESE, CLOTH, COFFIN, COIN, CORPSE, CORPSEPIECE, CROWN, CRUTCH, DOOR, DRINK, EARRING, EGG, FIGURINE, FISH, FISH_RAW, FLASK, FLOODGATE, FOOD, FOOD_STORAGE, GEM, GLOB, GLOVES, GOBLET, GRATE, HATCH_COVER, HELM, INSTRUMENT, LEAVES *(0.34)*, LIQUID_MISC, MEAT, MILLSTONE, ORTHOPEDIC_CAST, PANTS, PET, PIPE_SECTION, PLANT, PLANT_GROWTH *(0.40)*, POWDER_MISC, QUERN, QUIVER, REMAINS, RING, ROCK, ROUGH, SCEPTER, SEEDS, SHIELD, SHOES, SIEGEAMMO, SKIN_TANNED, SLAB, SMALLGEM, SPLINT, STATUE, TABLE, THREAD, TOOL, TOTEM, TOY, TRACTION_BENCH, TRAPCOMP, TRAPPARTS, VERMIN, WEAPON, WEAPONRACK, WINDOW, WOOD
 
 ### Item Types ###
 This list comes from `df/item_type.h` include file in DFHack source code.
 
-> AMMO, AMULET, ANIMALTRAP, ANVIL, ARMOR, ARMORSTAND, BACKPACK, BALLISTAARROWHEAD, BALLISTAPARTS, BAR, BARREL, BED, BIN, BLOCKS, BOOK BOULDER, BOX, BRACELET, BUCKET, CABINET, CAGE, CATAPULTPARTS, CHAIN, CHAIR, CHEESE, CLOTH, COFFIN, COIN, CORPSE, CORPSEPIECE, CROWN, CRUTCH, DOOR, DRINK, EARRING, EGG, FIGURINE, FISH, FISH_RAW, FLASK, FLOODGATE, FOOD, GEM, GLOB, GLOVES, GOBLET, GRATE, HATCH_COVER, HELM, INSTRUMENT, LEAVES, LIQUID_MISC, MEAT, MILLSTONE, ORTHOPEDIC_CAST, PANTS, PET, PIPE_SECTION, PLANT, POWDER_MISC, QUERN, QUIVER, REMAINS, RING, ROCK, ROUGH, SCEPTER, SEEDS, SHIELD, SHOES, SIEGEAMMO, SKIN_TANNED, SLAB, SMALLGEM, SPLINT, STATUE, TABLE, THREAD, TOOL, TOTEM, TOY, TRACTION_BENCH, TRAPCOMP, TRAPPARTS, VERMIN, WEAPON, WEAPONRACK, WINDOW, WOOD,
+> AMMO, AMULET, ANIMALTRAP, ANVIL, ARMOR, ARMORSTAND, BACKPACK, BALLISTAARROWHEAD, BALLISTAPARTS, BAR, BARREL, BED, BIN, BLOCKS, BOOK BOULDER, BOX, BRACELET, BUCKET, CABINET, CAGE, CATAPULTPARTS, CHAIN, CHAIR, CHEESE, CLOTH, COFFIN, COIN, CORPSE, CORPSEPIECE, CROWN, CRUTCH, DOOR, DRINK, EARRING, EGG, FIGURINE, FISH, FISH_RAW, FLASK, FLOODGATE, FOOD, GEM, GLOB, GLOVES, GOBLET, GRATE, HATCH_COVER, HELM, INSTRUMENT, LEAVES *(0.34)*, LIQUID_MISC, MEAT, MILLSTONE, ORTHOPEDIC_CAST, PANTS, PET, PIPE_SECTION, PLANT, PLANT_GROWTH *(0.40)*, POWDER_MISC, QUERN, QUIVER, REMAINS, RING, ROCK, ROUGH, SCEPTER, SEEDS, SHIELD, SHOES, SIEGEAMMO, SKIN_TANNED, SLAB, SMALLGEM, SPLINT, STATUE, TABLE, THREAD, TOOL, TOTEM, TOY, TRACTION_BENCH, TRAPCOMP, TRAPPARTS, VERMIN, WEAPON, WEAPONRACK, WINDOW, WOOD
 
 ### Building IDs ###
 This list comes from `df/buildings_other_id.h` include file in DFHack source code.
 
-> ACTIVITY_ZONE, ANY_ACTUAL, ANY_BARRACKS, ANY_HOSPITAL, ANY_HOSPITAL_STORAGE, ANY_MACHINE, ANY_NOBLE_ROOM, ANY_ROAD, ANY_STORAGE, ANY_ZONE, ARCHERY_TARGET, ARMOR_STAND, AXLE_HORIZONTAL, AXLE_VERTICAL, BARS_FLOOR, BARS_VERTICAL, BED, BOX, BRIDGE, CABINET, CAGE, CHAIN, CHAIR, COFFIN, DOOR, FARM_PLOT, FLOODGATE, FURNACE_ANY, FURNACE_CUSTOM, FURNACE_GLASS_ANY, FURNACE_KILN_ANY, FURNACE_SMELTER_ANY, FURNACE_SMELTER_MAGMA, FURNACE_WOOD, GEAR_ASSEMBLY, GRATE_FLOOR, GRATE_WALL, HATCH, HIVE, NEST, NEST_BOX, ROLLERS, SCREW_PUMP, SHOP, SLAB, STATUE, STOCKPILE, SUPPORT, TABLE, TRACTION_BENCH, TRADE_DEPOT, TRAP, WAGON, WATER_WHEEL, WEAPON_RACK, WEAPON_UPRIGHT WELL, WINDMILL, WINDOW_ANY, WORKSHOP_ANY, WORKSHOP_ASHERY, WORKSHOP_BOWYER, WORKSHOP_BUTCHER, WORKSHOP_CARPENTER, WORKSHOP_CLOTHIER, WORKSHOP_CRAFTSDWARF, WORKSHOP_CUSTOM, WORKSHOP_DYER, WORKSHOP_FARMER, WORKSHOP_FISHERY, WORKSHOP_FORGE_ANY, WORKSHOP_JEWELER, WORKSHOP_KENNEL, WORKSHOP_KITCHEN, WORKSHOP_LEATHER, WORKSHOP_LOOM, WORKSHOP_MAGMA_FORGE, WORKSHOP_MASON, WORKSHOP_MECHANIC, WORKSHOP_MILL_ANY, WORKSHOP_MILLSTONE, WORKSHOP_QUERN, WORKSHOP_SIEGE, WORKSHOP_STILL, WORKSHOP_TANNER, WORKSHOP_TOOL,
+> ACTIVITY_ZONE, ANY_ACTUAL, ANY_BARRACKS, ANY_HOSPITAL, ANY_HOSPITAL_STORAGE, ANY_MACHINE, ANY_NOBLE_ROOM, ANY_ROAD, ANY_STORAGE, ANY_ZONE, ARCHERY_TARGET, ARMOR_STAND, AXLE_HORIZONTAL, AXLE_VERTICAL, BARS_FLOOR, BARS_VERTICAL, BED, BOX, BRIDGE, CABINET, CAGE, CHAIN, CHAIR, COFFIN, DOOR, FARM_PLOT, FLOODGATE, FURNACE_ANY, FURNACE_CUSTOM, FURNACE_GLASS_ANY, FURNACE_KILN_ANY, FURNACE_SMELTER_ANY, FURNACE_SMELTER_MAGMA, FURNACE_WOOD, GEAR_ASSEMBLY, GRATE_FLOOR, GRATE_WALL, HATCH, HIVE, NEST, NEST_BOX, ROLLERS, SCREW_PUMP, SHOP, SLAB, STATUE, STOCKPILE, SUPPORT, TABLE, TRACTION_BENCH, TRADE_DEPOT, TRAP, WAGON, WATER_WHEEL, WEAPON_RACK, WEAPON_UPRIGHT WELL, WINDMILL, WINDOW_ANY, WORKSHOP_ANY, WORKSHOP_ASHERY, WORKSHOP_BOWYER, WORKSHOP_BUTCHER, WORKSHOP_CARPENTER, WORKSHOP_CLOTHIER, WORKSHOP_CRAFTSDWARF, WORKSHOP_CUSTOM, WORKSHOP_DYER, WORKSHOP_FARMER, WORKSHOP_FISHERY, WORKSHOP_FORGE_ANY, WORKSHOP_JEWELER, WORKSHOP_KENNEL, WORKSHOP_KITCHEN, WORKSHOP_LEATHER, WORKSHOP_LOOM, WORKSHOP_MAGMA_FORGE, WORKSHOP_MASON, WORKSHOP_MECHANIC, WORKSHOP_MILL_ANY, WORKSHOP_MILLSTONE, WORKSHOP_QUERN, WORKSHOP_SIEGE, WORKSHOP_STILL, WORKSHOP_TANNER, WORKSHOP_TOOL
 
 ### Building Types
 This list comes from `df/building_type.h` include file in DFHack source code.
 
-> AnimalTrap, ArcheryTarget, Armorstand, AxleHorizontal, AxleVertical, BarsFloor, BarsVertical, Bed, Box, Bridge, Cabinet, Cage, Chain, Chair, Civzone, Coffin, Construction, Door, FarmPlot, Floodgate, Furnace, GearAssembly, GrateFloor, GrateWall, Hatch, Hive, Nest, NestBox, RoadDirt, RoadPaved, Rollers ScrewPump, Shop, SiegeEngine, Slab, Statue, Stockpile, Support, Table, TractionBench, TradeDepot, Trap, Wagon, WaterWheel, Weapon, Weaponrack, Well, Windmill, WindowGem, WindowGlass, Workshop,
+> AnimalTrap, ArcheryTarget, Armorstand, AxleHorizontal, AxleVertical, BarsFloor, BarsVertical, Bed, Box, Bridge, Cabinet, Cage, Chain, Chair, Civzone, Coffin, Construction, Door, FarmPlot, Floodgate, Furnace, GearAssembly, GrateFloor, GrateWall, Hatch, Hive, Nest, NestBox, RoadDirt, RoadPaved, Rollers ScrewPump, Shop, SiegeEngine, Slab, Statue, Stockpile, Support, Table, TractionBench, TradeDepot, Trap, Wagon, WaterWheel, Weapon, Weaponrack, Well, Windmill, WindowGem, WindowGlass, Workshop
 
 ### Tile Types ###
 This list comes from `df/tiletype.h` include file in DFHack source code.
 
-> Void, RampTop, MurkyPool, MurkyPoolRamp, 
->
-> Tree, Shrub, Sapling, TreeDead, ShrubDead, SaplingDead, Driftwood
-> 
-> OpenSpace, Chasm, EeriePit
-> 
-> FrozenStairUD, FrozenStairD, FrozenStairU
->
-> LavaStairUD, LavaStairD, LavaStairU, SoilStairUD, SoilStairD, SoilStairU
->
-> MineralStairUD, MineralStairD, MineralStairU
->
-> FeatureStairUD, FeatureStairD, FeatureStairU
-> 
-> StoneSmooth, LavaFloorSmooth, FeatureFloorSmooth, MineralFloorSmooth, FrozenFloorSmooth
-> 
-> Grass1StairUD, Grass1StairD, Grass1StairU, Grass2StairUD, Grass2StairD, Grass2StairU,  StoneStairUD, StoneStairD, StoneStairU
-> 
-> 
-> StonePillar, LavaPillar, FeaturePillar, MineralPillar, FrozenPillar, ConstructedPillar
-> 
-> Waterfall, RiverSource
-> 
-> StoneWallWorn1, StoneWallWorn2, StoneWallWorn3, StoneWall
-> 
-> GrassDryRamp, GrassDeadRamp, GrassLightRamp, GrassDarkRamp, StoneRamp,
-> LavaRamp, FeatureRamp, MineralRamp, SoilRamp, FrozenRamp, ConstructedRamp
-> 
-> Campfire, Fire, Ashes1, Ashes2, Ashes3
-> 
-> FrozenFloor2, FrozenFloor3, FrozenFloor4, FurrowedSoil, FrozenFloor1
-> 
-> SemiMoltenRock, MagmaFlow, SoilWall, GlowingBarrier, GlowingFloor
-> 
-> LavaWallSmoothRD2, LavaWallSmoothR2D, LavaWallSmoothR2U, LavaWallSmoothRU2, LavaWallSmoothL2U, LavaWallSmoothLU2, LavaWallSmoothL2D, LavaWallSmoothLD2, LavaWallSmoothLRUD, LavaWallSmoothRUD, LavaWallSmoothLRD, LavaWallSmoothLRU, LavaWallSmoothLUD, LavaWallSmoothRD, LavaWallSmoothRU, LavaWallSmoothLU, LavaWallSmoothLD, LavaWallSmoothUD, LavaWallSmoothLR,
-> 
-> FeatureWallSmoothRD2, FeatureWallSmoothR2D, FeatureWallSmoothR2U, FeatureWallSmoothRU2, FeatureWallSmoothL2U, FeatureWallSmoothLU2, FeatureWallSmoothL2D, FeatureWallSmoothLD2, FeatureWallSmoothLRUD, FeatureWallSmoothRUD, FeatureWallSmoothLRD, FeatureWallSmoothLRU, FeatureWallSmoothLUD, FeatureWallSmoothRD, FeatureWallSmoothRU, FeatureWallSmoothLU, FeatureWallSmoothLD, FeatureWallSmoothUD, FeatureWallSmoothLR
-> 
-> StoneWallSmoothRD2, StoneWallSmoothR2D, StoneWallSmoothR2U, StoneWallSmoothRU2, StoneWallSmoothL2U, StoneWallSmoothLU2, StoneWallSmoothL2D, StoneWallSmoothLD2, StoneWallSmoothLRUD, StoneWallSmoothRUD, StoneWallSmoothLRD, StoneWallSmoothLRU, StoneWallSmoothLUD, StoneWallSmoothRD, StoneWallSmoothRU, StoneWallSmoothLU, StoneWallSmoothLD, StoneWallSmoothUD, StoneWallSmoothLR
-> 
-> StoneFortification, LavaFortification, FeatureFortification, FrozenFortification, MineralFortification, ConstructedFortification
-> 
-> LavaWallWorn1, LavaWallWorn2, LavaWallWorn3, LavaWall
-> 
-> FeatureWallWorn1, FeatureWallWorn2, FeatureWallWorn3, FeatureWall
-> 
-> StoneFloor1, StoneFloor2, StoneFloor3, StoneFloor4
-> 
-> LavaFloor1, LavaFloor2, LavaFloor3, LavaFloor4
-> 
-> FeatureFloor1, FeatureFloor2, FeatureFloor3, FeatureFloor4
-> 
-> GrassDarkFloor1, GrassDarkFloor2, GrassDarkFloor3, GrassDarkFloor4
-> 
-> SoilFloor1, SoilFloor2, SoilFloor3, SoilFloor4
-> 
-> SoilWetFloor1, SoilWetFloor2, SoilWetFloor3, SoilWetFloor4
-> 
-> FrozenWallWorn1, FrozenWallWorn2, FrozenWallWorn3, FrozenWall
-> 
-> RiverN, RiverS, RiverE, RiverW, RiverNW, RiverNE, RiverSW, RiverSE
-> 
-> BrookN, BrookS, BrookE, BrookW, BrookNW, BrookNE, BrookSW, BrookSE, BrookTop, 
-> 
-> GrassDryFloor1, GrassDryFloor2, GrassDryFloor3, GrassDryFloor4
-> 
-> GrassDeadFloor1, GrassDeadFloor2, GrassDeadFloor3, GrassDeadFloor4
-> 
-> GrassLightFloor1, GrassLightFloor2, GrassLightFloor3, GrassLightFloor4
-> 
-> StoneBoulder, LavaBoulder, FeatureBoulder
-> 
-> StonePebbles1, StonePebbles2, StonePebbles3, StonePebbles4
-> 
-> LavaPebbles1, LavaPebbles2, LavaPebbles3, LavaPebbles4
-> 
-> FeaturePebbles1, FeaturePebbles2, FeaturePebbles3, FeaturePebbles4
-> 
-> MineralWallSmoothRD2, MineralWallSmoothR2D, MineralWallSmoothR2U, MineralWallSmoothRU2, MineralWallSmoothL2U, MineralWallSmoothLU2, MineralWallSmoothL2D, MineralWallSmoothLD2, MineralWallSmoothLRUD, MineralWallSmoothRUD, MineralWallSmoothLRD, MineralWallSmoothLRU, MineralWallSmoothLUD, MineralWallSmoothRD, MineralWallSmoothRU, MineralWallSmoothLU, MineralWallSmoothLD, MineralWallSmoothUD, MineralWallSmoothLR
-> 
-> 
-> MineralWallWorn1, MineralWallWorn2, MineralWallWorn3, MineralWall
-> 
-> MineralFloor1, MineralFloor2, MineralFloor3, MineralFloor4
-> 
-> MineralBoulder, MineralPebbles1, MineralPebbles2, MineralPebbles3,
-> MineralPebbles4, 
-> 
-> FrozenWallSmoothRD2, FrozenWallSmoothR2D, FrozenWallSmoothR2U, FrozenWallSmoothRU2, FrozenWallSmoothL2U, FrozenWallSmoothLU2, FrozenWallSmoothL2D, FrozenWallSmoothLD2, FrozenWallSmoothLRUD, FrozenWallSmoothRUD, FrozenWallSmoothLRD, FrozenWallSmoothLRU, FrozenWallSmoothLUD, FrozenWallSmoothRD, FrozenWallSmoothRU, FrozenWallSmoothLU, FrozenWallSmoothLD, FrozenWallSmoothUD, FrozenWallSmoothLR
-> 
-> RiverRampN, RiverRampS, RiverRampE, RiverRampW, RiverRampNW,
-> RiverRampNE, RiverRampSW, RiverRampSE
-> 
-> ConstructedFloor
-> 
-> ConstructedWallRD2, ConstructedWallR2D, ConstructedWallR2U, ConstructedWallRU2, ConstructedWallL2U, ConstructedWallLU2, ConstructedWallL2D, ConstructedWallLD2, ConstructedWallLRUD, ConstructedWallRUD, ConstructedWallLRD, ConstructedWallLRU, ConstructedWallLUD, ConstructedWallRD, ConstructedWallRU, ConstructedWallLU, ConstructedWallLD, ConstructedWallUD, ConstructedWallLR
-> 
-> ConstructedStairUD, ConstructedStairD, ConstructedStairU
-> 
-> StoneFloorTrackN, StoneFloorTrackS, StoneFloorTrackE, StoneFloorTrackW, StoneFloorTrackNS, StoneFloorTrackNE, StoneFloorTrackNW, StoneFloorTrackSE, StoneFloorTrackSW, StoneFloorTrackEW, StoneFloorTrackNSE, StoneFloorTrackNSW, StoneFloorTrackNEW, StoneFloorTrackSEW, StoneFloorTrackNSEW
-> 
-> LavaFloorTrackN, LavaFloorTrackS, LavaFloorTrackE, LavaFloorTrackW, LavaFloorTrackNS, LavaFloorTrackNE, LavaFloorTrackNW, LavaFloorTrackSE, LavaFloorTrackSW, LavaFloorTrackEW, LavaFloorTrackNSE, LavaFloorTrackNSW, LavaFloorTrackNEW, LavaFloorTrackSEW, LavaFloorTrackNSEW
-> 
-> FeatureFloorTrackN, FeatureFloorTrackS, FeatureFloorTrackE, FeatureFloorTrackW, FeatureFloorTrackNS, FeatureFloorTrackNE, FeatureFloorTrackNW, FeatureFloorTrackSE, FeatureFloorTrackSW, FeatureFloorTrackEW, FeatureFloorTrackNSE, FeatureFloorTrackNSW, FeatureFloorTrackNEW, FeatureFloorTrackSEW, FeatureFloorTrackNSEW
-> 
-> MineralFloorTrackN, MineralFloorTrackS, MineralFloorTrackE, MineralFloorTrackW, MineralFloorTrackNS, MineralFloorTrackNE, MineralFloorTrackNW, MineralFloorTrackSE, MineralFloorTrackSW, MineralFloorTrackEW, MineralFloorTrackNSE, MineralFloorTrackNSW, MineralFloorTrackNEW, MineralFloorTrackSEW, MineralFloorTrackNSEW
-> 
-> FrozenFloorTrackN, FrozenFloorTrackS, FrozenFloorTrackE, FrozenFloorTrackW, FrozenFloorTrackNS, FrozenFloorTrackNE, FrozenFloorTrackNW, FrozenFloorTrackSE, FrozenFloorTrackSW, FrozenFloorTrackEW, FrozenFloorTrackNSE, FrozenFloorTrackNSW, FrozenFloorTrackNEW, FrozenFloorTrackSEW, FrozenFloorTrackNSEW
-> 
-> ConstructedFloorTrackN, ConstructedFloorTrackS, ConstructedFloorTrackE, ConstructedFloorTrackW, ConstructedFloorTrackNS, ConstructedFloorTrackNE, ConstructedFloorTrackNW, ConstructedFloorTrackSE, ConstructedFloorTrackSW, ConstructedFloorTrackEW, ConstructedFloorTrackNSE, ConstructedFloorTrackNSW, ConstructedFloorTrackNEW, ConstructedFloorTrackSEW, ConstructedFloorTrackNSEW, 
-> 
-> StoneRampTrackN, StoneRampTrackS, StoneRampTrackE, StoneRampTrackW, StoneRampTrackNS, StoneRampTrackNE, StoneRampTrackNW, StoneRampTrackSE, StoneRampTrackSW, StoneRampTrackEW, StoneRampTrackNSE, StoneRampTrackNSW, StoneRampTrackNEW, StoneRampTrackSEW, StoneRampTrackNSEW
-> 
-> LavaRampTrackN, LavaRampTrackS, LavaRampTrackE, LavaRampTrackW, LavaRampTrackNS, LavaRampTrackNE, LavaRampTrackNW, LavaRampTrackSE, LavaRampTrackSW, LavaRampTrackEW, LavaRampTrackNSE, LavaRampTrackNSW, LavaRampTrackNEW, LavaRampTrackSEW, LavaRampTrackNSEW, 
-> 
-> FeatureRampTrackN, FeatureRampTrackS, FeatureRampTrackE, FeatureRampTrackW, FeatureRampTrackNS, FeatureRampTrackNE, FeatureRampTrackNW, FeatureRampTrackSE, FeatureRampTrackSW, FeatureRampTrackEW, FeatureRampTrackNSE, FeatureRampTrackNSW, FeatureRampTrackNEW, FeatureRampTrackSEW, FeatureRampTrackNSEW
-> 
-> MineralRampTrackN, MineralRampTrackS, MineralRampTrackE, MineralRampTrackW, MineralRampTrackNS, MineralRampTrackNE, MineralRampTrackNW, MineralRampTrackSE, MineralRampTrackSW, MineralRampTrackEW, MineralRampTrackNSE, MineralRampTrackNSW, MineralRampTrackNEW, MineralRampTrackSEW, MineralRampTrackNSEW
-> 
-> FrozenRampTrackN, FrozenRampTrackS, FrozenRampTrackE, FrozenRampTrackW, FrozenRampTrackNS, FrozenRampTrackNE, FrozenRampTrackNW, FrozenRampTrackSE, FrozenRampTrackSW, FrozenRampTrackEW, FrozenRampTrackNSE, FrozenRampTrackNSW, FrozenRampTrackNEW, FrozenRampTrackSEW, FrozenRampTrackNSEW
-> 
-> ConstructedRampTrackN, ConstructedRampTrackS, ConstructedRampTrackE, ConstructedRampTrackW, ConstructedRampTrackNS, ConstructedRampTrackNE, ConstructedRampTrackNW, ConstructedRampTrackSE, ConstructedRampTrackSW, ConstructedRampTrackEW, ConstructedRampTrackNSE, ConstructedRampTrackNSW, ConstructedRampTrackNEW, ConstructedRampTrackSEW, ConstructedRampTrackNSEW
+> Ashes1, Ashes2, Ashes3, 
+
+> BrookE, BrookN, BrookNE, BrookNW, BrookS, BrookSE, BrookSW, BrookTop, BrookW, 
+
+> *0.40:* BurningTreeBranches, BurningTreeCapFloor, BurningTreeCapRamp, BurningTreeCapWall, BurningTreeTrunk, BurningTreeTwigs, 
+
+> Campfire, Chasm, 
+
+> ConstructedFloor, ConstructedFloorTrackE, ConstructedFloorTrackEW, ConstructedFloorTrackN, ConstructedFloorTrackNE, ConstructedFloorTrackNEW, ConstructedFloorTrackNS, ConstructedFloorTrackNSE, ConstructedFloorTrackNSEW, ConstructedFloorTrackNSW, ConstructedFloorTrackNW, ConstructedFloorTrackS, ConstructedFloorTrackSE, ConstructedFloorTrackSEW, ConstructedFloorTrackSW, ConstructedFloorTrackW, ConstructedFortification, ConstructedPillar, ConstructedRamp, ConstructedRampTrackE, ConstructedRampTrackEW, ConstructedRampTrackN, ConstructedRampTrackNE, ConstructedRampTrackNEW, ConstructedRampTrackNS, ConstructedRampTrackNSE, ConstructedRampTrackNSEW ConstructedRampTrackNSW, ConstructedRampTrackNW, ConstructedRampTrackS, ConstructedRampTrackSE, ConstructedRampTrackSEW, ConstructedRampTrackSW, ConstructedRampTrackW, ConstructedStairD, ConstructedStairU, ConstructedStairUD, ConstructedWallL2D, ConstructedWallL2U, ConstructedWallLD, ConstructedWallLD2, ConstructedWallLR, ConstructedWallLRD, ConstructedWallLRU, ConstructedWallLRUD, ConstructedWallLU, ConstructedWallLU2, ConstructedWallLUD, ConstructedWallR2D, ConstructedWallR2U, ConstructedWallRD, ConstructedWallRD2, ConstructedWallRU, ConstructedWallRU2, ConstructedWallRUD, ConstructedWallUD, 
+
+> Driftwood, EeriePit, 
+
+> FeatureBoulder, FeatureFloor1, FeatureFloor2, FeatureFloor3, FeatureFloor4, FeatureFloorSmooth, FeatureFloorTrackE, FeatureFloorTrackEW, FeatureFloorTrackN, FeatureFloorTrackNE, FeatureFloorTrackNEW, FeatureFloorTrackNS, FeatureFloorTrackNSE, FeatureFloorTrackNSEW, FeatureFloorTrackNSW, FeatureFloorTrackNW, FeatureFloorTrackS, FeatureFloorTrackSE, FeatureFloorTrackSEW, FeatureFloorTrackSW, FeatureFloorTrackW, FeatureFortification, FeaturePebbles1, FeaturePebbles2, FeaturePebbles3, FeaturePebbles4, FeaturePillar, FeatureRamp, FeatureRampTrackE, FeatureRampTrackEW, FeatureRampTrackN, FeatureRampTrackNE, FeatureRampTrackNEW, FeatureRampTrackNS, FeatureRampTrackNSE, FeatureRampTrackNSEW, FeatureRampTrackNSW, FeatureRampTrackNW, FeatureRampTrackS, FeatureRampTrackSE, FeatureRampTrackSEW, FeatureRampTrackSW, FeatureRampTrackW, FeatureStairD, FeatureStairU, FeatureStairUD, FeatureWall, FeatureWallSmoothL2D, FeatureWallSmoothL2U, FeatureWallSmoothLD, FeatureWallSmoothLD2, FeatureWallSmoothLR, FeatureWallSmoothLRD, FeatureWallSmoothLRU, FeatureWallSmoothLRUD, FeatureWallSmoothLU, FeatureWallSmoothLU2, FeatureWallSmoothLUD, FeatureWallSmoothR2D, FeatureWallSmoothR2U, FeatureWallSmoothRD, FeatureWallSmoothRD2, FeatureWallSmoothRU, FeatureWallSmoothRU2, FeatureWallSmoothRUD, FeatureWallSmoothUD, FeatureWallWorn1, FeatureWallWorn2, FeatureWallWorn3, 
+
+> Fire, 
+
+> FrozenFloor1, FrozenFloor2, FrozenFloor3, FrozenFloor4, FrozenFloorSmooth, FrozenFloorTrackE, FrozenFloorTrackEW, FrozenFloorTrackN, FrozenFloorTrackNE, FrozenFloorTrackNEW, FrozenFloorTrackNS, FrozenFloorTrackNSE, FrozenFloorTrackNSEW, FrozenFloorTrackNSW, FrozenFloorTrackNW, FrozenFloorTrackS, FrozenFloorTrackSE, FrozenFloorTrackSEW, FrozenFloorTrackSW, FrozenFloorTrackW, FrozenFortification, FrozenPillar, FrozenRamp, FrozenRampTrackE, FrozenRampTrackEW, FrozenRampTrackN, FrozenRampTrackNE, FrozenRampTrackNEW, FrozenRampTrackNS, FrozenRampTrackNSE, FrozenRampTrackNSEW, FrozenRampTrackNSW, FrozenRampTrackNW, FrozenRampTrackS, FrozenRampTrackSE, FrozenRampTrackSEW, FrozenRampTrackSW, FrozenRampTrackW, FrozenStairD, FrozenStairU, FrozenStairUD, FrozenWall, FrozenWallSmoothL2D, FrozenWallSmoothL2U, FrozenWallSmoothLD, FrozenWallSmoothLD2, FrozenWallSmoothLR, FrozenWallSmoothLRD, FrozenWallSmoothLRU, FrozenWallSmoothLRUD, FrozenWallSmoothLU, FrozenWallSmoothLU2, FrozenWallSmoothLUD, FrozenWallSmoothR2D, FrozenWallSmoothR2U, FrozenWallSmoothRD, FrozenWallSmoothRD2, FrozenWallSmoothRU, FrozenWallSmoothRU2, FrozenWallSmoothRUD, FrozenWallSmoothUD, FrozenWallWorn1, FrozenWallWorn2, FrozenWallWorn3, 
+
+> FurrowedSoil, 
+
+> GlowingBarrier, GlowingFloor, 
+
+> Grass1StairD, Grass1StairU, Grass1StairUD, Grass2StairD, Grass2StairU, Grass2StairUD, GrassDarkFloor1, GrassDarkFloor2, GrassDarkFloor3, GrassDarkFloor4, GrassDarkRamp, GrassDeadFloor1, GrassDeadFloor2, GrassDeadFloor3, GrassDeadFloor4, GrassDeadRamp, GrassDryFloor1, GrassDryFloor2, GrassDryFloor3, GrassDryFloor4, GrassDryRamp, GrassLightFloor1, GrassLightFloor2, GrassLightFloor3, GrassLightFloor4, GrassLightRamp, 
+
+> LavaBoulder, LavaFloor1, LavaFloor2, LavaFloor3, LavaFloor4, LavaFloorSmooth, LavaFloorTrackE, LavaFloorTrackEW, LavaFloorTrackN, LavaFloorTrackNE, LavaFloorTrackNEW, LavaFloorTrackNS, LavaFloorTrackNSE, LavaFloorTrackNSEW, LavaFloorTrackNSW, LavaFloorTrackNW, LavaFloorTrackS, LavaFloorTrackSE, LavaFloorTrackSEW, LavaFloorTrackSW, LavaFloorTrackW, LavaFortification, LavaPebbles1, LavaPebbles2, LavaPebbles3, LavaPebbles4, LavaPillar, LavaRamp, LavaRampTrackE, LavaRampTrackEW, LavaRampTrackN, LavaRampTrackNE, LavaRampTrackNEW, LavaRampTrackNS, LavaRampTrackNSE, LavaRampTrackNSEW, LavaRampTrackNSW, LavaRampTrackNW, LavaRampTrackS, LavaRampTrackSE, LavaRampTrackSEW, LavaRampTrackSW, LavaRampTrackW, LavaStairD, LavaStairU, LavaStairUD, LavaWall, LavaWallSmoothL2D, LavaWallSmoothL2U, LavaWallSmoothLD, LavaWallSmoothLD2, LavaWallSmoothLR, LavaWallSmoothLRD, LavaWallSmoothLRU, LavaWallSmoothLRUD, LavaWallSmoothLU, LavaWallSmoothLU2, LavaWallSmoothLUD, LavaWallSmoothR2D, LavaWallSmoothR2U, LavaWallSmoothRD, LavaWallSmoothRD2, LavaWallSmoothRU, LavaWallSmoothRU2, LavaWallSmoothRUD, LavaWallSmoothUD, LavaWallWorn1, LavaWallWorn2, LavaWallWorn3, 
+
+> MagmaFlow, 
+
+> MineralBoulder, MineralFloor1, MineralFloor2, MineralFloor3, MineralFloor4, MineralFloorSmooth, MineralFloorTrackE, MineralFloorTrackEW, MineralFloorTrackN, MineralFloorTrackNE, MineralFloorTrackNEW, MineralFloorTrackNS, MineralFloorTrackNSE, MineralFloorTrackNSEW, MineralFloorTrackNSW, MineralFloorTrackNW, MineralFloorTrackS, MineralFloorTrackSE, MineralFloorTrackSEW, MineralFloorTrackSW, MineralFloorTrackW, MineralFortification, MineralPebbles1, MineralPebbles2, MineralPebbles3, MineralPebbles4, MineralPillar, MineralRamp, MineralRampTrackE, MineralRampTrackEW, MineralRampTrackN, MineralRampTrackNE, MineralRampTrackNEW, MineralRampTrackNS, MineralRampTrackNSE, MineralRampTrackNSEW, MineralRampTrackNSW, MineralRampTrackNW, MineralRampTrackS, MineralRampTrackSE, MineralRampTrackSEW, MineralRampTrackSW, MineralRampTrackW, MineralStairD, MineralStairU, MineralStairUD, MineralWall, MineralWallSmoothL2D, MineralWallSmoothL2U, MineralWallSmoothLD, MineralWallSmoothLD2, MineralWallSmoothLR, MineralWallSmoothLRD, MineralWallSmoothLRU, MineralWallSmoothLRUD, MineralWallSmoothLU, MineralWallSmoothLU2, MineralWallSmoothLUD, MineralWallSmoothR2D, MineralWallSmoothR2U, MineralWallSmoothRD, MineralWallSmoothRD2, MineralWallSmoothRU, MineralWallSmoothRU2, MineralWallSmoothRUD, MineralWallSmoothUD, MineralWallWorn1, MineralWallWorn2, MineralWallWorn3, 
+
+> MurkyPool, MurkyPoolRamp, OpenSpace, RampTop, 
+
+> RiverE, RiverN, RiverNE, RiverNW, RiverRampE, RiverRampN, RiverRampNE, RiverRampNW, RiverRampS, RiverRampSE, RiverRampSW, RiverRampW, RiverS, RiverSE, RiverSource, RiverSW, RiverW, 
+
+> Sapling, SaplingDead, SemiMoltenRock, Shrub, ShrubDead, 
+
+> SoilFloor1, SoilFloor2, SoilFloor3, SoilFloor4, SoilRamp, SoilStairD, SoilStairU, SoilStairUD, SoilWall, SoilWetFloor1, SoilWetFloor2, SoilWetFloor3, SoilWetFloor4, 
+
+> StoneBoulder, StoneFloor1, StoneFloor2, StoneFloor3, StoneFloor4, StoneFloorSmooth, StoneFloorTrackE, StoneFloorTrackEW, StoneFloorTrackN, StoneFloorTrackNE, StoneFloorTrackNEW, StoneFloorTrackNS, StoneFloorTrackNSE, StoneFloorTrackNSEW, StoneFloorTrackNSW, StoneFloorTrackNW, StoneFloorTrackS, StoneFloorTrackSE, StoneFloorTrackSEW, StoneFloorTrackSW, StoneFloorTrackW, StoneFortification, StonePebbles1, StonePebbles2, StonePebbles3, StonePebbles4, StonePillar, StoneRamp, StoneRampTrackE, StoneRampTrackEW, StoneRampTrackN, StoneRampTrackNE, StoneRampTrackNEW, StoneRampTrackNS, StoneRampTrackNSE, StoneRampTrackNSEW, StoneRampTrackNSW, StoneRampTrackNW, StoneRampTrackS, StoneRampTrackSE, StoneRampTrackSEW, StoneRampTrackSW, StoneRampTrackW, StoneStairD, StoneStairU, StoneStairUD, StoneWall, StoneWallSmoothL2D, StoneWallSmoothL2U, StoneWallSmoothLD, StoneWallSmoothLD2, StoneWallSmoothLR, StoneWallSmoothLRD, StoneWallSmoothLRU, StoneWallSmoothLRUD, StoneWallSmoothLU, StoneWallSmoothLU2, StoneWallSmoothLUD, StoneWallSmoothR2D, StoneWallSmoothR2U, StoneWallSmoothRD, StoneWallSmoothRD2, StoneWallSmoothRU, StoneWallSmoothRU2, StoneWallSmoothRUD, StoneWallSmoothUD, StoneWallWorn1, StoneWallWorn2, StoneWallWorn3, 
+
+> *0.34:* Tree, TreeDead,
+
+> *0.40:* TreeBranches, TreeBranchesSmooth, TreeBranchEW, TreeBranchNE, TreeBranchNEW, TreeBranchNS, TreeBranchNSE, TreeBranchNSEW, TreeBranchNSW, TreeBranchNW, TreeBranchSE, TreeBranchSEW, TreeBranchSW, TreeCapFloor1, TreeCapFloor2, TreeCapFloor3, TreeCapFloor4, TreeCapPillar, TreeCapRamp, TreeCapWallE, TreeCapWallN, TreeCapWallNE, TreeCapWallNW, TreeCapWallS, TreeCapWallSE, TreeCapWallSW, TreeCapWallW, TreeDeadBranches, TreeDeadBranchesSmooth, TreeDeadBranchEW, TreeDeadBranchNE, TreeDeadBranchNEW, TreeDeadBranchNS, TreeDeadBranchNSE, TreeDeadBranchNSEW, TreeDeadBranchNSW, TreeDeadBranchNW, TreeDeadBranchSE, TreeDeadBranchSEW, TreeDeadBranchSW, TreeDeadCapFloor1, TreeDeadCapFloor2, TreeDeadCapFloor3, TreeDeadCapFloor4, TreeDeadCapPillar, TreeDeadCapRamp, TreeDeadCapWallE, TreeDeadCapWallN, TreeDeadCapWallNE, TreeDeadCapWallNW, TreeDeadCapWallS, TreeDeadCapWallSE, TreeDeadCapWallSW, TreeDeadCapWallW, TreeDeadRoots, TreeDeadRootSloping, TreeDeadTrunkBranchE, TreeDeadTrunkBranchN, TreeDeadTrunkBranchS, TreeDeadTrunkBranchW, TreeDeadTrunkE, TreeDeadTrunkEW, TreeDeadTrunkInterior, TreeDeadTrunkN, TreeDeadTrunkNE, TreeDeadTrunkNEW, TreeDeadTrunkNS, TreeDeadTrunkNSE, TreeDeadTrunkNSEW, TreeDeadTrunkNSW, TreeDeadTrunkNW, TreeDeadTrunkPillar, TreeDeadTrunkS, TreeDeadTrunkSE, TreeDeadTrunkSEW, TreeDeadTrunkSloping, TreeDeadTrunkSW, TreeDeadTrunkW, TreeDeadTwigs, TreeRoots, TreeRootSloping, TreeTrunkBranchE, TreeTrunkBranchN, TreeTrunkBranchS, TreeTrunkBranchW, TreeTrunkE, TreeTrunkEW, TreeTrunkInterior, TreeTrunkN, TreeTrunkNE, TreeTrunkNEW, TreeTrunkNS, TreeTrunkNSE, TreeTrunkNSEW, TreeTrunkNSW, TreeTrunkNW, TreeTrunkPillar, TreeTrunkS, TreeTrunkSE, TreeTrunkSEW, TreeTrunkSloping, TreeTrunkSW, TreeTrunkW, TreeTwigs, 
+
+> *0.40:* UnderworldGateStairD, UnderworldGateStairU, UnderworldGateStairUD, 
+
+> Void, Waterfall
