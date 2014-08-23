@@ -1015,6 +1015,8 @@ command_result colormap_cmd (color_ostream &out, std::vector <std::string> & par
 
 DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCommand> &commands)
 {
+    out2 = &out;
+
     auto dflags = init->display.flag;
     if (!dflags.is_set(init_display_flags::USE_GRAPHICS))
     {
@@ -1035,8 +1037,6 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         out.color(COLOR_RESET);
         return CR_OK;        
     }
-
-    out2 = &out;
 
 #if defined(DF_03411)
     #ifdef WIN32
