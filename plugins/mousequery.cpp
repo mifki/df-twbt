@@ -26,6 +26,7 @@
 
 using df::global::world;
 using df::global::ui;
+using df::global::ui_build_selector;
 
 using namespace df::enums::ui_sidebar_mode;
 
@@ -296,6 +297,160 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
         return false;
     }
 
+    bool handleLeft(df::coord &mpos, int32_t mx, int32_t my)
+    {
+        auto dims = Gui::getDwarfmodeViewDims();
+
+        bool cursor_still_here = (last_clicked_x == mpos.x && last_clicked_y == mpos.y && last_clicked_z == mpos.z);
+        last_clicked_x = mpos.x;
+        last_clicked_y = mpos.y;
+        last_clicked_z = mpos.z;
+
+        df::interface_key key = interface_key::NONE;
+        bool designationMode = false;
+        bool skipRefresh = false;
+
+        if (isInTrackableMode())
+        {
+            designationMode = true;
+            key = df::interface_key::SELECT;
+        }
+        else
+        {
+            switch (ui->main.mode)
+            {
+            case QueryBuilding:
+                if (cursor_still_here)
+                    key = df::interface_key::D_BUILDITEM;
+                break;
+
+            case BuildingItems:
+                if (cursor_still_here)
+                    key = df::interface_key::D_VIEWUNIT;
+                break;
+
+            case ViewUnits:
+                if (cursor_still_here)
+                    key = df::interface_key::D_LOOK;
+                break;
+
+            case LookAround:
+                if (cursor_still_here)
+                    key = df::interface_key::D_BUILDJOB;
+                break;
+
+            case Build:
+                if (ui_build_selector)
+                {
+                    if (ui_build_selector->stage < 2)
+                    {
+                        designationMode = true;
+                        key = df::interface_key::SELECT;
+                    }
+                    else
+                    {
+                        designationMode = true;
+                        skipRefresh = true;
+                        key = df::interface_key::SELECT_ALL;
+                    }
+                }
+                break;
+
+            case Default:
+                break;
+
+            default:
+                return false;
+            }
+        }
+
+        enabler->mouse_lbut = 0;
+
+        // Can't check limits earlier as we must be sure we are in query or default mode 
+        // (so we can clear the button down flag)
+        int right_bound = (dims.menu_x1 > 0) ? dims.menu_x1 - 2 : gps->dimx - 2;
+        if (mx < 1 || mx > right_bound || my < 1 || my > gps->dimy - 2)
+            return false;
+
+        if (ui->main.mode == df::ui_sidebar_mode::Zones || 
+            ui->main.mode == df::ui_sidebar_mode::Stockpiles)
+        {
+            int32_t x, y, z;
+            if (Gui::getDesignationCoords(x, y, z))
+            {
+                auto dX = abs(x - mpos.x);
+                if (dX > 30)
+                    return false;
+
+                auto dY = abs(y - mpos.y);
+                if (dY > 30)
+                    return false;
+            }
+        }
+
+        if (!designationMode)
+        {
+            while (ui->main.mode != Default)
+            {
+                sendKey(df::interface_key::LEAVESCREEN);
+            }
+
+            if (key == interface_key::NONE)
+                key = get_default_query_mode(mpos);
+
+            sendKey(key);
+        }
+
+        if (!skipRefresh)
+        {
+            // Force UI refresh
+            moveCursor(mpos, true);
+        }
+
+        if (designationMode)
+            sendKey(key);
+
+        return true;
+    }
+
+    bool handleRight(df::coord &mpos, int32_t mx, int32_t my)
+    {
+        auto dims = Gui::getDwarfmodeViewDims();
+
+        if (isInDesignationMenu() && !box_designation_enabled)
+            return false;
+
+        // Escape out of query mode
+        enabler->mouse_rbut_down = 0;
+        enabler->mouse_rbut = 0;
+
+        using namespace df::enums::ui_sidebar_mode;
+        if ((ui->main.mode == QueryBuilding || ui->main.mode == BuildingItems ||
+            ui->main.mode == ViewUnits || ui->main.mode == LookAround) || 
+            (isInTrackableMode() && tracking_enabled))
+        {
+            sendKey(df::interface_key::LEAVESCREEN);
+        }
+        else
+        {
+            int scroll_trigger_x = dims.menu_x1 / 3;
+            int scroll_trigger_y = gps->dimy / 3;
+            if (mx < scroll_trigger_x)
+                sendKey(interface_key::CURSOR_LEFT_FAST);
+
+            if (mx > ((dims.menu_x1 > 0) ? dims.menu_x1 : gps->dimx) - scroll_trigger_x)
+                sendKey(interface_key::CURSOR_RIGHT_FAST);
+
+            if (my < scroll_trigger_y)
+                sendKey(interface_key::CURSOR_UP_FAST);
+
+            if (my > gps->dimy - scroll_trigger_y)
+                sendKey(interface_key::CURSOR_DOWN_FAST);
+        }     
+
+        return false;   
+    }    
+
     bool handleMouse(const set<df::interface_key> *input)
     {
         int32_t mx, my;
@@ -303,18 +458,27 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
         if (mpos.x == -30000)
             return false;
 
-        auto dims = Gui::getDwarfmodeViewDims();
         if (enabler->mouse_lbut)
         {
-            awaiting_lbut_up = true;
-            enabler->mouse_lbut = false;
-            last_move_pos = mpos;
+            if (drag_mode == Left)
+            {
+                awaiting_lbut_up = true;
+                enabler->mouse_lbut = false;
+                last_move_pos = mpos;                
+            }
+            else
+                return handleLeft(mpos, mx, my);
         }
-        else if (rbutton_enabled && enabler->mouse_rbut)
+        else if (enabler->mouse_rbut)
         {
-            awaiting_rbut_up = true;
-            enabler->mouse_rbut = false;
-            last_move_pos = mpos;
+            if (drag_mode == Right)
+            {
+                awaiting_rbut_up = true;
+                enabler->mouse_rbut = false;
+                last_move_pos = mpos;            
+            }
+            else if (rbutton_enabled)
+                return handleRight(mpos, mx, my);
         }
         else if (input->count(interface_key::CUSTOM_M) && isInDesignationMenu())
         {
@@ -383,9 +547,9 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
 
     bool inBuildPlacement()
     {
-        return df::global::ui_build_selector &&
-            df::global::ui_build_selector->building_type != -1 &&
-            df::global::ui_build_selector->stage == 1;
+        return ui_build_selector &&
+            ui_build_selector->building_type != -1 &&
+            ui_build_selector->stage == 1;
     }
 
     bool shouldTrack()
@@ -430,153 +594,15 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
         if (awaiting_lbut_up && !enabler->mouse_lbut_down)
         {
             awaiting_lbut_up = false;
-            bool cursor_still_here = (last_clicked_x == mpos.x && last_clicked_y == mpos.y && last_clicked_z == mpos.z);
-            last_clicked_x = mpos.x;
-            last_clicked_y = mpos.y;
-            last_clicked_z = mpos.z;
-
-            df::interface_key key = interface_key::NONE;
-            bool designationMode = false;
-            bool skipRefresh = false;
-
-            if (isInTrackableMode())
-            {
-                designationMode = true;
-                key = df::interface_key::SELECT;
-            }
-            else
-            {
-                switch (ui->main.mode)
-                {
-                case QueryBuilding:
-                    if (cursor_still_here)
-                        key = df::interface_key::D_BUILDITEM;
-                    break;
-
-                case BuildingItems:
-                    if (cursor_still_here)
-                        key = df::interface_key::D_VIEWUNIT;
-                    break;
-
-                case ViewUnits:
-                    if (cursor_still_here)
-                        key = df::interface_key::D_LOOK;
-                    break;
-
-                case LookAround:
-                    if (cursor_still_here)
-                        key = df::interface_key::D_BUILDJOB;
-                    break;
-
-                case Build:
-                    if (df::global::ui_build_selector)
-                    {
-                        if (df::global::ui_build_selector->stage < 2)
-                        {
-                            designationMode = true;
-                            key = df::interface_key::SELECT;
-                        }
-                        else
-                        {
-                            designationMode = true;
-                            skipRefresh = true;
-                            key = df::interface_key::SELECT_ALL;
-                        }
-                    }
-                    break;
-
-                case Default:
-                    break;
-
-                default:
-                    return;
-                }
-            }
-
-            enabler->mouse_lbut = 0;
-
-            // Can't check limits earlier as we must be sure we are in query or default mode 
-            // (so we can clear the button down flag)
-            int right_bound = (dims.menu_x1 > 0) ? dims.menu_x1 - 2 : gps->dimx - 2;
-            if (mx < 1 || mx > right_bound || my < 1 || my > gps->dimy - 2)
-                return;
-
-            if (ui->main.mode == df::ui_sidebar_mode::Zones || 
-                ui->main.mode == df::ui_sidebar_mode::Stockpiles)
-            {
-                int32_t x, y, z;
-                if (Gui::getDesignationCoords(x, y, z))
-                {
-                    auto dX = abs(x - mpos.x);
-                    if (dX > 30)
-                        return;
-
-                    auto dY = abs(y - mpos.y);
-                    if (dY > 30)
-                        return;
-                }
-            }
-
-            if (!designationMode)
-            {
-                while (ui->main.mode != Default)
-                {
-                    sendKey(df::interface_key::LEAVESCREEN);
-                }
-
-                if (key == interface_key::NONE)
-                    key = get_default_query_mode(mpos);
-
-                sendKey(key);
-            }
-
-            if (!skipRefresh)
-            {
-                // Force UI refresh
-                moveCursor(mpos, true);
-            }
-
-            if (designationMode)
-                sendKey(key);
-
-            return;
-        }  
+            handleLeft(mpos, mx, my);
+        }       
 
         if (awaiting_rbut_up && !enabler->mouse_rbut_down)
         {
-            awaiting_rbut_up = false;
-
-            if (isInDesignationMenu() && !box_designation_enabled)
-                return;
-
-            // Escape out of query mode
-            enabler->mouse_rbut_down = 0;
-            enabler->mouse_rbut = 0;
-
-            using namespace df::enums::ui_sidebar_mode;
-            if ((ui->main.mode == QueryBuilding || ui->main.mode == BuildingItems ||
-                ui->main.mode == ViewUnits || ui->main.mode == LookAround) || 
-                (isInTrackableMode() && tracking_enabled))
-            {
-                sendKey(df::interface_key::LEAVESCREEN);
-            }
-            else
-            {
-                int scroll_trigger_x = dims.menu_x1 / 3;
-                int scroll_trigger_y = gps->dimy / 3;
-                if (mx < scroll_trigger_x)
-                    sendKey(interface_key::CURSOR_LEFT_FAST);
-
-                if (mx > ((dims.menu_x1 > 0) ? dims.menu_x1 : gps->dimx) - scroll_trigger_x)
-                    sendKey(interface_key::CURSOR_RIGHT_FAST);
-
-                if (my < scroll_trigger_y)
-                    sendKey(interface_key::CURSOR_UP_FAST);
-
-                if (my > gps->dimy - scroll_trigger_y)
-                    sendKey(interface_key::CURSOR_DOWN_FAST);
-            }
-        }      
+            awaiting_rbut_up = false; 
+            if (rbutton_enabled)
+                handleRight(mpos, mx, my);
+        }               
 
         if (mpos_valid)
         {
@@ -769,7 +795,7 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
             char buf[6];
             sprintf(buf, "@%d", mpos.z - *df::global::window_z);
             OutputString(COLOR_GREY, disp_x, y, buf, true, left_margin);
-        }
+        }        
 
         int c = 0;
         for (auto it = ulist.begin(); it != ulist.end() && c < 8; it++, c++)
@@ -863,7 +889,7 @@ static command_result mousequery_cmd(color_ostream &out, vector <string> & param
                 drag_mode = Right;
             else if (state == "disable")
                 drag_mode = None;
-        }
+        }        
         else if (cmd[0] == 'd')
         {
             auto l = atoi(state.c_str());
