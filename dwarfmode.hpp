@@ -66,13 +66,13 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
             patched = true;
         }
     #endif
-#elif defined(DF_04008)
+#elif defined(DF_04010)
     #ifdef WIN32
         static bool patched = false;
         if (!patched)
         {
             unsigned char t1[] = {  0x90,0x90, 0x90, 0x90,0x90,0x90,0x90,0x90 };
-            Core::getInstance().p->patchMemory((void*)(0x006211dd+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+            Core::getInstance().p->patchMemory((void*)(0x006227b0+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
 
             patched = true;
         }
@@ -99,12 +99,12 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
     #else
         #error Linux not supported yet
     #endif
-#elif defined(DF_04008)
+#elif defined(DF_04010)
     #ifdef WIN32
-        void (_stdcall *_render_map)(int) = (void (_stdcall *)(int))(0x009b7240+(Core::getInstance().vinfo->getRebaseDelta()));
+        void (_stdcall *_render_map)(int) = (void (_stdcall *)(int))(0x009b9730+(Core::getInstance().vinfo->getRebaseDelta()));
         #define render_map() _render_map(0)
     #elif defined(__APPLE__)
-        void (*_render_map)(void *, int) = (void (*)(void *, int))0x009a1ad0;
+        void (*_render_map)(void *, int) = (void (*)(void *, int))0x009aa250;
         #define render_map() _render_map(df::global::map_renderer, 0)
     #else
         #error Linux not supported yet

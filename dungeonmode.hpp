@@ -67,19 +67,19 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
             patched = true;
         }
     #endif             
-#elif defined(DF_04008)
+#elif defined(DF_04010)
     #ifdef WIN32
         static bool patched = false;
         if (!patched)
         {
             unsigned char t1[] = {  0x90,0x90, 0x90,0x90,0x90,0x90,0x90, 0x90,0x90,0x90,0x90,0x90 };
-            Core::getInstance().p->patchMemory((void*)(0x005a1865+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
-            Core::getInstance().p->patchMemory((void*)(0x005a18b0+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+            Core::getInstance().p->patchMemory((void*)(0x005a2336+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+            Core::getInstance().p->patchMemory((void*)(0x005a2380+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
 
-            Core::getInstance().p->patchMemory((void*)(0x005a18ff+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
-            Core::getInstance().p->patchMemory((void*)(0x005a1954+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+            Core::getInstance().p->patchMemory((void*)(0x005a23cf+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+            Core::getInstance().p->patchMemory((void*)(0x005a2424+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
 
-            Core::getInstance().p->patchMemory((void*)(0x005a1de9+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+            Core::getInstance().p->patchMemory((void*)(0x005a28b9+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
 
             patched = true;
         }
@@ -114,15 +114,15 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
     #else
             #error Linux not supported yet
     #endif
-#elif defined(DF_04008)
+#elif defined(DF_04010)
     #ifdef WIN32
-            void (_stdcall *_render_map)(int) = (void (_stdcall *)(int))(0x009b7240+(Core::getInstance().vinfo->getRebaseDelta()));
-            void (_stdcall *_render_updown)() = (void (_stdcall *)())(0x007fa740+(Core::getInstance().vinfo->getRebaseDelta()));
+            void (_stdcall *_render_map)(int) = (void (_stdcall *)(int))(0x009b9730+(Core::getInstance().vinfo->getRebaseDelta()));
+            void (_stdcall *_render_updown)() = (void (_stdcall *)())(0x007fc860+(Core::getInstance().vinfo->getRebaseDelta()));
             #define render_map() _render_map(0)
             #define render_updown() _render_updown()
     #elif defined(__APPLE__)
-            void (*_render_map)(void *, int) = (void (*)(void *, int))0x009a1ad0;
-            void (*_render_updown)(void *) = (void (*)(void *))0x0075d950;
+            void (*_render_map)(void *, int) = (void (*)(void *, int))0x009aa250;
+            void (*_render_updown)(void *) = (void (*)(void *))0x00765c20;
             #define render_map() _render_map(df::global::map_renderer, 0)
             #define render_updown() _render_updown(df::global::map_renderer)
     #else

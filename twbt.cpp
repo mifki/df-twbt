@@ -277,9 +277,9 @@ static void patch_rendering(bool enable_lower_levels)
         #define NO_RENDERING_PATCH
     #endif
 
-#elif defined(DF_04008)
+#elif defined(DF_04010)
     #ifdef WIN32
-        void *addr = (void*)(0x00c91b00 + Core::getInstance().vinfo->getRebaseDelta());
+        void *addr = (void*)(0x00c96df0 + Core::getInstance().vinfo->getRebaseDelta());
 
         // mov eax, dword [ss:esp+0x0c]
         // mov byte [ds:eax], 0x00
@@ -287,7 +287,7 @@ static void patch_rendering(bool enable_lower_levels)
         unsigned char patch[] = { 0x36,0x8b,0x84,0x24,0x0C,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC2,0x1C,0x00 };
 
     #elif defined(__APPLE__)
-        void *addr = (void*)0x00c61700;
+        void *addr = (void*)0x00c6cb10;
 
         // mov eax, dword [ss:esp+0x14]
         // mov byte [ds:eax], 0x00
@@ -321,7 +321,7 @@ static void replace_renderer()
 
     MemoryPatcher p(Core::getInstance().p);
 
-#if defined(DF_04008)
+#if defined(DF_04010)
     //XXX: This is a crazy work-around for vtable address for df::renderer not being available yet
     //in dfhack for 0.40.xx, which prevents its subclasses form being instantiated. We're overwriting
     //original vtable anyway, so any value will go.
@@ -425,18 +425,18 @@ static void replace_renderer()
         #error Linux not supported yet
     #endif
 
-#elif defined(DF_04008)
+#elif defined(DF_04010)
     #ifdef WIN32
         // On Windows original map rendering function must be called at least once to initialize something
 
         // Disable original renderer::display
         // See below how to find this address
-        p.write((void*)(0x00653721 + Core::getInstance().vinfo->getRebaseDelta()), nop6, 5);
+        p.write((void*)(0x00654c01 + Core::getInstance().vinfo->getRebaseDelta()), nop6, 5);
 
     #elif defined(__APPLE__)
 
         // Disable original map rendering
-        p.write((void*)0x003e76aa, nop6, 5);
+        p.write((void*)0x003e862a, nop6, 5);
 
         // Disable original renderer::display
         // Original code will check screentexpos et al. for changes but we don't want that
@@ -445,26 +445,26 @@ static void replace_renderer()
         // To find this address, look for a function with two SDL_GetTicks calls inside,
         // there will be two calls with the same argument right before an increment between 
         // SDL_SemWait and SDL_SemPost near the end - they are renderer->display() and renderer->render(). 
-        p.write((void*)0x00f03511, nop6, 5);
+        p.write((void*)0x00f100f1, nop6, 5);
 
         // Adv. mode
         // Second patched call is rendering of up/down map views
 
         // Main rendering mode
-        p.write((void*)0x003a5710, nop6, 5);
-        p.write((void*)(0x003a5710+5+3), nop6, 5);
+        p.write((void*)0x003a6690, nop6, 5);
+        p.write((void*)(0x003a6690+5+3), nop6, 5);
 
         // Another rendering, after a movement
-        p.write((void*)0x003a6136, nop6, 5);
-        p.write((void*)(0x003a6136+5+3), nop6, 5);
+        p.write((void*)0x003a70b6, nop6, 5);
+        p.write((void*)(0x003a70b6+5+3), nop6, 5);
 
         // When an alert is shown
-        p.write((void*)0x003a6199, nop6, 5);
-        p.write((void*)(0x003a6199+5+3), nop6, 5);
+        p.write((void*)0x003a7119, nop6, 5);
+        p.write((void*)(0x003a7179+5+3), nop6, 5);
 
         // Hero died
-        p.write((void*)0x003a5d6d, nop6, 5);
-        p.write((void*)(0x003a5d6d+5+3), nop6, 5);
+        p.write((void*)0x003a6ced, nop6, 5);
+        p.write((void*)(0x003a6ced+5+3), nop6, 5);
 
     #else
         #error Linux not supported yet

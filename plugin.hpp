@@ -33,11 +33,11 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
         #error Linux not supported yet
     #endif
-#elif defined(DF_04008)
+#elif defined(DF_04010)
     #ifdef WIN32
-        load_multi_pdim = (LOAD_MULTI_PDIM) (0x00b6a680 + Core::getInstance().vinfo->getRebaseDelta());
+        load_multi_pdim = (LOAD_MULTI_PDIM) (0x00b6f2c0 + Core::getInstance().vinfo->getRebaseDelta());
     #elif defined(__APPLE__)
-        load_multi_pdim = (LOAD_MULTI_PDIM) 0x00f6e4e0;    
+        load_multi_pdim = (LOAD_MULTI_PDIM) 0x00f7b0c0;    
     #else
         load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
         #error Linux not supported yet
