@@ -9,7 +9,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{DFAC4FE9-3836-4E7E-AC08-6ECC36489EFB}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>mousequery</RootNamespace>
+    <RootNamespace>$(plugin)</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -27,7 +27,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>mousequery.plug</TargetName>
+    <TargetName>$(plugin).plug</TargetName>
     <OutDir>$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -49,8 +49,11 @@
       <OutputFile>..\dist\$(dfhackver)-$(dfhackrel)\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(plugin)'=='mousequery'">
     <ClCompile Include="mousequery.cpp" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(plugin)'=='resume'">
+    <ClCompile Include="resume.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="$(dfhack)\build\VC2010\library\Release\SDL.lib" />

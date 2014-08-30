@@ -6,9 +6,9 @@ DFMAJOR = `echo $(DFHACKVER) | sed s/\\\\.//g`
 DF ?= /Users/vit/Desktop/df-r5
 DH ?= /Users/vit/Downloads/dfhack-$(DFHACKREL)
 
-SRC = mousequery.cpp
+SRC = $(PLUGIN).cpp
 DEP = 
-OUT = ../dist/$(DFHACKVER)-$(DFHACKREL)/mousequery.plug.so
+OUT = ../dist/$(DFHACKVER)-$(DFHACKREL)/$(PLUGIN).plug.so
 
 INC = -I"$(DH)/library/include" -I"$(DH)/library/proto" -I"$(DH)/depends/protobuf" -I"$(DH)/depends/lua/include" -I"$(DH)/plugins" -I..
 LIB = -L"$(DH)/build/library" -ldfhack
