@@ -50,7 +50,7 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         *df::global::window_x = gwindow_x;
         *df::global::window_y = gwindow_y;
 
-#if defined(DF_32)
+#if defined(DF_03411)
     #ifdef WIN32
         static bool patched = false;
         if (!patched)
