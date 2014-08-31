@@ -117,13 +117,13 @@ command_result twbt_cmd (color_ostream &out, std::vector <std::string> & paramet
             renderer_cool *r = (renderer_cool*) enabler->renderer;
             std::string &param2 = parameters[1];
 
-            if (param0 == "bigger")
+            if (parameters[1] == "bigger")
             {
                 r->gdispx++;
                 r->gdispy++;
                 r->needs_reshape = true;
             }
-            else if (param0 == "smaller")
+            else if (parameters[1] == "smaller")
             {
                 if (r->gdispx > 0 && r->gdispy > 0)
                 {

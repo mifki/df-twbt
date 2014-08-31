@@ -35,7 +35,7 @@ Vitaly Pronkin aka mifki <pronvit@me.com>
 
 ## Text and Map Tilesets ##
 
-Main function is to use separate fonts (tilesets) for map tiles in Fortress Mode and for text. These fonts may have different tile size, usually square for the map and non-square for text.
+Main function is to use separate fonts (tilesets) for map tiles in Fortress Mode and for text. These fonts may have different tile size, usually square for the map and non-square for text. There also no limit of minimum 80 columns anymore, so bigger tiles can be used on small screens.
 
 In your `init.txt` set FONT and FULLFONT to the font you want to use for **text**, and GRAPHICS\_FONT and GRAPHICS\_FULLFONT to the font for **map tiles**.
 
