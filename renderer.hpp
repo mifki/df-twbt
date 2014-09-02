@@ -708,7 +708,7 @@ bool renderer_cool::get_mouse_coords(int32_t *x, int32_t *y)
     int _x = (float) mouse_x / gdispx + 1;
     int _y = (float) mouse_y / gdispy + 1;
 
-    if (_x < 0 || _y < 0 || _x > gdimxfull || _y > gdimyfull)
+    if (_x < 1 || _y < 1 || _x > gdimx || _y > gdimy)
         return false;
 
     *x = _x;

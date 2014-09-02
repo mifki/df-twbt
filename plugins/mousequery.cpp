@@ -52,7 +52,7 @@ static int scroll_delay = 100;
 
 static bool awaiting_lbut_up, awaiting_rbut_up;
 static enum { None, Left, Right } drag_mode;
-
+color_ostream *out2;
 static df::coord get_mouse_pos(int32_t &mx, int32_t &my)
 {
     df::coord pos;
@@ -72,7 +72,7 @@ static df::coord get_mouse_pos(int32_t &mx, int32_t &my)
     pos.y = vy + my - 1;
 
     renderer_cool *r = (renderer_cool*)enabler->renderer;
-    if (r->dummy == 'TWBT')
+    if (r->is_twbt())
     {
         const int tile = (mx-1) * r->gdimy + (my-1);
         unsigned char *s = r->gscreen + tile*4;
@@ -617,7 +617,7 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
                     int newy = (*df::global::window_y) - (mpos.y - last_move_pos.y);
 
                     renderer_cool *r = (renderer_cool*)enabler->renderer;
-                    if (r->dummy == 'TWBT')
+                    if (r->is_twbt())
                     {
                         newx = std::max(0, std::min(newx, world->map.x_count_block * 16 - r->gdimxfull));
                         newy = std::max(0, std::min(newy, world->map.y_count_block * 16 - r->gdimyfull));
@@ -739,15 +739,8 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
             }
 
             renderer_cool *r = (renderer_cool*)enabler->renderer;
-            if (r->dummy == 'TWBT')
-            {
-                const int tile = (mx-1) * r->gdimy + (my-1);
-                unsigned char *s = r->gscreen + tile*4;
-                s[0] = 'X';
-                s[1] = color % 16;
-                s[2] = 0;
-                s[3] = (color / 16) | (s[3]&0xf0);
-            }
+            if (r->is_twbt())
+                r->output_char(color, mx, my, 'X');
             else
                 OutputString(color, mx, my, "X");
             return;
@@ -934,6 +927,7 @@ DFhackCExport command_result plugin_enable ( color_ostream &out, bool enable)
 
 DFhackCExport command_result plugin_init ( color_ostream &out, std::vector <PluginCommand> &commands)
 {
+    out2 = &out;
     commands.push_back(
         PluginCommand(
         "mousequery", "Add mouse functionality to Dwarf Fortress",

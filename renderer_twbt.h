@@ -53,6 +53,23 @@ struct renderer_cool : renderer_opengl
     virtual void reshape_gl_old() {}; //18
 
     virtual void _last_vmethod() {};
+
+    bool is_twbt() {
+        return (this->dummy == 'TWBT');
+    };
+
+    void output_string(int8_t color, int x, int y, std::string str) {
+
+    };
+
+    void output_char(int8_t color, int x, int y, unsigned char ch) {
+        const int tile = (x-1) * gdimy + (y-1);
+        unsigned char *s = gscreen + tile*4;
+        s[0] = ch;
+        s[1] = color % 16;
+        s[2] = 0;
+        s[3] = (color / 16) | (s[3]&0xf0);
+    };    
 };
 
 #endif
