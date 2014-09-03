@@ -150,7 +150,8 @@ void show_suspended_buildings()
     if (!Gui::getViewCoords(vx, vy, vz))
         return;
 
-    auto dims = Gui::getDwarfmodeViewDims();
+    renderer_cool *r = (renderer_cool*)enabler->renderer;
+    auto dims = r->is_twbt() ? r->map_dims() : Gui::getDwarfmodeViewDims();
     int left_margin = vx + dims.map_x2;
     int bottom_margin = vy + dims.y2;
 
@@ -175,14 +176,7 @@ void show_suspended_buildings()
 
             renderer_cool *r = (renderer_cool*)enabler->renderer;
             if (r->dummy == 'TWBT')
-            {
-                const int tile = (x-1) * r->gdimy + (y-1);
-                unsigned char *s = r->gscreen + tile*4;
-                s[0] = 'X';
-                s[1] = color % 16;
-                s[2] = 0;
-                s[3] = (color / 16) | (s[3]&0xf0);
-            }
+                r->output_char(color, x, y, 'X');
             else            
                 OutputString(color, x, y, "X");
         }

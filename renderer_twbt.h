@@ -58,11 +58,13 @@ struct renderer_cool : renderer_opengl
         return (this->dummy == 'TWBT');
     };
 
-    void output_string(int8_t color, int x, int y, std::string str) {
+    void output_string(int8_t color, int x, int y, std::string str)
+    {
 
     };
 
-    void output_char(int8_t color, int x, int y, unsigned char ch) {
+    void output_char(int8_t color, int x, int y, unsigned char ch)
+    {
         const int tile = (x-1) * gdimy + (y-1);
         unsigned char *s = gscreen + tile*4;
         s[0] = ch;
@@ -70,6 +72,12 @@ struct renderer_cool : renderer_opengl
         s[2] = 0;
         s[3] = (color / 16) | (s[3]&0xf0);
     };    
+
+    DFHack::Gui::DwarfmodeDims map_dims()
+    {
+        DFHack::Gui::DwarfmodeDims dims = { 1, gdimx, 0, 0, 0, 0, 1, gdimy };
+        return dims;
+    };
 };
 
 #endif

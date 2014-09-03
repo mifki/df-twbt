@@ -323,7 +323,7 @@ void renderer_cool::draw(int vertex_count)
             // Prepare and render shadows
             if (multi_rendered)
             {
-                short elemcnt = 0;
+                int elemcnt = 0;
                 //TODO: don't do this if view not moved and tiles with shadows not changed
                 {
                     gl_texpos *txt = (gl_texpos *) enabler->textures.gl_texpos;
@@ -645,6 +645,7 @@ void renderer_cool::allocate_buffers(int tiles)
 
     // We need to zero out these buffers because game doesn't change them for tiles without creatures,
     // so there will be garbage that will cause every tile to be updated each frame and other bad things
+    memset(_gscreen[0],                 0, tiles * 2 * 4);
     memset(_gscreentexpos[0],           0, tiles * 2 * sizeof(int32_t));
     memset(_gscreentexpos_addcolor[0],  0, tiles * 2);
     memset(_gscreentexpos_grayscale[0], 0, tiles * 2);

@@ -706,7 +706,7 @@ struct jobutils_hook : public df::viewscreen_dwarfmodest
     
                     renderer_cool *r = (renderer_cool*)enabler->renderer;
                     if (r->is_twbt())
-                        r->output_char(COLOR_GREEN, x, y, 'X');
+                        r->output_char(color, x, y, 'X');
                     else
                         OutputString(color, x, y, "X");
                 }
@@ -1193,7 +1193,7 @@ struct jobutils_hook : public df::viewscreen_dwarfmodest
 
                     renderer_cool *r = (renderer_cool*)enabler->renderer;
                     if (r->is_twbt())
-                        r->output_char(COLOR_GREEN, cx, cy, 'X');
+                        r->output_char(COLOR_BROWN, cx, cy, 'X');
                     else                
                         OutputString(COLOR_BROWN, cx, cy, "X");
                 }

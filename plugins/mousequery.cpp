@@ -299,7 +299,8 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
 
     bool handleLeft(df::coord &mpos, int32_t mx, int32_t my)
     {
-        auto dims = Gui::getDwarfmodeViewDims();
+        renderer_cool *r = (renderer_cool*)enabler->renderer;
+        auto mapdims = r->is_twbt() ? r->map_dims() : Gui::getDwarfmodeViewDims();
 
         bool cursor_still_here = (last_clicked_x == mpos.x && last_clicked_y == mpos.y && last_clicked_z == mpos.z);
         last_clicked_x = mpos.x;
@@ -368,8 +369,7 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
 
         // Can't check limits earlier as we must be sure we are in query or default mode 
         // (so we can clear the button down flag)
-        int right_bound = (dims.menu_x1 > 0) ? dims.menu_x1 - 2 : gps->dimx - 2;
-        if (mx < 1 || mx > right_bound || my < 1 || my > gps->dimy - 2)
+        if (mx < 1 || mx > mapdims.map_x2 || my < 1 || my > mapdims.y2)
             return false;
 
         if (ui->main.mode == df::ui_sidebar_mode::Zones || 
@@ -415,7 +415,8 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
 
     bool handleRight(df::coord &mpos, int32_t mx, int32_t my)
     {
-        auto dims = Gui::getDwarfmodeViewDims();
+        renderer_cool *r = (renderer_cool*)enabler->renderer;
+        auto dims = r->is_twbt() ? r->map_dims() : Gui::getDwarfmodeViewDims();
 
         if (isInDesignationMenu() && !box_designation_enabled)
             return false;
@@ -433,18 +434,18 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
         }
         else
         {
-            int scroll_trigger_x = dims.menu_x1 / 3;
-            int scroll_trigger_y = gps->dimy / 3;
+            int scroll_trigger_x = dims.map_x2 / 3;
+            int scroll_trigger_y = dims.y2 / 3;
             if (mx < scroll_trigger_x)
                 sendKey(interface_key::CURSOR_LEFT_FAST);
 
-            if (mx > ((dims.menu_x1 > 0) ? dims.menu_x1 : gps->dimx) - scroll_trigger_x)
+            if (mx > dims.map_x2 - scroll_trigger_x)
                 sendKey(interface_key::CURSOR_RIGHT_FAST);
 
             if (my < scroll_trigger_y)
                 sendKey(interface_key::CURSOR_UP_FAST);
 
-            if (my > gps->dimy - scroll_trigger_y)
+            if (my > dims.y2 - scroll_trigger_y)
                 sendKey(interface_key::CURSOR_DOWN_FAST);
         }     
 
@@ -574,14 +575,15 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
             return;
 
         static decltype(enabler->clock) last_t = 0;
-
-        auto dims = Gui::getDwarfmodeViewDims();
-        auto right_margin = (dims.menu_x1 > 0) ? dims.menu_x1 : gps->dimx;
+        
+        renderer_cool *r = (renderer_cool*)enabler->renderer;
+        auto txtdims = Gui::getDwarfmodeViewDims();
+        auto mapdims = r->is_twbt() ? r->map_dims() : txtdims;
 
         int32_t mx, my;
         auto mpos = get_mouse_pos(mx, my);
         bool mpos_valid = mpos.x != -30000 && mpos.y != -30000 && mpos.z != -30000;
-        if (mx < 1 || mx > right_margin - 2 || my < 1 || my > gps->dimy - 2)
+        if (mx < 1 || mx > mapdims.map_x2 || my < 1 || my > mapdims.y2)
             mpos_valid = false;
 
         // Check if in lever binding mode
@@ -619,13 +621,13 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
                     renderer_cool *r = (renderer_cool*)enabler->renderer;
                     if (r->is_twbt())
                     {
-                        newx = std::max(0, std::min(newx, world->map.x_count_block * 16 - r->gdimxfull));
-                        newy = std::max(0, std::min(newy, world->map.y_count_block * 16 - r->gdimyfull));
+                        newx = std::max(0, std::min(newx, world->map.x_count - r->gdimxfull));
+                        newy = std::max(0, std::min(newy, world->map.y_count - r->gdimyfull));
                     }
                     else
                     {
-                        newx = std::max(0, std::min(newx, world->map.x_count_block * 16 - dims.map_x2));
-                        newy = std::max(0, std::min(newy, world->map.y_count_block * 16 - dims.y2));
+                        newx = std::max(0, std::min(newx, world->map.x_count - mapdims.map_x2));
+                        newy = std::max(0, std::min(newy, world->map.y_count - mapdims.y2));
                     }
 
                     (*df::global::window_x) = newx;
@@ -638,8 +640,8 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
             }
         }
 
-        int left_margin = dims.menu_x1 + 1;
-        int look_width = dims.menu_x2 - dims.menu_x1 - 1;
+        int left_margin = txtdims.menu_x1 + 1;
+        int look_width = txtdims.menu_x2 - txtdims.menu_x1 - 1;
         int disp_x = left_margin;
 
         if (isInDesignationMenu())
@@ -696,7 +698,7 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
                 return;
             }
 
-            if (mx > right_margin - scroll_buffer)
+            if (mx > mapdims.map_x2 - scroll_buffer)
             {
                 sendKey(interface_key::CURSOR_RIGHT);
                 return;
@@ -708,7 +710,7 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
                 return;
             }
 
-            if (my > gps->dimy - scroll_buffer)
+            if (my > mapdims.y2 - scroll_buffer)
             {
                 sendKey(interface_key::CURSOR_DOWN);
                 return;
@@ -749,9 +751,9 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
         if (shouldTrack())
         {
             if (delta_t <= scroll_delay && (mx < scroll_buffer || 
-                mx > dims.menu_x1 - scroll_buffer || 
+                mx > mapdims.map_x2 - scroll_buffer || 
                 my < scroll_buffer ||
-                my > gps->dimy - scroll_buffer))
+                my > mapdims.y2 - scroll_buffer))
             {
                 return;
             }
@@ -764,7 +766,7 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
             moveCursor(mpos, false);
         }
 
-        if (dims.menu_x1 <= 0)
+        if (txtdims.menu_x1 <= 0)
             return; // No menu displayed
 
         if (!is_valid_pos(mpos) || isInTrackableMode())
