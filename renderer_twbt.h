@@ -68,9 +68,9 @@ struct renderer_cool : renderer_opengl
         const int tile = (x-1) * gdimy + (y-1);
         unsigned char *s = gscreen + tile*4;
         s[0] = ch;
-        s[1] = color % 16;
+        s[1] = color % 8;
         s[2] = 0;
-        s[3] = (color / 16) | (s[3]&0xf0);
+        s[3] = (color / 8) | (s[3]&0xf0);
     };    
 
     DFHack::Gui::DwarfmodeDims map_dims()

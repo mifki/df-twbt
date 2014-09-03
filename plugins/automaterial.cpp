@@ -1209,7 +1209,7 @@ color_ostream_proxy console_out(Core::getInstance().getConsole());
 
 
 IMPLEMENT_VMETHOD_INTERPOSE(jobutils_hook, feed);
-IMPLEMENT_VMETHOD_INTERPOSE(jobutils_hook, render);
+IMPLEMENT_VMETHOD_INTERPOSE_PRIO(jobutils_hook, render, 300);
 
 DFHACK_PLUGIN_IS_ENABLED(is_enabled);
 
