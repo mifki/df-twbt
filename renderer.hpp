@@ -295,8 +295,8 @@ void renderer_cool::draw(int vertex_count)
                 glFogfv(GL_FOG_COLOR, fogcolor);
                 glFogf(GL_FOG_DENSITY, fogdensity);
                 glFogi(GL_FOG_COORD_SRC, GL_FOG_COORD);
-                glFogCoordPointer(GL_FLOAT, 0, fogcoord);
                 glEnableClientState(GL_FOG_COORD_ARRAY);
+                glFogCoordPointer(GL_FLOAT, 0, fogcoord);
             }
 
             glVertexPointer(2, GL_FLOAT, 0, gvertexes);
@@ -318,7 +318,10 @@ void renderer_cool::draw(int vertex_count)
             glDrawArrays(GL_TRIANGLES, 0, gdimx * gdimy * 6);
 
             if (multi_rendered)
+            {
+                glDisableClientState(GL_FOG_COORD_ARRAY);
                 glDisable(GL_FOG);
+            }
 
             // Prepare and render shadows
             if (multi_rendered)
