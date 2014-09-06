@@ -58,12 +58,14 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
     const int tile = x * r->gdimy + y;        
     screen_to_texid_map(r, tile, ret);
 
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 2; i++) {
+        fg += 8;
         *(fg++) = ret.r;
         *(fg++) = ret.g;
         *(fg++) = ret.b;
         *(fg++) = 1;
         
+        bg += 8;
         *(bg++) = ret.br;
         *(bg++) = ret.bg;
         *(bg++) = ret.bb;

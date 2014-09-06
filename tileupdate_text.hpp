@@ -192,8 +192,8 @@ static void write_tile_arrays_text(renderer_cool *r, int x, int y, GLfloat *fg, 
         const unsigned char *s = r->screen + tile*4;
         if (s[0] == 0)
         {
-            memset(fg, 0, sizeof(GLfloat)*6*4);
-            memset(bg, 0, sizeof(GLfloat)*6*4);
+            fg[11] = fg[23] = 0;
+            bg[11] = bg[23] = 0;
             return;
         }
     }
@@ -206,8 +206,8 @@ static void write_tile_arrays_text(renderer_cool *r, int x, int y, GLfloat *fg, 
             const unsigned char *s = r->screen + tile*4;
             if (s[0] == 0)
             {
-                memset(fg, 0, sizeof(GLfloat)*6*4);
-                memset(bg, 0, sizeof(GLfloat)*6*4);
+                fg[11] = fg[23] = 0;
+                bg[11] = bg[23] = 0;
                 return;
             }
         }
@@ -216,12 +216,14 @@ static void write_tile_arrays_text(renderer_cool *r, int x, int y, GLfloat *fg, 
     struct texture_fullid ret;
     screen_to_texid_text(r, tile, ret);
 
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 2; i++) {
+        fg += 8;
         *(fg++) = ret.r;
         *(fg++) = ret.g;
         *(fg++) = ret.b;
         *(fg++) = 1;
         
+        bg += 8;
         *(bg++) = ret.br;
         *(bg++) = ret.bg;
         *(bg++) = ret.bb;

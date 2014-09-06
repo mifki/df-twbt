@@ -174,6 +174,8 @@ void renderer_cool::reshape_gl()
     }
 
     reshape_graphics();
+
+    glShadeModel(GL_FLAT);    
 }
 
 void renderer_cool::draw(int vertex_count)
