@@ -162,6 +162,8 @@ static df::item_flags bad_item_flags;
 static int maxlevels = 0;
 static bool multi_rendered;
 static float fogdensity = 0.15f;
+static float fogstart = 0;
+static float fogstep = 1;
 static float fogcolor[4] = { 0.1f, 0.1f, 0.3f, 1 };
 static float shadowcolor[4] = { 0, 0, 0, 0.4f };
 

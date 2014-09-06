@@ -4,7 +4,7 @@ This is a plugin for [Dwarf Fortress](http://bay12games.com) / [DFHack](http://g
 
 Originally I wrote a small plugin because I was tired seeing coffins instead of zeroes and all that stuff. It has greately evolved since then. Requires OpenGL PRINT_MODE (STANDARD or VBO). The primary goal is to improve Fortress Mode. Adventure Mode is generally supported but may have issues.
 
-Compatible with Dwarf Fortress version 0.34.11 and DFHack r5.
+Compatible with Dwarf Fortress version 0.34.11 and DFHack r5, and usually the latest 0.40.xx for which DFHack is available.
 
 ## Features ##
 
@@ -93,8 +93,8 @@ Set shadow colour. Components are in range `0-1`. Default is `0 0 0 0.4`
 **`multilevel fogcolor <r> <g> <b>`**  
 Set fog colour. Default is `0.1 0.1 0.3`
 
-**`multilevel fogdensity <d>`**  
-Set fog density. Default is `0.15`
+**`multilevel fogdensity <density> [<start>] [<step>]`**  
+Set fog density parameters. Default is `0.15 0 1`
 
 ## Additional Colours ##
 
@@ -117,7 +117,7 @@ Save an image of entire map in full size to `mapshot.tga` in your DF folder.
 
 ## Other Improvements ##
 
-Trade screen divided equally on OS X.
+Trade screen divided equally on OS X (DF 0.34.11 only).
 
 ## Tables ##
 Please note that values from these lists are **case-sensitive** when used in `OVERRIDE` command.

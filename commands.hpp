@@ -37,6 +37,7 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
             else
                 return CR_WRONG_USAGE;
         }        
+
         else if (param0 == "fogcolor" && pcnt >= 4)
         {
             float c[3];
@@ -49,14 +50,34 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
             else
                 return CR_WRONG_USAGE;
         }
+
         else if (param0 == "fogdensity" && pcnt >= 2)
         {
-            float val;
-            if (parse_float(parameters[1], val))
-                fogdensity = val;
+            float val[3];
+            bool ok;
+
+            ok = parse_float(parameters[1], val[0]);
+            if (pcnt >= 3)
+                ok &= parse_float(parameters[2], val[1]);
+            if (pcnt >= 4)
+                ok &= parse_float(parameters[3], val[2]);
+
+            if (!ok)
+                return CR_WRONG_USAGE;                
+
+            fogdensity = val[0];
+            if (pcnt >= 3)
+                fogstart = val[1];
             else
-                return CR_WRONG_USAGE;
+                fogstart = 0;
+            if (pcnt >= 4)
+                fogstep = val[2];
+            else
+                fogstep = 1;
+
+            ((renderer_cool*)enabler->renderer)->needs_full_update = true;
         }
+
         else if (param0 == "more")
         {
             if (maxlevels < 15)

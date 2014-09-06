@@ -45,6 +45,9 @@ void renderer_cool::update_map_tile(int x, int y)
 
         if (fogdensity > 0)
         {
+            if (d > 0)
+                d = d*fogstep + fogstart;
+
             fogcoord[tile * 6 + 0] = d;
             fogcoord[tile * 6 + 1] = d;
             fogcoord[tile * 6 + 2] = d;
@@ -267,12 +270,12 @@ void renderer_cool::draw(int vertex_count)
     if (is_main_scr)
     {
         bool skip = false;
-        /*if (df::viewscreen_dungeonmodest::_identity.is_direct_instance(ws))
+        if (df::viewscreen_dungeonmodest::_identity.is_direct_instance(ws))
         {
             int m = df::global::ui_advmode->menu;
-            if (m == df::ui_advmode_menu::Travel || m == df::ui_advmode_menu::Inventory || m == df::ui_advmode_menu::Eat)
-                skip = true;
-        }*/
+            bool tmode = (m == df::ui_advmode_menu::Default || m == df::ui_advmode_menu::Look || m == df::ui_advmode_menu::ThrowAim || m == df::ui_advmode_menu::Talk || m == 14);            
+            skip = !tmode;
+        }
 
         if (!skip)
         {
