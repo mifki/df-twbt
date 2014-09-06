@@ -4,7 +4,7 @@ This is a plugin for [Dwarf Fortress](http://bay12games.com) / [DFHack](http://g
 
 Originally I wrote a small plugin because I was tired seeing coffins instead of zeroes and all that stuff. It has greately evolved since then. Requires OpenGL PRINT_MODE (STANDARD or VBO). The primary goal is to improve Fortress Mode. Adventure Mode is generally supported but may have issues.
 
-Compatible with Dwarf Fortress version 0.34.11 and DFHack r5, and usually the latest 0.40.xx for which DFHack is available.
+Compatible with Dwarf Fortress version 0.34.11 and DFHack r5, and usually the latest 0.40.xx for which DFHack is available. Installation package also includes several other plugins which required changes to be compatible with TWBT.
 
 ## Features ##
 
