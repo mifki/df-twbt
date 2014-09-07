@@ -133,26 +133,47 @@ command_result twbt_cmd (color_ostream &out, std::vector <std::string> & paramet
     {
         std::string &param0 = parameters[0];
 
-        if (param0 == "tilesize" && pcnt >= 2)
+        if (param0 == "tilesize")
         {
             renderer_cool *r = (renderer_cool*) enabler->renderer;
             std::string &param2 = parameters[1];
+
+            if (pcnt == 1)
+            {
+                *out2 << "Map tile size is " << r->gdispx << "x" << r->gdispy << std::endl;
+                return CR_OK;
+            }
 
             if (parameters[1] == "bigger")
             {
                 r->gdispx++;
                 r->gdispy++;
+
                 r->needs_reshape = true;
             }
             else if (parameters[1] == "smaller")
             {
-                if (r->gdispx > 0 && r->gdispy > 0)
+                if (r->gdispx > 1 && r->gdispy > 1)
                 {
                     r->gdispx--;
                     r->gdispy--;
+
                     r->needs_reshape = true;
                 }
             }
+
+            else if (parameters[1][0] == '+' || parameters[1][0] == '-')
+            {
+                int delta;
+                if (!parse_int(parameters[1], delta))
+                    return CR_WRONG_USAGE;
+
+                r->gdispx += delta;
+                r->gdispy += delta;
+
+                r->needs_reshape = true;
+            }
+
             else if (pcnt >= 3)
             {
                 int w, h;

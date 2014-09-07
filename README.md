@@ -39,7 +39,10 @@ Main function is to use separate fonts (tilesets) for map tiles in Fortress Mode
 
 In your `init.txt` set FONT and FULLFONT to the font you want to use for **text**, and GRAPHICS\_FONT and GRAPHICS\_FULLFONT to the font for **map tiles**.
 
-`twbt tilesize` command adjusts the size of map tiles. Possible parameters are `bigger`, `smaller` or exact values `<width> <height>`.
+**`twbt tilesize bigger | smaller`**  
+**`twbt tilesize +<delta> | -<delta>`**  
+**`twbt tilesize <w> <h>`**  
+These commands adjust the size of map tiles or set the exact size.
 
 ## Overrides ##
 
