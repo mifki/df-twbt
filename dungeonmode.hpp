@@ -38,17 +38,14 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
 
     DEFINE_VMETHOD_INTERPOSE(void, render, ())
     {   
-        // These values may change from the main thread while being accessed from the rendering thread,
-        // and that will cause flickering of overridden tiles at least, so save them here
-        gwindow_x = *df::global::window_x;
-        gwindow_y = *df::global::window_y;
-        gwindow_z = *df::global::window_z;        
+        float wx = *df::global::window_x;
+        float wy = *df::global::window_y;
 
         INTERPOSE_NEXT(render)();
 
         // It's a way around something
-        *df::global::window_x = gwindow_x;
-        *df::global::window_y = gwindow_y;
+        *df::global::window_x = wx;
+        *df::global::window_y = wy;
 
 #if defined(DF_03411)
     #ifdef WIN32
@@ -99,6 +96,12 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
 
     	renderer_cool *r = (renderer_cool*)enabler->renderer;
         r->reshape_zoom_swap();
+
+        // These values may change from the main thread while being accessed from the rendering thread,
+        // and that will cause flickering of overridden tiles at least, so save them here
+        gwindow_x = *df::global::window_x;
+        gwindow_y = *df::global::window_y;
+        gwindow_z = *df::global::window_z;                
 
 #if defined(DF_03411)
     #ifdef WIN32

@@ -46,12 +46,6 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
     DEFINE_VMETHOD_INTERPOSE(void, render, ())
     {
-        // These values may change from the main thread while being accessed from the rendering thread,
-        // and that will cause flickering of overridden tiles at least, so save them here
-        gwindow_x = *df::global::window_x;
-        gwindow_y = *df::global::window_y;
-        gwindow_z = *df::global::window_z;
-
         //clock_t c1 = clock();
         INTERPOSE_NEXT(render)();
 
@@ -88,6 +82,12 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         }
 
         r->reshape_zoom_swap();
+
+        // These values may change from the main thread while being accessed from the rendering thread,
+        // and that will cause flickering of overridden tiles at least, so save them here
+        gwindow_x = *df::global::window_x;
+        gwindow_y = *df::global::window_y;
+        gwindow_z = *df::global::window_z;        
 
 #if defined(DF_03411)
     #ifdef WIN32
