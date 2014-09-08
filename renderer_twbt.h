@@ -32,6 +32,7 @@ struct renderer_cool : renderer_opengl
     int needs_zoom;
     bool needs_full_update;
     unsigned char *gscreen;
+    int32_t *gscreentexpos;
     float goff_y_gl;
 
     renderer_cool();
@@ -71,6 +72,8 @@ struct renderer_cool : renderer_opengl
         s[1] = color % 8;
         s[2] = 0;
         s[3] = (color / 8) | (s[3]&0xf0);
+
+        gscreentexpos[tile] = 0;
     };    
 
     DFHack::Gui::DwarfmodeDims map_dims()

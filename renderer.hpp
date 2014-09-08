@@ -601,7 +601,7 @@ void renderer_cool::gswap_arrays()
     static int j = 0;
 
     this->gscreen = ::gscreen = _gscreen[j];
-    gscreentexpos = _gscreentexpos[j];
+    this->gscreentexpos = ::gscreentexpos = _gscreentexpos[j];
     gscreentexpos_addcolor = _gscreentexpos_addcolor[j];
     gscreentexpos_grayscale = _gscreentexpos_grayscale[j];
     gscreentexpos_cf = _gscreentexpos_cf[j];
