@@ -8,7 +8,13 @@ DH ?= /Users/vit/Downloads/dfhack-$(DFHACKREL)
 
 SRC = twbt.cpp
 DEP = renderer.hpp config.hpp
-OUT = dist/$(DFHACKVER)-$(DFHACKREL)/twbt.plug.so
+
+ifneq (,$(findstring 0.40,$(DFHACKVER)))
+	EXT = dylib
+else
+	EXT = so
+endif
+OUT = dist/$(DFHACKVER)-$(DFHACKREL)/twbt.plug.$(EXT)
 
 INC = -I"$(DH)/library/include" -I"$(DH)/library/proto" -I"$(DH)/depends/protobuf" -I"$(DH)/depends/lua/include"
 LIB = -L"$(DH)/build/library" -ldfhack
