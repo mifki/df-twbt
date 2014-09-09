@@ -197,6 +197,10 @@ static df::interface_key get_default_query_mode(const df::coord pos)
     return (fallback_to_building_query) ? df::interface_key::D_BUILDJOB : df::interface_key::D_LOOK;
 }
 
+extern "C" {
+    unsigned char *SDL_GetKeyState(int *numkeys);
+}
+
 struct mousequery_hook : public df::viewscreen_dwarfmodest
 {
     typedef df::viewscreen_dwarfmodest interpose_base;
@@ -299,6 +303,21 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
 
     bool handleLeft(df::coord &mpos, int32_t mx, int32_t my)
     {
+        static unsigned char *keystate = 0;
+        if (!keystate)
+            keystate = SDL_GetKeyState(NULL);
+
+        if (!(keystate[303] || keystate[304]))
+        {
+            renderer_cool *r = (renderer_cool*)enabler->renderer;
+            if (r->is_twbt())
+            {
+                const int tile = (mx-1) * r->gdimy + (my-1);
+                unsigned char *s = r->gscreen + tile*4;
+                mpos.z += ((s[3]&0xf0)>>4);
+            }
+        }
+
         renderer_cool *r = (renderer_cool*)enabler->renderer;
         auto mapdims = r->is_twbt() ? r->map_dims() : Gui::getDwarfmodeViewDims();
 

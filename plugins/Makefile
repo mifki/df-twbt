@@ -7,7 +7,7 @@ DF ?= /Users/vit/Desktop/df-r5
 DH ?= /Users/vit/Downloads/dfhack-$(DFHACKREL)
 
 SRC = $(PLUGIN).cpp
-DEP = 
+DEP = ../renderer_twbt.h
 OUT = ../dist/$(DFHACKVER)-$(DFHACKREL)/$(PLUGIN).plug.so
 
 INC = -I"$(DH)/library/include" -I"$(DH)/library/proto" -I"$(DH)/depends/protobuf" -I"$(DH)/depends/lua/include" -I"$(DH)/plugins" -I..
