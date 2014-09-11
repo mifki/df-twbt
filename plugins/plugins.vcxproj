@@ -55,6 +55,9 @@
   <ItemGroup Condition="'$(plugin)'=='resume'">
     <ClCompile Include="resume.cpp" />
   </ItemGroup>
+  <ItemGroup Condition="'$(plugin)'=='automaterial'">
+    <ClCompile Include="automaterial.cpp" />
+  </ItemGroup>
   <ItemGroup>
     <Library Include="$(dfhack)\build\VC2010\library\Release\SDL.lib" />
   </ItemGroup>
