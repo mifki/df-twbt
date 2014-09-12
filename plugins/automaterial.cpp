@@ -1188,8 +1188,10 @@ struct jobutils_hook : public df::viewscreen_dwarfmodest
                     label << "Selection: " << dX << "x" << dY;
                     OutputString(COLOR_WHITE, x, ++y, label.str(), true, left_margin);
 
-                    int cx = box_first.x;
-                    int cy = box_first.y;
+                    df::coord vport = Gui::getViewportPos();
+
+                    int cx = box_first.x - vport.x + 1;
+                    int cy = box_first.y - vport.y + 1;
 
                     renderer_cool *r = (renderer_cool*)enabler->renderer;
                     if (r->is_twbt())
