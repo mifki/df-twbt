@@ -31,6 +31,7 @@
     #include <OpenGL/gl.h>
 
 #else
+    #include <dlfcn.h>
     #define GL_GLEXT_PROTOTYPES
     #include <GL/gl.h>
     #include <GL/glext.h>
