@@ -9,8 +9,12 @@ DH ?= /Users/vit/Downloads/dfhack-$(DFHACKREL)
 SRC = twbt.cpp
 DEP = renderer.hpp config.hpp
 
-ifneq (,$(findstring 0.40,$(DFHACKVER)))
-	EXT = dylib
+ifeq ($(shell uname -s), Darwin)
+	ifneq (,$(findstring 0.40,$(DFHACKVER)))
+		EXT = dylib
+	else
+		EXT = so
+	endif
 else
 	EXT = so
 endif
