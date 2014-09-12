@@ -4,6 +4,14 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 {
     out2 = &out;
 
+    *out2 << "TWBT: version " << TWBT_VER << std::endl;
+#ifndef NO_RENDERING_PATCH
+    *out2 << "TWBT: rendering patch available" << std::endl;
+#endif
+#ifndef NO_DISPLAY_PATCH
+    *out2 << "TWBT: display patch available" << std::endl;
+#endif
+
     auto dflags = init->display.flag;
     if (!dflags.is_set(init_display_flags::USE_GRAPHICS))
     {
@@ -38,6 +46,14 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         load_multi_pdim = (LOAD_MULTI_PDIM) (0x00b6fd80 + Core::getInstance().vinfo->getRebaseDelta());
     #elif defined(__APPLE__)
         load_multi_pdim = (LOAD_MULTI_PDIM) 0x00f7c0f0;    
+    #else
+        load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
+    #endif
+#elif defined(DF_04012)
+    #ifdef WIN32
+        load_multi_pdim = (LOAD_MULTI_PDIM) (0x00b73290 + Core::getInstance().vinfo->getRebaseDelta());
+    #elif defined(__APPLE__)
+        load_multi_pdim = (LOAD_MULTI_PDIM) 0x00f80eb0;    
     #else
         load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
     #endif

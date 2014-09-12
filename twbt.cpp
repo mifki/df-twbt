@@ -299,6 +299,32 @@ static void patch_rendering(bool enable_lower_levels)
     #else
         #define NO_RENDERING_PATCH
     #endif        
+
+#elif defined(DF_04012)
+    #ifdef WIN32
+        void *addr = (void*)(0x00c9aac0 + Core::getInstance().vinfo->getRebaseDelta());
+
+        // mov eax, dword [ss:esp+0x0c]
+        // mov byte [ds:eax], 0x00
+        // retn 0x1c    
+        unsigned char patch[] = { 0x36,0x8b,0x84,0x24,0x0C,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC2,0x1C,0x00 };
+
+    #elif defined(__APPLE__)
+        void *addr = (void*)0x00c71700;
+
+        // mov eax, dword [ss:esp+0x14]
+        // mov byte [ds:eax], 0x00
+        // ret
+        unsigned char patch[] = { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 };
+
+    #else
+        void *addr = (void*)0x08cefd50;
+
+        // mov eax, dword [ss:esp+0x14]
+        // mov byte [ds:eax], 0x00
+        // ret
+        unsigned char patch[] = { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 };
+    #endif        
 #endif
 
 #ifndef NO_RENDERING_PATCH
@@ -323,7 +349,7 @@ static void replace_renderer()
 
     MemoryPatcher p(Core::getInstance().p);
 
-#if defined(DF_04011)
+#if defined(DF_04011) || defined(DF_04012)
     //XXX: This is a crazy work-around for vtable address for df::renderer not being available yet
     //in dfhack for 0.40.xx, which prevents its subclasses form being instantiated. We're overwriting
     //original vtable anyway, so any value will go.
@@ -451,7 +477,6 @@ static void replace_renderer()
 
         // Adv. mode
         // Second patched call is rendering of up/down map views
-
         p.write((void*)0x003a78e0, nop6, 5);
         p.write((void*)(0x003a78e0+5+3), nop6, 5);
 
@@ -470,6 +495,70 @@ static void replace_renderer()
     #else
         #error Linux not supported yet
     #endif        
+
+#elif defined(DF_04012)
+    #ifdef WIN32
+        // On Windows original map rendering function must be called at least once to initialize something
+
+        // Disable original renderer::display
+        // See below how to find this address
+        p.write((void*)(0x00655d71 + Core::getInstance().vinfo->getRebaseDelta()), nop6, 5);
+
+    #elif defined(__APPLE__)
+
+        // Disable original renderer::display
+        // Original code will check screentexpos et al. for changes but we don't want that
+        // because map is not rendered this way now. But we can't completely disable graphics
+        // because it's used on status screen to show professions at least.
+        // To find this address, look for a function with two SDL_GetTicks calls inside,
+        // there will be two calls with the same argument right before an increment between 
+        // SDL_SemWait and SDL_SemPost near the end - they are renderer->display() and renderer->render(). 
+        p.write((void*)0x00f15ee1, nop6, 5);
+
+        // Disable dwarfmode map rendering
+        p.write((void*)0x003e9e6a, nop6, 5);        
+
+        // Adv. mode
+        // Second patched call is rendering of up/down map views
+        p.write((void*)0x003a7d70, nop6, 5);
+        p.write((void*)(0x003a7d70+5+3), nop6, 5);
+
+        p.write((void*)0x003a83cd, nop6, 5);
+        p.write((void*)(0x003a83cd+5+3), nop6, 5);
+
+        p.write((void*)0x003a87f9, nop6, 5);
+        p.write((void*)(0x003a87f9+5+3), nop6, 5);
+
+        p.write((void*)0x003a8796, nop6, 5);
+        p.write((void*)(0x003a8796+5+3), nop6, 5);
+
+        p.write((void*)0x003a887a, nop6, 5);
+        p.write((void*)(0x003a887a+5+3), nop6, 5);
+
+    #else
+
+        #define NO_DISPLAY_PATCH
+
+        // Disable dwarfmode map rendering
+        p.write((void*)0x0836ac3f, nop6, 5);
+
+        // Adv. mode
+        // Second patched call is rendering of up/down map views        
+        p.write((void*)0x083273b1, nop6, 5);
+        p.write((void*)(0x083273b1+5+7), nop6, 5);
+
+        p.write((void*)0x083279bc, nop6, 5);
+        p.write((void*)(0x083279bc+5+7), nop6, 5);
+
+        p.write((void*)0x08327df1, nop6, 5);
+        p.write((void*)(0x08327df1+5+7), nop6, 5);
+
+        p.write((void*)0x083272fd, nop6, 5);
+        p.write((void*)(0x083272fd+5+7), nop6, 5);
+
+        //TODO: one more!?
+
+    #endif
 #endif
 
     enabled = true;   
