@@ -1054,6 +1054,14 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     #else
         load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
     #endif
+#elif defined(DF_04012)
+    #ifdef WIN32
+        load_multi_pdim = (LOAD_MULTI_PDIM) (0x00b73290 + Core::getInstance().vinfo->getRebaseDelta());
+    #elif defined(__APPLE__)
+        load_multi_pdim = (LOAD_MULTI_PDIM) 0x00f80eb0;    
+    #else
+        load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
+    #endif
 #endif
 
     bad_item_flags.whole = 0;
