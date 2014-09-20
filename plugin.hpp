@@ -5,21 +5,16 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     out2 = &out;
 
     *out2 << "TWBT: version " << TWBT_VER << std::endl;
-#ifndef NO_RENDERING_PATCH
-    *out2 << "TWBT: rendering patch available" << std::endl;
+#ifdef NO_RENDERING_PATCH
+    *out2 << COLOR_YELLOW << "TWBT: no rendering patch" << std::endl;
+    *out2 << COLOR_RESET;
 #endif
-#ifndef NO_DISPLAY_PATCH
-    *out2 << "TWBT: display patch available" << std::endl;
+#ifdef NO_DISPLAY_PATCH
+    *out2 << COLOR_YELLOW << "TWBT: no display patch" << std::endl;
+    *out2 << COLOR_RESET;
 #endif
 
     auto dflags = init->display.flag;
-    if (!dflags.is_set(init_display_flags::USE_GRAPHICS))
-    {
-        *out2 << COLOR_RED << "TWBT: GRAPHICS is not enabled in init.txt" << std::endl;
-        *out2 << COLOR_RESET;
-        return CR_OK;
-    }
-
     if (dflags.is_set(init_display_flags::RENDER_2D) ||
         dflags.is_set(init_display_flags::ACCUM_BUFFER) ||
         dflags.is_set(init_display_flags::FRAME_BUFFER) ||
@@ -32,32 +27,19 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         return CR_OK;        
     }
 
-#if defined(DF_03411)
     #ifdef WIN32
-        load_multi_pdim = (LOAD_MULTI_PDIM) (0x00a52670 + Core::getInstance().vinfo->getRebaseDelta());
+        _load_multi_pdim = (LOAD_MULTI_PDIM) (A_LOAD_MULTI_PDIM + Core::getInstance().vinfo->getRebaseDelta());
+        _render_map = (RENDER_MAP) (A_RENDER_MAP + Core::getInstance().vinfo->getRebaseDelta());
+        _render_updown = (RENDER_UPDOWN) (A_RENDER_MAP + Core::getInstance().vinfo->getRebaseDelta());
     #elif defined(__APPLE__)
-        load_multi_pdim = (LOAD_MULTI_PDIM) 0x00cfbbb0;    
+        _load_multi_pdim = (LOAD_MULTI_PDIM) A_LOAD_MULTI_PDIM;    
+        _render_map = (RENDER_MAP) A_RENDER_MAP;
+        _render_updown = (RENDER_UPDOWN) A_RENDER_MAP;
     #else
-        load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
-        #error Linux not supported yet
+        _load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
+        _render_map = (RENDER_MAP) A_RENDER_MAP;
+        _render_updown = (RENDER_UPDOWN) A_RENDER_MAP;
     #endif
-#elif defined(DF_04011)
-    #ifdef WIN32
-        load_multi_pdim = (LOAD_MULTI_PDIM) (0x00b6fd80 + Core::getInstance().vinfo->getRebaseDelta());
-    #elif defined(__APPLE__)
-        load_multi_pdim = (LOAD_MULTI_PDIM) 0x00f7c0f0;    
-    #else
-        load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
-    #endif
-#elif defined(DF_04012)
-    #ifdef WIN32
-        load_multi_pdim = (LOAD_MULTI_PDIM) (0x00b73290 + Core::getInstance().vinfo->getRebaseDelta());
-    #elif defined(__APPLE__)
-        load_multi_pdim = (LOAD_MULTI_PDIM) 0x00f80eb0;    
-    #else
-        load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
-    #endif
-#endif
 
     bad_item_flags.whole = 0;
     bad_item_flags.bits.in_building = true;

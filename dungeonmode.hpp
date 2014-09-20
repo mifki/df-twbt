@@ -47,59 +47,18 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         *df::global::window_x = wx;
         *df::global::window_y = wy;
 
-#if defined(DF_03411)
-    #ifdef WIN32
+#ifdef WIN32
         static bool patched = false;
         if (!patched)
         {
-            unsigned char t1[] = {  0x90,0x90, 0x90,0x90,0x90,0x90,0x90, 0x90,0x90,0x90,0x90,0x90 };
-            Core::getInstance().p->patchMemory((void*)(0x00536cc0+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
-            Core::getInstance().p->patchMemory((void*)(0x00536d07+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+            MemoryPatcher p(Core::getInstance().p);
 
-            Core::getInstance().p->patchMemory((void*)(0x00536d52+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
-            Core::getInstance().p->patchMemory((void*)(0x00536da0+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
-
-            Core::getInstance().p->patchMemory((void*)(0x00537053+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
+            for (int j = 0; j < sizeof(p_advmode_render)/sizeof(patchdef); j++)
+                apply_patch(&p, p_advmode_render[j]);
 
             patched = true;
         }
-    #endif             
-#elif defined(DF_04011)
-    #ifdef WIN32
-        static bool patched = false;
-        if (!patched)
-        {
-            unsigned char t1[] = {  0x90,0x90, 0x90,0x90,0x90,0x90,0x90, 0x90,0x90,0x90,0x90,0x90 };
-            Core::getInstance().p->patchMemory((void*)(0x005a2255+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
-            Core::getInstance().p->patchMemory((void*)(0x005a22a0+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1)-1);
-
-            Core::getInstance().p->patchMemory((void*)(0x005a22ef+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1)-1);
-            Core::getInstance().p->patchMemory((void*)(0x005a2344+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1)-1);
-
-            Core::getInstance().p->patchMemory((void*)(0x005a27d9+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1)-1);
-
-            patched = true;
-        }
-    #endif        
-
-#elif defined(DF_04012)
-    #ifdef WIN32
-        static bool patched = false;
-        if (!patched)
-        {
-            unsigned char t1[] = {  0x90,0x90, 0x90,0x90,0x90,0x90,0x90, 0x90,0x90,0x90,0x90,0x90 };
-            Core::getInstance().p->patchMemory((void*)(0x005a2f75+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
-            Core::getInstance().p->patchMemory((void*)(0x005a2fc0+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1)-1);
-
-            Core::getInstance().p->patchMemory((void*)(0x005a300f+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1)-1);
-            Core::getInstance().p->patchMemory((void*)(0x005a3064+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1)-1);
-
-            Core::getInstance().p->patchMemory((void*)(0x005a34f9+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1)-1);
-
-            patched = true;
-        }
-    #endif        
-#endif        
+#endif    
 
         static bool tmode_old;
         int m = df::global::ui_advmode->menu;
@@ -120,53 +79,6 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         gwindow_x = *df::global::window_x;
         gwindow_y = *df::global::window_y;
         gwindow_z = *df::global::window_z;                
-
-#if defined(DF_03411)
-    #ifdef WIN32
-            void (_stdcall *_render_map)(int) = (void (_stdcall *)(int))(0x008f65c0+(Core::getInstance().vinfo->getRebaseDelta()));
-            void (_stdcall *_render_updown)() = (void (_stdcall *)())(0x007510c0+(Core::getInstance().vinfo->getRebaseDelta()));
-            #define render_map() _render_map(0)
-            #define render_updown() _render_updown()
-    #elif defined(__APPLE__)
-            void (*_render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
-            void (*_render_updown)(void *) = (void (*)(void *))0x00619fe0;
-            #define render_map() _render_map(df::global::map_renderer, 0)
-            #define render_updown() _render_updown(df::global::map_renderer)
-    #else
-            #error Linux not supported yet
-    #endif
-#elif defined(DF_04011)
-    #ifdef WIN32
-            void (_stdcall *_render_map)(int) = (void (_stdcall *)(int))(0x009ba240+(Core::getInstance().vinfo->getRebaseDelta()));
-            void (_stdcall *_render_updown)() = (void (_stdcall *)())(0x007fcce0+(Core::getInstance().vinfo->getRebaseDelta()));
-            #define render_map() _render_map(0)
-            #define render_updown() _render_updown()
-    #elif defined(__APPLE__)
-            void (*_render_map)(void *, int) = (void (*)(void *, int))0x009aa1a0;
-            void (*_render_updown)(void *) = (void (*)(void *))0x00765b70;
-            #define render_map() _render_map(df::global::map_renderer, 0)
-            #define render_updown() _render_updown(df::global::map_renderer)
-    #else
-            #error Linux not supported yet
-    #endif
-#elif defined(DF_04012)
-    #ifdef WIN32
-            void (_stdcall *_render_map)(int) = (void (_stdcall *)(int))(0x009bd480+(Core::getInstance().vinfo->getRebaseDelta()));
-            void (_stdcall *_render_updown)() = (void (_stdcall *)())(0x007ff980+(Core::getInstance().vinfo->getRebaseDelta()));
-            #define render_map() _render_map(0)
-            #define render_updown() _render_updown()
-    #elif defined(__APPLE__)
-            void (*_render_map)(void *, int) = (void (*)(void *, int))0x009ae010;
-            void (*_render_updown)(void *) = (void (*)(void *))0x00768e50;
-            #define render_map() _render_map(df::global::map_renderer, 0)
-            #define render_updown() _render_updown(df::global::map_renderer)
-    #else
-            void (*_render_map)(void *, int) = (void (*)(void *, int))0x08a00f00;
-            void (*_render_updown)(void *) = (void (*)(void *))0x087c54c0;
-            #define render_map() _render_map(df::global::map_renderer, 0)
-            #define render_updown() _render_updown(df::global::map_renderer)
-    #endif
-#endif
 
         uint8_t *sctop = enabler->renderer->screen;
         int32_t *screentexpostop = enabler->renderer->screentexpos;

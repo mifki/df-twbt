@@ -106,26 +106,6 @@ struct gl_texpos {
     GLfloat left, right, top, bottom;
 };
 
-#ifdef WIN32
-    // On Windows there's no convert_magenta parameter. Arguments are pushed onto stack,
-    // except for tex_pos and filename, which go into ecx and edx. Simulating this with __fastcall.
-    typedef void (__fastcall *LOAD_MULTI_PDIM)(long *tex_pos, const string &filename, void *tex, long dimx, long dimy, long *disp_x, long *disp_y);
-#else
-    typedef void (*LOAD_MULTI_PDIM)(void *tex, const string &filename, long *tex_pos, long dimx, long dimy, bool convert_magenta, long *disp_x, long *disp_y);
-#endif
-
-LOAD_MULTI_PDIM load_multi_pdim;
-
-static void load_tileset(const string &filename, long *tex_pos, long dimx, long dimy, long *disp_x, long *disp_y)
-{
-#ifdef WIN32
-    load_multi_pdim(tex_pos, filename, &enabler->textures, dimx, dimy, disp_x, disp_y);
-#else
-    load_multi_pdim(&enabler->textures, filename, tex_pos, dimx, dimy, true, disp_x, disp_y);
-#endif
-}
-
-
 struct tileset {
     long small_texpos[16*16], large_texpos[16*16];
 };
@@ -214,132 +194,55 @@ static uint8_t *mscreentexpos_grayscale;
 static uint8_t *mscreentexpos_cf;
 static uint8_t *mscreentexpos_cbr;
 
-#include "tileupdate_text.hpp"
-#include "tileupdate_map.hpp"
+#include "patches.hpp"
 
-// Disables standard rendering of lower levels
-/* To find this address, find a block like (on OS X)
+#ifdef WIN32
+    // On Windows there's no convert_magenta parameter. Arguments are pushed onto stack,
+    // except for tex_pos and filename, which go into ecx and edx. Simulating this with __fastcall.
+    typedef void (__fastcall *LOAD_MULTI_PDIM)(long *tex_pos, const string &filename, void *tex, long dimx, long dimy, long *disp_x, long *disp_y);
 
-00c5c140 F644246007                      test       byte [ss:esp+0x60], 0x7               ; XREF=0xc5b3d4
-00c5c145 0F858FF2FFFF                    jne        0xc5b3da
-                                       ; Basic Block Input Regs: esp -  Killed Regs: <nothing>
-00c5c14b 83BC24F800000002                cmp        dword [ss:esp+0xf8], 0x2
-00c5c153 0F8517030000                    jne        0xc5c470
-                                       ; Basic Block Input Regs: esp -  Killed Regs: <nothing>
-00c5c159 F744246000000030                test       dword [ss:esp+0x60], 0x30000000
-00c5c161 0F8509030000                    jne        0xc5c470
+    // On Windows there's no parameter pointing to the map_renderer structure
+    typedef void (_stdcall *RENDER_MAP)(int);
+    typedef void (_stdcall *RENDER_UPDOWN)();
 
-then go to 0xc5c470, there will be a block like (call of a function with enormous number of arguments)
+#else
+    typedef void (*LOAD_MULTI_PDIM)(void *tex, const string &filename, long *tex_pos, long dimx, long dimy, bool convert_magenta, long *disp_x, long *disp_y);
 
-00c5c470 0FBF842484000000                movsx      eax, word [ss:esp+0x84]               ; XREF=0xc5c153, 0xc5c161
-00c5c478 8B9424DC000000                  mov        edx, dword [ss:esp+0xdc]
-00c5c47f 8B8C24D8000000                  mov        ecx, dword [ss:esp+0xd8]
-00c5c486 8BB424D4000000                  mov        esi, dword [ss:esp+0xd4]
-00c5c48d 89442420                        mov        dword [ss:esp+0x20], eax
-00c5c491 8B8424E0000000                  mov        eax, dword [ss:esp+0xe0]
-00c5c498 89542418                        mov        dword [ss:esp+0x18], edx
-00c5c49c 8B7C2458                        mov        edi, dword [ss:esp+0x58]
-00c5c4a0 8B6C2450                        mov        ebp, dword [ss:esp+0x50]
-00c5c4a4 8B9424C0000000                  mov        edx, dword [ss:esp+0xc0]
-00c5c4ab 8944241C                        mov        dword [ss:esp+0x1c], eax
-00c5c4af 8B442454                        mov        eax, dword [ss:esp+0x54]
-00c5c4b3 894C2414                        mov        dword [ss:esp+0x14], ecx
-00c5c4b7 89742410                        mov        dword [ss:esp+0x10], esi
-00c5c4bb 897C240C                        mov        dword [ss:esp+0xc], edi
-00c5c4bf 896C2408                        mov        dword [ss:esp+0x8], ebp
-00c5c4c3 89442404                        mov        dword [ss:esp+0x4], eax
-00c5c4c7 891424                          mov        dword [ss:esp], edx
-00c5c4ca E831520000                      call       0x00c61700
-
-and 0x00c61700 will be your address
-*/
-static void patch_rendering(bool enable_lower_levels)
-{
-    static bool ready = false;
-    static unsigned char orig[15];
-
-#if defined(DF_03411)
-    #ifdef WIN32
-        void *addr = (void*)(0x00b56370 + Core::getInstance().vinfo->getRebaseDelta());
-
-        // mov eax, dword [ss:esp+0x0c]
-        // mov byte [ds:eax], 0x00
-        // retn 0x1c    
-        unsigned char patch[] = { 0x36,0x8b,0x84,0x24,0x0C,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC2,0x1C,0x00 };
-
-    #elif defined(__APPLE__)
-        void *addr = (void*)0x00af6c30;
-
-        // mov eax, dword [ss:esp+0x14]
-        // mov byte [ds:eax], 0x00
-        // ret
-        unsigned char patch[] = { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 };
-        //unsigned char patch[] = { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc7,0x00,0x20,0x00,0x00,0x00, 0xC3 };
-
-    #else
-        #define NO_RENDERING_PATCH
-    #endif
-
-#elif defined(DF_04011)
-    #ifdef WIN32
-        void *addr = (void*)(0x00c97810 + Core::getInstance().vinfo->getRebaseDelta());
-
-        // mov eax, dword [ss:esp+0x0c]
-        // mov byte [ds:eax], 0x00
-        // retn 0x1c    
-        unsigned char patch[] = { 0x36,0x8b,0x84,0x24,0x0C,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC2,0x1C,0x00 };
-
-    #elif defined(__APPLE__)
-        void *addr = (void*)0x00c6cd50;
-
-        // mov eax, dword [ss:esp+0x14]
-        // mov byte [ds:eax], 0x00
-        // ret
-        unsigned char patch[] = { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 };
-
-    #else
-        #define NO_RENDERING_PATCH
-    #endif        
-
-#elif defined(DF_04012)
-    #ifdef WIN32
-        void *addr = (void*)(0x00c9aac0 + Core::getInstance().vinfo->getRebaseDelta());
-
-        // mov eax, dword [ss:esp+0x0c]
-        // mov byte [ds:eax], 0x00
-        // retn 0x1c    
-        unsigned char patch[] = { 0x36,0x8b,0x84,0x24,0x0C,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC2,0x1C,0x00 };
-
-    #elif defined(__APPLE__)
-        void *addr = (void*)0x00c71700;
-
-        // mov eax, dword [ss:esp+0x14]
-        // mov byte [ds:eax], 0x00
-        // ret
-        unsigned char patch[] = { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 };
-
-    #else
-        void *addr = (void*)0x08cefd50;
-
-        // mov eax, dword [ss:esp+0x14]
-        // mov byte [ds:eax], 0x00
-        // ret
-        unsigned char patch[] = { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 };
-    #endif        
+    typedef void (*RENDER_MAP)(void*, int);
+    typedef void (*RENDER_UPDOWN)(void*);    
 #endif
 
+LOAD_MULTI_PDIM _load_multi_pdim;
+RENDER_MAP _render_map;
+RENDER_UPDOWN _render_updown;
+
+#ifdef WIN32
+    #define render_map() _render_map(0)
+    #define render_updown() _render_updown()
+    #define load_tileset(filename,tex_pos,dimx,dimy,disp_x,disp_y) _load_multi_pdim(tex_pos, filename, &enabler->textures, dimx, dimy, disp_x, disp_y)
+#else
+    #define render_map() _render_map(df::global::map_renderer, 0)
+    #define render_updown() _render_updown(df::global::map_renderer)
+    #define load_tileset(filename,tex_pos,dimx,dimy,disp_x,disp_y) _load_multi_pdim(&enabler->textures, filename, tex_pos, dimx, dimy, true, disp_x, disp_y)
+#endif
+
+static void patch_rendering(bool enable_lower_levels)
+{
 #ifndef NO_RENDERING_PATCH
+    static bool ready = false;
+    static unsigned char orig[MAX_PATCH_LEN];
+
     if (!ready)
     {
-        (new MemoryPatcher(Core::getInstance().p))->verifyAccess((void*)addr, sizeof(patch), true);
-        memcpy(orig, (void*)addr, sizeof(patch));
+        (new MemoryPatcher(Core::getInstance().p))->makeWritable((void*)p_render_lower_levels.addr, sizeof(p_render_lower_levels.len));
+        memcpy(orig, (void*)p_render_lower_levels.addr, p_render_lower_levels.len);
         ready = true;
     }
 
     if (enable_lower_levels)
-        memcpy((void*)addr, orig, sizeof(patch));
+        memcpy((void*)p_render_lower_levels.addr, orig, p_render_lower_levels.len);
     else
-        memcpy((void*)addr, patch, sizeof(patch));
+        apply_patch(NULL, p_render_lower_levels);
 #endif
 }
 
@@ -350,7 +253,7 @@ static void replace_renderer()
 
     MemoryPatcher p(Core::getInstance().p);
 
-#if defined(DF_04011) || defined(DF_04012)
+#if defined(DF_04012)
     //XXX: This is a crazy work-around for vtable address for df::renderer not being available yet
     //in dfhack for 0.40.xx, which prevents its subclasses form being instantiated. We're overwriting
     //original vtable anyway, so any value will go.
@@ -367,11 +270,6 @@ static void replace_renderer()
 
     void **vtable_old = ((void ***)oldr)[0];
     void **vtable_new = ((void ***)newr)[0];
-
-    /*for (int i = 0; i < 20; i++)
-        *out2 << "$ " << i << " " << vtable_old[i] << std::endl;
-    for (int i = 0; i < 24; i++)
-        *out2 << "$ " << i << " " << vtable_new[i] << std::endl;*/
 
 #define DEFIDX(n) int IDX_##n = vmethod_pointer_to_idx(&renderer_cool::n);
 
@@ -407,160 +305,20 @@ static void replace_renderer()
 
     enabler->renderer = (df::renderer*)newr;
 
-    unsigned char nop6[] = { 0x90,0x90,0x90,0x90,0x90,0x90 };
-
-#if defined(DF_03411)
-    #ifdef WIN32
-        // On Windows original map rendering function must be called at least once to initialize something
-
-        // Disable original renderer::display
-        // See below how to find this address
-        p.write((void*)(0x005be941 + Core::getInstance().vinfo->getRebaseDelta()), nop6, 5);
-
-    #elif defined(__APPLE__)
-
-        // Disable original map rendering
-        p.write((void*)0x002e0e0a, nop6, 5);
-
-        // Disable original renderer::display
-        // Original code will check screentexpos et al. for changes but we don't want that
-        // because map is not rendered this way now. But we can't completely disable graphics
-        // because it's used on status screen to show professions at least.
-        // To find this address, look for a function with two SDL_GetTicks calls inside,
-        // there will be two calls with the same argument right before an increment between 
-        // SDL_SemWait and SDL_SemPost near the end - they are renderer->display() and renderer->render(). 
-        p.write((void*)0x00c92fe1, nop6, 5);
-
-        // Adv. mode
-        // Second patched call is rendering of up/down map views
-
-        // Main rendering mode
-        p.write((void*)0x002cbbb0, nop6, 5);
-        p.write((void*)(0x002cbbb0+5+3), nop6, 5);
-
-        // Another rendering, after a movement
-        p.write((void*)0x002cc225, nop6, 5);
-        p.write((void*)(0x002cc225+5+3), nop6, 5);
-
-        // When an alert is shown
-        p.write((void*)0x002cc288, nop6, 5);
-        p.write((void*)(0x002cc288+5+3), nop6, 5);
-
-        // Hero died
-        p.write((void*)0x002cbf8d, nop6, 5);
-        p.write((void*)(0x002cbf8d+5+3), nop6, 5);
-
-    #else
-        #error Linux not supported yet
+    // Disable original renderer::display
+    #ifndef NO_DISPLAY_PATCH
+        apply_patch(&p, p_display);    
     #endif
 
-#elif defined(DF_04011)
-    #ifdef WIN32
-        // On Windows original map rendering function must be called at least once to initialize something
-
-        // Disable original renderer::display
-        // See below how to find this address
-        p.write((void*)(0x00654d11 + Core::getInstance().vinfo->getRebaseDelta()), nop6, 5);
-
-    #elif defined(__APPLE__)
-
-        // Disable original renderer::display
-        // Original code will check screentexpos et al. for changes but we don't want that
-        // because map is not rendered this way now. But we can't completely disable graphics
-        // because it's used on status screen to show professions at least.
-        // To find this address, look for a function with two SDL_GetTicks calls inside,
-        // there will be two calls with the same argument right before an increment between 
-        // SDL_SemWait and SDL_SemPost near the end - they are renderer->display() and renderer->render(). 
-        p.write((void*)0x00f11121, nop6, 5);
-
+    // On Windows original map rendering function must be called at least once to initialize something (?)
+    #ifndef WIN32
         // Disable dwarfmode map rendering
-        p.write((void*)0x003e98ba, nop6, 5);        
+        apply_patch(&p, p_dwarfmode_render);
 
-        // Adv. mode
-        // Second patched call is rendering of up/down map views
-        p.write((void*)0x003a78e0, nop6, 5);
-        p.write((void*)(0x003a78e0+5+3), nop6, 5);
-
-        p.write((void*)0x003a7f3d, nop6, 5);
-        p.write((void*)(0x003a7f3d+5+3), nop6, 5);
-
-        p.write((void*)0x003a8369, nop6, 5);
-        p.write((void*)(0x003a8369+5+3), nop6, 5);
-
-        p.write((void*)0x003a8306, nop6, 5);
-        p.write((void*)(0x003a8306+5+3), nop6, 5);
-
-        p.write((void*)0x003a83ea, nop6, 5);
-        p.write((void*)(0x003a83ea+5+3), nop6, 5);
-
-    #else
-        #error Linux not supported yet
-    #endif        
-
-#elif defined(DF_04012)
-    #ifdef WIN32
-        // On Windows original map rendering function must be called at least once to initialize something
-
-        // Disable original renderer::display
-        // See below how to find this address
-        p.write((void*)(0x00655d71 + Core::getInstance().vinfo->getRebaseDelta()), nop6, 5);
-
-    #elif defined(__APPLE__)
-
-        // Disable original renderer::display
-        // Original code will check screentexpos et al. for changes but we don't want that
-        // because map is not rendered this way now. But we can't completely disable graphics
-        // because it's used on status screen to show professions at least.
-        // To find this address, look for a function with two SDL_GetTicks calls inside,
-        // there will be two calls with the same argument right before an increment between 
-        // SDL_SemWait and SDL_SemPost near the end - they are renderer->display() and renderer->render(). 
-        p.write((void*)0x00f15ee1, nop6, 5);
-
-        // Disable dwarfmode map rendering
-        p.write((void*)0x003e9e6a, nop6, 5);        
-
-        // Adv. mode
-        // Second patched call is rendering of up/down map views
-        p.write((void*)0x003a7d70, nop6, 5);
-        p.write((void*)(0x003a7d70+5+3), nop6, 5);
-
-        p.write((void*)0x003a83cd, nop6, 5);
-        p.write((void*)(0x003a83cd+5+3), nop6, 5);
-
-        p.write((void*)0x003a87f9, nop6, 5);
-        p.write((void*)(0x003a87f9+5+3), nop6, 5);
-
-        p.write((void*)0x003a8796, nop6, 5);
-        p.write((void*)(0x003a8796+5+3), nop6, 5);
-
-        p.write((void*)0x003a887a, nop6, 5);
-        p.write((void*)(0x003a887a+5+3), nop6, 5);
-
-    #else
-
-        #define NO_DISPLAY_PATCH
-
-        // Disable dwarfmode map rendering
-        p.write((void*)0x0836ac3f, nop6, 5);
-
-        // Adv. mode
-        // Second patched call is rendering of up/down map views        
-        p.write((void*)0x083273b1, nop6, 5);
-        p.write((void*)(0x083273b1+5+7), nop6, 5);
-
-        p.write((void*)0x083279bc, nop6, 5);
-        p.write((void*)(0x083279bc+5+7), nop6, 5);
-
-        p.write((void*)0x08327df1, nop6, 5);
-        p.write((void*)(0x08327df1+5+7), nop6, 5);
-
-        p.write((void*)0x083272fd, nop6, 5);
-        p.write((void*)(0x083272fd+5+7), nop6, 5);
-
-        //TODO: one more!?
-
+        // Disable advmode map rendering
+        for (int j = 0; j < sizeof(p_advmode_render)/sizeof(patchdef); j++)
+            apply_patch(&p, p_advmode_render[j]);
     #endif
-#endif
 
     enabled = true;   
 }
@@ -575,6 +333,8 @@ static void restore_renderer()
     gps->force_full_display_count = true;*/
 }
 
+#include "tileupdate_text.hpp"
+#include "tileupdate_map.hpp"
 #include "renderer.hpp"
 #include "dwarfmode.hpp"
 #include "dungeonmode.hpp"

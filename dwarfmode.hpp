@@ -49,39 +49,14 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         //clock_t c1 = clock();
         INTERPOSE_NEXT(render)();
 
-#if defined(DF_03411)
-    #ifdef WIN32
+#ifdef WIN32
         static bool patched = false;
         if (!patched)
         {
-            unsigned char t1[] = {  0x90, 0x90,0x90,0x90,0x90,0x90 };
-            Core::getInstance().p->patchMemory((void*)(0x0058eabf+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
-
+            MemoryPatcher p(Core::getInstance().p);
+            apply_patch(&p, p_dwarfmode_render);
             patched = true;
         }
-    #endif
-#elif defined(DF_04011)
-    #ifdef WIN32
-        static bool patched = false;
-        if (!patched)
-        {
-            unsigned char t1[] = {  0x90, 0x90,0x90,0x90,0x90,0x90 };
-            Core::getInstance().p->patchMemory((void*)(0x0062291f+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
-
-            patched = true;
-        }
-    #endif            
-#elif defined(DF_04012)
-    #ifdef WIN32
-        static bool patched = false;
-        if (!patched)
-        {
-            unsigned char t1[] = {  0x90, 0x90,0x90,0x90,0x90,0x90 };
-            Core::getInstance().p->patchMemory((void*)(0x0062373f+(Core::getInstance().vinfo->getRebaseDelta())), t1, sizeof(t1));
-
-            patched = true;
-        }
-    #endif            
 #endif
 
         renderer_cool *r = (renderer_cool*)enabler->renderer;
@@ -99,39 +74,6 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         gwindow_x = *df::global::window_x;
         gwindow_y = *df::global::window_y;
         gwindow_z = *df::global::window_z;        
-
-#if defined(DF_03411)
-    #ifdef WIN32
-        void (_stdcall *_render_map)(int) = (void (_stdcall *)(int))(0x008f65c0+(Core::getInstance().vinfo->getRebaseDelta()));
-        #define render_map() _render_map(0)
-    #elif defined(__APPLE__)
-        void (*_render_map)(void *, int) = (void (*)(void *, int))0x0084b4c0;
-        #define render_map() _render_map(df::global::map_renderer, 0)
-    #else
-        #error Linux not supported yet
-    #endif
-#elif defined(DF_04011)
-    #ifdef WIN32
-        void (_stdcall *_render_map)(int) = (void (_stdcall *)(int))(0x009ba240+(Core::getInstance().vinfo->getRebaseDelta()));
-        #define render_map() _render_map(0)
-    #elif defined(__APPLE__)
-        void (*_render_map)(void *, int) = (void (*)(void *, int))0x009aa1a0;
-        #define render_map() _render_map(df::global::map_renderer, 0)
-    #else
-        #error Linux not supported yet
-    #endif
-#elif defined(DF_04012)
-    #ifdef WIN32
-        void (_stdcall *_render_map)(int) = (void (_stdcall *)(int))(0x009bd480+(Core::getInstance().vinfo->getRebaseDelta()));
-        #define render_map() _render_map(0)
-    #elif defined(__APPLE__)
-        void (*_render_map)(void *, int) = (void (*)(void *, int))0x009ae010;
-        #define render_map() _render_map(df::global::map_renderer, 0)
-    #else
-        void (*_render_map)(void *, int) = (void (*)(void *, int))0x08a00f00;
-        #define render_map() _render_map(df::global::map_renderer, 0)
-    #endif
-#endif
 
         long *z = (long*)gscreen;
         for (int y = 0; y < r->gdimy; y++)
