@@ -37,7 +37,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>DFHACK_VERSION="$(dfhackver)-$(dfhackrel)";DF_$(dfmajor);WIN32;NDEBUG;_WINDOWS;_USRDLL;TWBT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DFHACK_VERSION="$(dfhackver)";DF_$(dfvernum);WIN32;NDEBUG;_WINDOWS;_USRDLL;TWBT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(dfhack)\depends\protobuf;$(dfhack)\depends\lua\include;$(dfhack)\library\proto;$(dfhack)\library\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CallingConvention>Cdecl</CallingConvention>
     </ClCompile>
@@ -46,7 +46,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <OutputFile>dist\$(dfhackver)-$(dfhackrel)\$(TargetName)$(TargetExt)</OutputFile>
+      <OutputFile>dist\$(dfhackver)\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
