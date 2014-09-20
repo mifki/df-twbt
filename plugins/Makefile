@@ -1,24 +1,23 @@
-DFHACKVER ?= 0.34.11
-DFHACKREL ?= r5
+DFHACKVER ?= 0.34.11-r5
 
-DFMAJOR = `echo $(DFHACKVER) | sed s/\\\\.//g`
+DFVERNUM = `echo $(DFHACKVER) | sed -e s/-r.*// -e s/\\\\.//g`
 
 DF ?= /Users/vit/Desktop/df-r5
-DH ?= /Users/vit/Downloads/dfhack-$(DFHACKREL)
+DH ?= /Users/vit/Downloads/dfhack-master
 
 SRC = $(PLUGIN).cpp
 DEP = ../renderer_twbt.h
 
 ifeq ($(shell uname -s), Darwin)
-ifneq (,$(findstring 0.40,$(DFHACKVER)))
-	EXT = dylib
+	ifneq (,$(findstring 0.40,$(DFHACKVER)))
+		EXT = dylib
+	else
+		EXT = so
+	endif
 else
 	EXT = so
 endif
-else
-	EXT = so
-endif
-OUT = ../dist/$(DFHACKVER)-$(DFHACKREL)/$(PLUGIN).plug.$(EXT)
+OUT = ../dist/$(DFHACKVER)/$(PLUGIN).plug.$(EXT)
 
 INC = -I"$(DH)/library/include" -I"$(DH)/library/proto" -I"$(DH)/depends/protobuf" -I"$(DH)/depends/lua/include" -I"$(DH)/plugins" -I..
 LIB = -L"$(DH)/build/library" -ldfhack
@@ -39,7 +38,7 @@ all: $(OUT)
 
 $(OUT): $(SRC) $(DEP)
 	-@mkdir -p `dirname $(OUT)`
-	$(CXX) $(SRC) -o $(OUT) -DDFHACK_VERSION=\"$(DFHACKVER)-$(DFHACKREL)\" -DDFHACK_$(DFHACKREL) -DDF_$(DFMAJOR) $(CFLAGS) $(LDFLAGS)
+	$(CXX) $(SRC) -o $(OUT) -DDFHACK_VERSION=\"$(DFHACKVER)\" -DDF_$(DFVERNUM) $(CFLAGS) $(LDFLAGS)
 
 inst: $(OUT)
 	cp $(OUT) "$(DF)/hack/plugins/"

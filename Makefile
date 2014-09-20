@@ -1,26 +1,25 @@
-DFHACKVER ?= 0.34.11
-DFHACKREL ?= r5
+DFHACKVER ?= 0.34.11-r5
 
-DFMAJOR = `echo $(DFHACKVER) | sed s/\\\\.//g`
+DFVERNUM = `echo $(DFHACKVER) | sed -e s/-r.*// -e s/\\\\.//g`
 
 TWBT_VER ?= "4.xx"
 
 DF ?= /Users/vit/Desktop/df-r5
-DH ?= /Users/vit/Downloads/dfhack-$(DFHACKREL)
+DH ?= /Users/vit/Downloads/dfhack-master
 
 SRC = twbt.cpp
 DEP = renderer.hpp config.hpp tradefix.hpp dungeonmode.hpp dwarfmode.hpp renderer_twbt.h commands.hpp plugin.hpp tileupdate_text.hpp tileupdate_map.hpp
 
 ifeq ($(shell uname -s), Darwin)
-ifneq (,$(findstring 0.40,$(DFHACKVER)))
-	EXT = dylib
+	ifneq (,$(findstring 0.40,$(DFHACKVER)))
+		EXT = dylib
+	else
+		EXT = so
+	endif
 else
 	EXT = so
 endif
-else
-	EXT = so
-endif
-OUT = dist/$(DFHACKVER)-$(DFHACKREL)/twbt.plug.$(EXT)
+OUT = dist/$(DFHACKVER)/twbt.plug.$(EXT)
 
 INC = -I"$(DH)/library/include" -I"$(DH)/library/proto" -I"$(DH)/depends/protobuf" -I"$(DH)/depends/lua/include"
 LIB = -L"$(DH)/build/library" -ldfhack
@@ -41,7 +40,7 @@ all: $(OUT)
 
 $(OUT): $(SRC) $(DEP)
 	-@mkdir -p `dirname $(OUT)`
-	$(CXX) $(SRC) -o $(OUT) -DDFHACK_VERSION=\"$(DFHACKVER)-$(DFHACKREL)\" -DDFHACK_$(DFHACKREL) -DDF_$(DFMAJOR) -DTWBT_VER=\"$(TWBT_VER)\" $(CFLAGS) $(LDFLAGS)
+	$(CXX) $(SRC) -o $(OUT) -DDFHACK_VERSION=\"$(DFHACKVER)\" -DDF_$(DFVERNUM) -DTWBT_VER=\"$(TWBT_VER)\" $(CFLAGS) $(LDFLAGS)
 
 inst: $(OUT)
 	cp $(OUT) "$(DF)/hack/plugins/"
