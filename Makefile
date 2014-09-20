@@ -8,7 +8,7 @@ DF ?= /Users/vit/Desktop/df-r5
 DH ?= /Users/vit/Downloads/dfhack-master
 
 SRC = twbt.cpp
-DEP = renderer.hpp config.hpp
+DEP = renderer.hpp config.hpp Makefile
 
 ifeq ($(shell uname -s), Darwin)
 	ifneq (,$(findstring 0.40,$(DFHACKVER)))
