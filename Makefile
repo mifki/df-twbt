@@ -2,7 +2,7 @@ DFHACKVER ?= 0.34.11-r5
 
 DFVERNUM = `echo $(DFHACKVER) | sed -e s/-r.*// -e s/\\\\.//g`
 
-TWBT_VER ?= "4.xx"
+TWBT_VER ?= "5.xx"
 
 DF ?= /Users/vit/Desktop/df-r5
 DH ?= /Users/vit/Downloads/dfhack-master
