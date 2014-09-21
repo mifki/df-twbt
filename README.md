@@ -2,9 +2,9 @@
 
 This is a plugin for [Dwarf Fortress](http://bay12games.com) / [DFHack](http://github.com/dfhack/dfhack) that improves various aspects the game interface.
 
-Originally I wrote a small plugin because I was tired seeing coffins instead of zeroes and all that stuff. It has greately evolved since then. Requires OpenGL PRINT_MODE (STANDARD or VBO). The primary goal is to improve Fortress Mode. Adventure Mode is generally supported but may have issues.
+Originally I wrote a small plugin because I was tired seeing coffins instead of zeroes and all that stuff. It has greately evolved since then. The primary goal is to improve Fortress Mode. Adventure Mode is generally supported but may have issues.
 
-Compatible with Dwarf Fortress version 0.34.11 and DFHack r5, and usually the latest 0.40.xx for which DFHack is available. Installation package also includes several other plugins which required changes to be compatible with TWBT.
+*Note:* To activate the plugin, set PRINT_MODE to TWBT (or TWBT_LEGACY for legacy mode with text and map tiles of the same size) in your `data/init/init.txt` file. The installation package also includes several other plugins which required changes to be compatible with TWBT.
 
 ## Features ##
 
@@ -31,7 +31,7 @@ A command to save full-size screenshot of the map.
 
 Vitaly Pronkin aka mifki <pronvit@me.com>
 
-[Home Page / Sources](https://github.com/mifki/df-twbt) -- [Latest Release](https://github.com/mifki/df-twbt/releases) -- [Discussion](http://www.bay12forums.com/smf/index.php?topic=138754.0) -- [Report an Issue](https://github.com/mifki/df-twbt/issues)
+[Home Page / Sources](https://github.com/mifki/df-twbt) -- [Latest Release](https://github.com/mifki/df-twbt/releases) -- [Development Builds](http://build.mifki.com) -- [Discussion](http://www.bay12forums.com/smf/index.php?topic=138754.0) -- [Report an Issue](https://github.com/mifki/df-twbt/issues)
 
 ## Text and Map Tilesets ##
 
