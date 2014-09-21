@@ -69,7 +69,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
     if (!nops[0])
         memset(nops, 0x90, sizeof(nops));
 
-    void *addr = (void*)p.addr;
+    long addr = p.addr;
     #ifdef WIN32
         addr += Core::getInstance().vinfo->getRebaseDelta();
     #endif
@@ -77,9 +77,9 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
     unsigned char *data = p.hasdata ? p.data : nops;
 
     if (mp)
-        mp->write(addr, data, p.len);
+        mp->write((void*)addr, data, p.len);
     else
-        memcpy(addr, data, p.len);
+        memcpy((void*)addr, data, p.len);
 }
 
 
