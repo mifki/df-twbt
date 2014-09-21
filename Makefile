@@ -8,7 +8,7 @@ DF ?= /Users/vit/Desktop/df-r5
 DH ?= /Users/vit/Downloads/dfhack-master
 
 SRC = twbt.cpp
-DEP = renderer.hpp config.hpp tradefix.hpp dungeonmode.hpp dwarfmode.hpp renderer_twbt.h commands.hpp plugin.hpp tileupdate_text.hpp tileupdate_map.hpp patches.hpp Makefile
+DEP = renderer.hpp config.hpp tradefix.hpp dungeonmode.hpp dwarfmode.hpp renderer_twbt.h commands.hpp plugin.hpp tileupdate_text.hpp tileupdate_map.hpp patches.hpp Makefile legacy/renderer_legacy.hpp legacy/twbt_legacy.hpp
 
 ifeq ($(shell uname -s), Darwin)
 	ifneq (,$(findstring 0.40,$(DFHACKVER)))

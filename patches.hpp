@@ -137,6 +137,61 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         };
 
     #endif
+
+#elif defined(DF_04013)
+    #define LEGACY_MODE_ONLY
+    #ifdef WIN32
+        #define A_LOAD_MULTI_PDIM 0x00b73020
+        #define A_RENDER_MAP      0x009bd480
+        #define A_RENDER_UPDOWN   0x007ff980
+
+        static patchdef p_display = { 0x00655d71, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x0062373f, 6 };
+        
+        static patchdef p_advmode_render[] = {
+            { 0x005a2f75, 2+5+5 }, { 0x005a2fc0, 1+5+5 }, { 0x005a300f, 1+5+5 }, { 0x005a3064, 1+5+5 }, { 0x005a34f9, 1+5+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x00c9aac0, 15, true, { 0x36,0x8b,0x84,0x24,0x0C,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC2,0x1C,0x00 }
+        };
+
+    #elif defined(__APPLE__)
+        #define A_LOAD_MULTI_PDIM 0x00f82e90
+
+        #define A_RENDER_MAP      0x009ae010
+        #define A_RENDER_UPDOWN   0x00768e50
+
+        static patchdef p_display = { 0x00f15ee1, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x003e9e6a, 5 };
+        
+        static patchdef p_advmode_render[] = {
+            { 0x003a7d70, 5+3+5 }, { 0x003a83cd, 5+3+5 }, { 0x003a87f9, 5+3+5 }, { 0x003a8796, 5+3+5 }, { 0x003a887a, 5+3+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x00c71700, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
+        };
+
+    #else
+        #define A_RENDER_MAP      0x08a00f00
+        #define A_RENDER_UPDOWN   0x087c54c0
+
+        #define NO_DISPLAY_PATCH
+
+        static patchdef p_dwarfmode_render = { 0x0836ac3f, 5 };
+        
+        static patchdef p_advmode_render[] = {
+            { 0x083273b1, 5+7+5 }, { 0x083279bc, 5+7+5 }, { 0x08327df1, 5+7+5 }, { 0x083272fd, 5+7+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x08cefd50, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
+        };
+
+    #endif
 #else
     #error Unsupported DF version
 #endif

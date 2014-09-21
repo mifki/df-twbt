@@ -5,16 +5,33 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     out2 = &out;
 
     *out2 << "TWBT: version " << TWBT_VER << std::endl;
-#ifdef NO_RENDERING_PATCH
-    *out2 << COLOR_YELLOW << "TWBT: no rendering patch" << std::endl;
-    *out2 << COLOR_RESET;
-#endif
-#ifdef NO_DISPLAY_PATCH
-    *out2 << COLOR_YELLOW << "TWBT: no display patch" << std::endl;
-    *out2 << COLOR_RESET;
-#endif
 
-    auto dflags = init->display.flag;
+    int mode = get_mode();
+    if (!mode)
+    {
+        *out2 << COLOR_RED << "TWBT: set PRINT_MODE to TWBT or TWBT_LEGACY in data/init/init.txt to activate the plugin" << std::endl;
+        *out2 << COLOR_RESET;
+        return CR_OK;        
+    }
+    if (mode == 1)
+    {
+#ifdef LEGACY_MODE_ONLY
+        *out2 << COLOR_RED << "TWBT: falling back to legacy mode with this version of DF" << std::endl;
+        *out2 << COLOR_RESET;
+        mode = -1;
+#else        
+    #ifdef NO_RENDERING_PATCH
+        *out2 << COLOR_YELLOW << "TWBT: no rendering patch" << std::endl;
+        *out2 << COLOR_RESET;
+    #endif
+    #ifdef NO_DISPLAY_PATCH
+        *out2 << COLOR_YELLOW << "TWBT: no display patch" << std::endl;
+        *out2 << COLOR_RESET;
+    #endif
+#endif
+    }
+
+    /*auto dflags = init->display.flag;
     if (dflags.is_set(init_display_flags::RENDER_2D) ||
         dflags.is_set(init_display_flags::ACCUM_BUFFER) ||
         dflags.is_set(init_display_flags::FRAME_BUFFER) ||
@@ -22,10 +39,10 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         dflags.is_set(init_display_flags::VBO) ||
         dflags.is_set(init_display_flags::PARTIAL_PRINT))
     {
-        *out2 << COLOR_RED << "TWBT: PRINT_MODE must be set to STANDARD in init.txt" << std::endl;
+        *out2 << COLOR_RED << "TWBT: PRINT_MODE must be set to STANDARD in data/init/init.txt" << std::endl;
         *out2 << COLOR_RESET;
         return CR_OK;        
-    }
+    }*/
 
     #ifdef WIN32
         _load_multi_pdim = (LOAD_MULTI_PDIM) (A_LOAD_MULTI_PDIM + Core::getInstance().vinfo->getRebaseDelta());
@@ -91,19 +108,6 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     map_texpos = enabler->fullscreen ? tilesets[0].large_texpos : tilesets[0].small_texpos;
     text_texpos = enabler->fullscreen ? tilesets[1].large_texpos : tilesets[1].small_texpos;
 
-    replace_renderer();
-
-    INTERPOSE_HOOK(dwarfmode_hook, render).apply(true);
-    INTERPOSE_HOOK(dwarfmode_hook, feed).apply(true);
-
-    INTERPOSE_HOOK(dungeonmode_hook, render).apply(true);
-    INTERPOSE_HOOK(dungeonmode_hook, logic).apply(true);
-    INTERPOSE_HOOK(dungeonmode_hook, feed).apply(true);
-
-#if defined(__APPLE__) && defined(DF_03411)
-    INTERPOSE_HOOK(traderesize_hook, render).apply(true);
-#endif    
-
     commands.push_back(PluginCommand(
         "mapshot", "Mapshot!",
         mapshot_cmd, true,
@@ -123,7 +127,28 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         "twbt", "Text Will Be Text",
         twbt_cmd, false,
         ""
-    ));   
+    ));       
+
+    if (mode == 1)
+    {
+        replace_renderer();
+
+        INTERPOSE_HOOK(dwarfmode_hook, render).apply(true);
+        INTERPOSE_HOOK(dwarfmode_hook, feed).apply(true);
+
+        INTERPOSE_HOOK(dungeonmode_hook, render).apply(true);
+        INTERPOSE_HOOK(dungeonmode_hook, logic).apply(true);
+        INTERPOSE_HOOK(dungeonmode_hook, feed).apply(true);        
+    }
+    else if (mode == -1)
+    {
+        hook_legacy();
+        INTERPOSE_HOOK(dwarfmode_hook_legacy, render).apply(true);
+    }
+
+#if defined(__APPLE__) && defined(DF_03411)
+    INTERPOSE_HOOK(traderesize_hook, render).apply(true);
+#endif    
 
     return CR_OK;
 }
@@ -141,6 +166,12 @@ DFhackCExport command_result plugin_onstatechange(color_ostream &out, state_chan
 
 DFhackCExport command_result plugin_shutdown ( color_ostream &out )
 {
+    /*if (legacy_mode)
+    {
+        INTERPOSE_HOOK(dwarfmode_hook_legacy, render).apply(false);
+        unhook_legacy();
+    }*/
+    
     return CR_FAILURE;
 
     /*if (enabled)

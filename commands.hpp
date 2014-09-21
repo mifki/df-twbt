@@ -1,5 +1,12 @@
 command_result mapshot_cmd (color_ostream &out, std::vector <std::string> & parameters)
 {
+    if (!legacy_mode)
+    {
+        *out2 << COLOR_RED << "This command currently works in legacy mode only" << std::endl;
+        *out2 << COLOR_RESET;
+        return CR_FAILURE;
+    }
+
     if (!enabled)
         return CR_FAILURE;
 
@@ -99,13 +106,15 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
 
         if (newmaxlevels && !maxlevels)
         {
-            patch_rendering(false);
+            if (!legacy_mode)
+                patch_rendering(false);
 
             ((renderer_cool*)enabler->renderer)->needs_full_update = true;
         }
         else if (!newmaxlevels && maxlevels)
         {
-            patch_rendering(true);
+            if (!legacy_mode)
+                patch_rendering(true);
 
             multi_rendered = false;
 

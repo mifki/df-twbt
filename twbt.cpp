@@ -253,7 +253,6 @@ static void replace_renderer()
 
     MemoryPatcher p(Core::getInstance().p);
 
-#if defined(DF_04012)
     //XXX: This is a crazy work-around for vtable address for df::renderer not being available yet
     //in dfhack for 0.40.xx, which prevents its subclasses form being instantiated. We're overwriting
     //original vtable anyway, so any value will go.
@@ -262,7 +261,6 @@ static void replace_renderer()
     p.write((char*)&df::renderer::_identity + 72, zz, 4);
 #else
     p.write((char*)&df::renderer::_identity + 64, zz, 4);
-#endif
 #endif
 
     renderer_opengl *oldr = (renderer_opengl*)enabler->renderer;
@@ -339,6 +337,8 @@ static void restore_renderer()
 #include "dwarfmode.hpp"
 #include "dungeonmode.hpp"
 #include "tradefix.hpp"
+#include "legacy/renderer_legacy.hpp"
+#include "legacy/twbt_legacy.hpp"
 #include "config.hpp"
 #include "commands.hpp"
 #include "plugin.hpp"

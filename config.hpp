@@ -99,9 +99,9 @@ static bool load_text_font()
                 continue;
             }                    
         }
-    }
 
-    fseed.close();
+        fseed.close();
+    }
     
     //Text tileset - accessible at index 1
     if (!(small_font_path == gsmall_font_path && large_font_path == glarge_font_path))
@@ -371,9 +371,10 @@ static bool load_overrides()
             any_overrides = true;
             continue;
         }
+
+        fseed.close();
     }
 
-    fseed.close();
     return any_overrides;
 }
 
@@ -395,9 +396,6 @@ static int color_name_to_index(std::string &name)
 
 static void load_colormap()
 {
-    string small_font_path, gsmall_font_path;
-    string large_font_path, glarge_font_path;
-
     std::ifstream fseed("data/init/colors.txt");
     if(fseed.is_open())
     {
@@ -439,9 +437,49 @@ static void load_colormap()
             else if (comp == "_B")
                 enabler->ccolor[cidx][2] = val;
         }
+
+        fseed.close();
+    }
+}
+
+int get_mode()
+{
+    int mode = 0;
+
+    std::ifstream fseed("data/init/init.txt");
+    if(fseed.is_open())
+    {
+        string str;
+
+        while(std::getline(fseed,str))
+        {
+            size_t b = str.find("[");
+            size_t e = str.rfind("]");
+
+            if (b == string::npos || e == string::npos || str.find_first_not_of(" ") < b)
+                continue;
+
+            str = str.substr(b+1, e-1);
+            vector<string> tokens = split(str.c_str(), ':');
+
+            if (tokens[0] == "PRINT_MODE")
+            {
+                if (tokens.size() == 2)
+                {
+                    if (tokens[1] == "TWBT")
+                        mode = 1;
+                    else if (tokens[1] == "TWBT-LEGACY" || tokens[1] == "TWBT_LEGACY")
+                        mode = -1;
+                }
+
+                break;
+            }
+        }
+
+        fseed.close();    
     }
 
-    fseed.close();
+    return mode;
 }
 
 void update_custom_building_overrides()
