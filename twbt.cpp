@@ -232,15 +232,20 @@ static void patch_rendering(bool enable_lower_levels)
     static bool ready = false;
     static unsigned char orig[MAX_PATCH_LEN];
 
+    long addr = p_render_lower_levels.addr;
+    #ifdef WIN32
+        addr += Core::getInstance().vinfo->getRebaseDelta();
+    #endif
+
     if (!ready)
     {
-        (new MemoryPatcher(Core::getInstance().p))->makeWritable((void*)p_render_lower_levels.addr, sizeof(p_render_lower_levels.len));
-        memcpy(orig, (void*)p_render_lower_levels.addr, p_render_lower_levels.len);
+        (new MemoryPatcher(Core::getInstance().p))->makeWritable((void*)addr, sizeof(p_render_lower_levels.len));
+        memcpy(orig, (void*)addr, p_render_lower_levels.len);
         ready = true;
     }
 
     if (enable_lower_levels)
-        memcpy((void*)p_render_lower_levels.addr, orig, p_render_lower_levels.len);
+        memcpy((void*)addr, orig, p_render_lower_levels.len);
     else
         apply_patch(NULL, p_render_lower_levels);
 #endif
