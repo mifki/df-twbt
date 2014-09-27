@@ -96,7 +96,7 @@ bool is_text_tile_legacy(int x, int y, bool &is_map)
     
     if (IS_SCREEN(viewscreen_choose_start_sitest))
     {
-        if (y <= 1 || y >= h - 6 || x == 0 || x >= 57)
+        if (y <= 1 || y >= h - 7 || x == 0 || x >= w - 28)
             return true;
 
         return false;

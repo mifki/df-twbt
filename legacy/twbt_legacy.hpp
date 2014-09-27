@@ -50,7 +50,6 @@ static void hook_legacy()
     memcpy(&newr->screen, &oldr_legacy->screen, (char*)&newr->dummy-(char*)&newr->screen);
     enabler->renderer = (df::renderer*)newr;
 
-    legacy_mode = true;
     enabled = true;   
 }
 
@@ -59,7 +58,6 @@ static void unhook_legacy()
     if (!enabled)
         return;
 
-    legacy_mode = false;
     enabled = false;
 
     //TODO: !!!

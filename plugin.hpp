@@ -30,6 +30,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     #endif
 #endif
     }
+    legacy_mode = (mode == -1);
 
     /*auto dflags = init->display.flag;
     if (dflags.is_set(init_display_flags::RENDER_2D) ||
@@ -129,7 +130,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         ""
     ));       
 
-    if (mode == 1)
+    if (!legacy_mode)
     {
         replace_renderer();
 
@@ -140,7 +141,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         INTERPOSE_HOOK(dungeonmode_hook, logic).apply(true);
         INTERPOSE_HOOK(dungeonmode_hook, feed).apply(true);        
     }
-    else if (mode == -1)
+    else
     {
         hook_legacy();
         INTERPOSE_HOOK(dwarfmode_hook_legacy, render).apply(true);
