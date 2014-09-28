@@ -52,6 +52,7 @@ struct renderer_cool : renderer_opengl
 
     virtual void update_tile_old(int x, int y) {}; //17
     virtual void reshape_gl_old() {}; //18
+    virtual bool get_mouse_coords_old(int32_t *x, int32_t *y) { return false; };
 
     virtual void _last_vmethod() {};
 

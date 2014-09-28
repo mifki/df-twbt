@@ -178,6 +178,7 @@ void renderer_cool::reshape_gl()
     glShadeModel(GL_FLAT);    
 }
 
+static bool is_main_scr;
 void renderer_cool::draw(int vertex_count)
 {
     static bool initial_resize = false;
@@ -195,7 +196,7 @@ void renderer_cool::draw(int vertex_count)
 
     static df::viewscreen *prevws = NULL;
     df::viewscreen *ws = Gui::getCurViewscreen();
-    bool is_main_scr = df::viewscreen_dwarfmodest::_identity.is_direct_instance(ws) || df::viewscreen_dungeonmodest::_identity.is_direct_instance(ws);
+    is_main_scr = df::viewscreen_dwarfmodest::_identity.is_direct_instance(ws) || df::viewscreen_dungeonmodest::_identity.is_direct_instance(ws);
     if (ws != prevws)
     {
         gps->force_full_display_count = 1;
@@ -708,6 +709,9 @@ extern "C" {
 
 bool renderer_cool::get_mouse_coords(int32_t *x, int32_t *y)
 {
+    if (!is_main_scr)
+        return get_mouse_coords_old(x, y);
+
     int mouse_x, mouse_y;
     SDL_GetMouseState(&mouse_x, &mouse_y);    
     

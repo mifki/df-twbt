@@ -279,6 +279,7 @@ static void replace_renderer()
     DEFIDX(draw)
     DEFIDX(update_tile)
     DEFIDX(get_mouse_coords)
+    DEFIDX(get_mouse_coords_old)
     DEFIDX(update_tile_old)
     DEFIDX(reshape_gl)
     DEFIDX(reshape_gl_old)
@@ -301,6 +302,7 @@ static void replace_renderer()
     vtable_new[IDX_reshape_gl_old] = vtable_old[IDX_reshape_gl];
 
     vtable_new[IDX_get_mouse_coords] = get_mouse_coords_new;
+    vtable_new[IDX_get_mouse_coords_old] = vtable_old[IDX_get_mouse_coords];
     
     memcpy(&newr->screen, &oldr->screen, (char*)&newr->dummy-(char*)&newr->screen);
 
