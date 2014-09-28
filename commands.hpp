@@ -171,6 +171,14 @@ command_result twbt_cmd (color_ostream &out, std::vector <std::string> & paramet
                 }
             }
 
+            else if (parameters[1] == "reset")
+            {
+                r->gdispx = enabler->fullscreen ? small_map_dispx : large_map_dispx;
+                r->gdispy = enabler->fullscreen ? small_map_dispy : large_map_dispy;
+
+                r->needs_reshape = true;                    
+            }
+
             else if (parameters[1][0] == '+' || parameters[1][0] == '-')
             {
                 int delta;

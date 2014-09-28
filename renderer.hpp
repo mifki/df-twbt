@@ -163,13 +163,17 @@ void renderer_cool::reshape_gl()
         {
             map_texpos = tilesets[0].large_texpos;
             text_texpos = tilesets[1].large_texpos;
-            gdispx = large_map_dispx, gdispy = large_map_dispy;            
+
+            if (!gdispx || gdispx == small_map_dispx && gdispy == small_map_dispy)
+                gdispx = large_map_dispx, gdispy = large_map_dispy;
         }
         else
         {
             map_texpos = tilesets[0].small_texpos;
             text_texpos = tilesets[1].small_texpos;
-            gdispx = small_map_dispx, gdispy = small_map_dispy;            
+
+            if (!gdispx || gdispx == large_map_dispx && gdispy == large_map_dispy)
+                gdispx = small_map_dispx, gdispy = small_map_dispy;
         }
     }
 
