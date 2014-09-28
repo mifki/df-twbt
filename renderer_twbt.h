@@ -1,6 +1,8 @@
 #ifndef _RENDERER_TWBT_H
 #define _RENDERER_TWBT_H
 
+#include "df/zoom_commands.h"
+
 // This is from g_src/renderer_opengl.hpp
 struct _renderer_opengl : public df::renderer
 {
@@ -48,11 +50,13 @@ struct renderer_cool : renderer_opengl
     virtual void draw(int vertex_count);
     virtual void reshape_gl();
 
+    virtual void zoom(df::zoom_commands cmd); 
     virtual bool get_mouse_coords(int32_t *x, int32_t *y);
 
     virtual void update_tile_old(int x, int y) {}; //17
     virtual void reshape_gl_old() {}; //18
     virtual bool get_mouse_coords_old(int32_t *x, int32_t *y) { return false; };
+    virtual void zoom_old(df::zoom_commands cmd) {};
 
     virtual void _last_vmethod() {};
 
@@ -70,7 +74,7 @@ struct renderer_cool : renderer_opengl
         const int tile = (x-1) * gdimy + (y-1);
         if (x < 1 || x > gdimx || y < 1 || y > gdimy)
             return;
-        
+
         unsigned char *s = gscreen + tile*4;
         s[0] = ch;
         s[1] = color % 8;

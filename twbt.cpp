@@ -283,12 +283,15 @@ static void replace_renderer()
     DEFIDX(update_tile_old)
     DEFIDX(reshape_gl)
     DEFIDX(reshape_gl_old)
+    DEFIDX(zoom)
+    DEFIDX(zoom_old)
     DEFIDX(_last_vmethod)
 
     void *get_mouse_coords_new = vtable_new[IDX_get_mouse_coords];
     void *draw_new             = vtable_new[IDX_draw];
     void *reshape_gl_new       = vtable_new[IDX_reshape_gl];
     void *update_tile_new      = vtable_new[IDX_update_tile];    
+    void *zoom_new             = vtable_new[IDX_zoom];
 
     p.verifyAccess(vtable_new, sizeof(void*)*IDX__last_vmethod, true);
     memcpy(vtable_new, vtable_old, sizeof(void*)*IDX__last_vmethod);
@@ -303,6 +306,9 @@ static void replace_renderer()
 
     vtable_new[IDX_get_mouse_coords] = get_mouse_coords_new;
     vtable_new[IDX_get_mouse_coords_old] = vtable_old[IDX_get_mouse_coords];
+
+    vtable_new[IDX_zoom] = zoom_new;
+    vtable_new[IDX_zoom_old] = vtable_old[IDX_zoom];
     
     memcpy(&newr->screen, &oldr->screen, (char*)&newr->dummy-(char*)&newr->screen);
 

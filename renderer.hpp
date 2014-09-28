@@ -678,18 +678,13 @@ void renderer_cool::reshape_zoom_swap()
         {
             if (needs_zoom > 0)
             {
-                gdispx++;
-                gdispy++;
+                gdispx += needs_zoom;
+                gdispy += needs_zoom;
             }
-            else
+            else if (gdispx > 1 && gdispy > 1 && (gdimxfull < world->map.x_count || gdimyfull < world->map.y_count))
             {
-                gdispx--;
-                gdispy--;
-
-                if (gsize_x / gdispx > world->map.x_count)
-                    gdispx = gdispy = gsize_x / world->map.x_count;
-                else if (gsize_y / gdispy > world->map.y_count)
-                    gdispx = gdispy = gsize_y / world->map.y_count;
+                gdispx += needs_zoom;
+                gdispy += needs_zoom;
             }
         
             needs_zoom = 0;
@@ -701,6 +696,41 @@ void renderer_cool::reshape_zoom_swap()
     }
     else
         gswap_arrays();
+}
+
+void renderer_cool::zoom(df::zoom_commands cmd)
+{
+    if (!is_main_scr)
+    {
+        zoom_old(cmd);
+        return;
+    }
+
+    if (cmd == df::zoom_commands::zoom_in)
+    {
+        gdispx++;
+        gdispy++;
+    }
+    else if (cmd == df::zoom_commands::zoom_out)
+    {
+        if (gdispx > 1 && gdispy > 1 && (gdimxfull < world->map.x_count || gdimyfull < world->map.y_count))
+        {
+            gdispx--;
+            gdispy--;
+        }
+    }
+    else if (cmd == df::zoom_commands::zoom_reset)
+    {
+        gdispx = enabler->fullscreen ? small_map_dispx : large_map_dispx;
+        gdispy = enabler->fullscreen ? small_map_dispy : large_map_dispy;
+    }
+    else
+    {
+        zoom_old(cmd);
+        return;
+    }
+
+    needs_reshape = true;
 }
 
 extern "C" {
@@ -729,4 +759,3 @@ bool renderer_cool::get_mouse_coords(int32_t *x, int32_t *y)
     
     return true;
 }
-    

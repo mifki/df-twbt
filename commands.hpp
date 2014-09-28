@@ -162,7 +162,7 @@ command_result twbt_cmd (color_ostream &out, std::vector <std::string> & paramet
             }
             else if (parameters[1] == "smaller")
             {
-                if (r->gdispx > 1 && r->gdispy > 1)
+                if (r->gdispx > 1 && r->gdispy > 1 && (r->gdimxfull < world->map.x_count || r->gdimyfull < world->map.y_count))
                 {
                     r->gdispx--;
                     r->gdispy--;
