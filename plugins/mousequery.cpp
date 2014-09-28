@@ -73,11 +73,7 @@ static df::coord get_mouse_pos(int32_t &mx, int32_t &my)
 
     renderer_cool *r = (renderer_cool*)enabler->renderer;
     if (r->is_twbt())
-    {
-        const int tile = (mx-1) * r->gdimy + (my-1);
-        unsigned char *s = r->gscreen + tile*4;
-        pos.z = vz - ((s[3]&0xf0)>>4);
-    }
+        pos.z = vz - r->depth_at(mx, my);
     else
         pos.z = vz;
 
@@ -311,11 +307,7 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
         {
             renderer_cool *r = (renderer_cool*)enabler->renderer;
             if (r->is_twbt())
-            {
-                const int tile = (mx-1) * r->gdimy + (my-1);
-                unsigned char *s = r->gscreen + tile*4;
-                mpos.z += ((s[3]&0xf0)>>4);
-            }
+                mpos.z += r->depth_at(mx, my);
         }
 
         renderer_cool *r = (renderer_cool*)enabler->renderer;

@@ -743,6 +743,7 @@ extern "C" {
 
 bool renderer_cool::get_mouse_coords(int32_t *x, int32_t *y)
 {
+    //TODO: FIXME: this is causing crash when switching to map screen but last rendered screen is text and mouse is outside of map area
     if (!is_main_scr)
         return get_mouse_coords_old(x, y);
 
