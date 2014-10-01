@@ -71,10 +71,10 @@ struct renderer_cool : renderer_opengl
 
     void output_char(int8_t color, int x, int y, unsigned char ch)
     {
-        const int tile = (x-1) * gdimy + (y-1);
         if (x < 1 || x > gdimx || y < 1 || y > gdimy)
             return;
 
+        const int tile = (x-1) * gdimy + (y-1);
         unsigned char *s = gscreen + tile*4;
         s[0] = ch;
         s[1] = color % 8;
@@ -82,7 +82,17 @@ struct renderer_cool : renderer_opengl
         s[3] = (color / 8) | (s[3]&0xf0);
 
         gscreentexpos[tile] = 0;
-    };    
+    };
+
+    int depth_at(int x, int y)
+    {
+        if (x < 1 || x > gdimx || y < 1 || y > gdimy)
+            return 0;
+
+        const int tile = (x-1) * gdimy + (y-1);
+        unsigned char *s = gscreen + tile*4;
+        return ((s[3]&0xf0)>>4);
+    }
 
     DFHack::Gui::DwarfmodeDims map_dims()
     {
