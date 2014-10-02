@@ -53,8 +53,8 @@ static vector<string> split(const char *str, char c = ' ')
 
 static bool load_text_font()
 {
-    string small_font_path, gsmall_font_path;
-    string large_font_path, glarge_font_path;
+    string small_font_path, gsmall_font_path, asmall_font_path;
+    string large_font_path, glarge_font_path, alarge_font_path;
 
     std::ifstream fseed("data/init/init.txt");
     if(fseed.is_open())
@@ -97,7 +97,19 @@ static bool load_text_font()
             {
                 glarge_font_path = "data/art/" + tokens[1];
                 continue;
-            }                    
+            }
+
+            if(tokens[0] == "AUX_FONT")
+            {
+                asmall_font_path = "data/art/" + tokens[1];
+                continue;
+            }
+
+            if(tokens[0] == "AUX_FULLFONT")
+            {
+                alarge_font_path = "data/art/" + tokens[1];
+                continue;
+            }                
         }
 
         fseed.close();
@@ -117,6 +129,8 @@ static bool load_text_font()
                 load_tileset(large_font_path, (long*)ts.large_texpos, 16, 16, &dx, &dy);
             else
                 memcpy(ts.large_texpos, ts.small_texpos, sizeof(ts.large_texpos));
+            
+            tilesets.push_back(ts);        
         }
         else
         {
@@ -133,9 +147,46 @@ static bool load_text_font()
 
             memcpy(ts.small_texpos, init->font.small_font_texpos, sizeof(ts.small_texpos));
             memcpy(ts.large_texpos, init->font.large_font_texpos, sizeof(ts.large_texpos));        
+
+            tilesets.push_back(ts);        
+
+            // Load aux font
+            if (asmall_font_path.length() && asmall_font_path != small_font_path)
+            {
+                struct tileset ats;
+
+                struct stat buf;
+                if (stat(asmall_font_path.c_str(), &buf) != 0)
+                {
+                    *out2 << COLOR_YELLOW << "TWBT: " << asmall_font_path << " not found" << std::endl;
+                    *out2 << COLOR_RESET;
+                }
+                else
+                {
+                    long dx, dy;
+                    load_tileset(asmall_font_path, (long*)ats.small_texpos, 16, 16, &dx, &dy);
+
+                    if (alarge_font_path.length() && alarge_font_path != asmall_font_path)
+                    {
+                        if (stat(asmall_font_path.c_str(), &buf) != 0)
+                        {
+                            *out2 << COLOR_YELLOW << "TWBT: " << alarge_font_path << " not found" << std::endl;
+                            *out2 << COLOR_RESET;
+
+                            memcpy(ats.large_texpos, ats.small_texpos, sizeof(ts.large_texpos));
+                        }
+                        else
+                            load_tileset(alarge_font_path, (long*)ats.large_texpos, 16, 16, &dx, &dy);                    
+                    }
+                    else
+                        memcpy(ats.large_texpos, ats.small_texpos, sizeof(ts.large_texpos));
+
+                    tilesets.push_back(ats);
+                    has_auxfont = true;
+                }
+            }
         }
 
-        tilesets.push_back(ts);        
         return true;
     }
     else

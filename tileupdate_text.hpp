@@ -127,7 +127,107 @@ static bool is_text_tile(int x, int y, bool &is_map)
     return true;
 }
 
-static void screen_to_texid_text(renderer_cool *r, int tile, struct texture_fullid &ret)
+static bool is_aux_tile(df::viewscreen *ws, int x, int y)
+{
+    int32_t w = tdimx, h = tdimy;
+
+#define IS_SCREEN(_sc) df::_sc::_identity.is_direct_instance(ws)     
+
+/*
+    if (IS_SCREEN(viewscreen_dwarfmodest))
+    {
+        uint8_t menu_width, area_map_width;
+        Gui::getMenuWidth(menu_width, area_map_width);
+        int32_t menu_left = w - 1, menu_right = w - 1;
+
+        bool menuforced = (ui->main.mode != df::ui_sidebar_mode::Default || df::global::cursor->x != -30000);
+
+        if ((menuforced || menu_width == 1) && area_map_width == 2) // Menu + area map
+        {
+            menu_left = w - 56;
+            menu_right = w - 25;
+        }
+        else if (menu_width == 2 && area_map_width == 2) // Area map only
+        {
+            menu_left = menu_right = w - 25;
+        }
+        else if (menu_width == 1) // Wide menu
+            menu_left = w - 56;
+        else if (menuforced || (menu_width == 2 && area_map_width == 3)) // Menu only
+            menu_left = w - 32; 
+
+        if (x >= menu_left && x <= menu_right)
+        {
+            if (menuforced && ui->main.mode == df::ui_sidebar_mode::Burrows && ui->burrows.in_define_mode)
+            {
+                // Make burrow symbols use graphics font
+                if ((y != 12 && y != 13 && !(x == menu_left + 2 && y == 2)) || x == menu_left || x == menu_right) 
+                    return has_textfont;
+            }
+            else
+                return has_textfont;
+        }
+
+        is_map = (x > 0 && x < menu_left);
+
+        return false;
+    }*/
+    
+    if (IS_SCREEN(viewscreen_setupadventurest))
+    {
+        df::viewscreen_setupadventurest *s = static_cast<df::viewscreen_setupadventurest*>(ws);
+        if (s->subscreen != df::viewscreen_setupadventurest::Nemesis)
+            return true;
+        else if (x < 58 || x >= 78 || y == 0 || y >= 21)
+            return true;
+
+        return false;
+    }
+    
+    if (IS_SCREEN(viewscreen_choose_start_sitest))
+    {
+        if (y > 1 && y < h - 7 && x > 0 && x < w - 28)
+            return true;
+
+        return false;
+    }
+        
+    if (IS_SCREEN(viewscreen_new_regionst))
+    {
+        if (y <= 1 || y >= h - 2 || x <= 37 || x == w - 1)
+            return true;
+
+        return false;
+    }
+
+    /*if (IS_SCREEN(viewscreen_layer_export_play_mapst))
+    {
+        if (x == w - 1 || x < w - 23)
+            return true;
+
+        return false;
+    }
+
+    if (IS_SCREEN(viewscreen_movieplayerst))
+    {
+        df::viewscreen_movieplayerst *s = static_cast<df::viewscreen_movieplayerst*>(ws);
+        return !s->is_playing;
+    }    */
+
+    /*if (IS_SCREEN(viewscreen_petst))
+    {
+        if (x == 41 && y >= 7)
+            return false;
+
+        return true;
+    }*/
+
+    //*out2 << Core::getInstance().p->readClassName(*(void**)ws) << " " << (int)ws->breakdown_level << std::endl;
+
+    return false;
+}
+
+static void screen_to_texid_text(renderer_cool *r, int tile, bool aux, struct texture_fullid &ret)
 {
     const unsigned char *s = r->screen + tile*4;
 
@@ -139,7 +239,7 @@ static void screen_to_texid_text(renderer_cool *r, int tile, struct texture_full
 
     if (!texpos)
     {
-        ret.texpos = text_texpos[s[0]];
+        ret.texpos = aux ? aux_texpos[s[0]] : text_texpos[s[0]];
 
         ret.r = enabler->ccolor[fg][0];
         ret.g = enabler->ccolor[fg][1];
@@ -214,7 +314,7 @@ static void write_tile_arrays_text(renderer_cool *r, int x, int y, GLfloat *fg, 
     }    
 
     struct texture_fullid ret;
-    screen_to_texid_text(r, tile, ret);
+    screen_to_texid_text(r, tile, (has_auxfont && is_aux_tile(ws, x, y)), ret);
 
     for (int i = 0; i < 2; i++) {
         fg += 8;

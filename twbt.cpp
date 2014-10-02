@@ -131,12 +131,12 @@ struct tile_overrides {
 
 static struct tile_overrides *overrides[256];
 
-long *text_texpos, *map_texpos;
+long *text_texpos, *map_texpos, *aux_texpos;
 
 long cursor_small_texpos, cursor_large_texpos;
 
 static bool enabled;
-static bool has_textfont, has_overrides;
+static bool has_textfont, has_overrides, has_auxfont;
 static color_ostream *out2;
 static df::item_flags bad_item_flags;
 
