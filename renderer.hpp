@@ -280,7 +280,14 @@ void renderer_cool::draw(int vertex_count)
         if (df::viewscreen_dungeonmodest::_identity.is_direct_instance(ws))
         {
             int m = df::global::ui_advmode->menu;
-            bool tmode = (m == df::ui_advmode_menu::Default || m == df::ui_advmode_menu::Look || m == df::ui_advmode_menu::ThrowAim || m == df::ui_advmode_menu::Talk || m == 14 || m == df::ui_advmode_menu::Fire || m == df::ui_advmode_menu::Unk35 || m == df::ui_advmode_menu::Unk30);
+            bool tmode = (m == df::ui_advmode_menu::Default || m == df::ui_advmode_menu::Look || m == df::ui_advmode_menu::ThrowAim || m == df::ui_advmode_menu::Talk || m == 14 || m == df::ui_advmode_menu::Fire
+                || m == df::ui_advmode_menu::Unk35 // (j)
+                || m == df::ui_advmode_menu::Unk30 
+                || m == 21 //(S)
+                || m == 3 || m == 4 // (k)
+                || m == 20 // (m)
+                || m == 37 || m == 38 // (A)
+                );
             skip = !tmode;
         }
 
