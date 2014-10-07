@@ -135,6 +135,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         replace_renderer();
 
         INTERPOSE_HOOK(dwarfmode_hook, render).apply(true);
+        INTERPOSE_HOOK(dwarfmode_hook, logic).apply(true);
         INTERPOSE_HOOK(dwarfmode_hook, feed).apply(true);
 
         INTERPOSE_HOOK(dungeonmode_hook, render).apply(true);

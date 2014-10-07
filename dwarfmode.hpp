@@ -44,6 +44,23 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         }
     }
 
+    DEFINE_VMETHOD_INTERPOSE(void, logic, ())
+    {
+        INTERPOSE_NEXT(logic)();
+
+        renderer_cool *r = (renderer_cool*)enabler->renderer;        
+
+        if (df::global::ui->follow_unit != -1)
+        {
+            df::unit *u = df::unit::find(df::global::ui->follow_unit);
+            if (u)
+            {
+                *df::global::window_x = std::min(world->map.x_count - r->gdimxfull, std::max(0, u->pos.x - r->gdimx / 2));
+                *df::global::window_y = std::min(world->map.y_count - r->gdimyfull, std::max(0, u->pos.y - r->gdimy / 2));
+            }
+        }                
+    }      
+
     DEFINE_VMETHOD_INTERPOSE(void, render, ())
     {
         //clock_t c1 = clock();
@@ -59,7 +76,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         }
 #endif
 
-        renderer_cool *r = (renderer_cool*)enabler->renderer;
+        renderer_cool *r = (renderer_cool*)enabler->renderer;        
 
         if (gmenu_w < 0)
         {
@@ -362,3 +379,4 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
 IMPLEMENT_VMETHOD_INTERPOSE_PRIO(dwarfmode_hook, render, 200);
 IMPLEMENT_VMETHOD_INTERPOSE(dwarfmode_hook, feed);
+IMPLEMENT_VMETHOD_INTERPOSE(dwarfmode_hook, logic);
