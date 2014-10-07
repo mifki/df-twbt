@@ -48,15 +48,15 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     #ifdef WIN32
         _load_multi_pdim = (LOAD_MULTI_PDIM) (A_LOAD_MULTI_PDIM + Core::getInstance().vinfo->getRebaseDelta());
         _render_map = (RENDER_MAP) (A_RENDER_MAP + Core::getInstance().vinfo->getRebaseDelta());
-        _render_updown = (RENDER_UPDOWN) (A_RENDER_MAP + Core::getInstance().vinfo->getRebaseDelta());
+        _render_updown = (RENDER_UPDOWN) (A_RENDER_UPDOWN + Core::getInstance().vinfo->getRebaseDelta());
     #elif defined(__APPLE__)
         _load_multi_pdim = (LOAD_MULTI_PDIM) A_LOAD_MULTI_PDIM;    
         _render_map = (RENDER_MAP) A_RENDER_MAP;
-        _render_updown = (RENDER_UPDOWN) A_RENDER_MAP;
+        _render_updown = (RENDER_UPDOWN) A_RENDER_UPDOWN;
     #else
         _load_multi_pdim = (LOAD_MULTI_PDIM) dlsym(RTLD_DEFAULT, "_ZN8textures15load_multi_pdimERKSsPlllbS2_S2_");
         _render_map = (RENDER_MAP) A_RENDER_MAP;
-        _render_updown = (RENDER_UPDOWN) A_RENDER_MAP;
+        _render_updown = (RENDER_UPDOWN) A_RENDER_UPDOWN;
     #endif
 
     bad_item_flags.whole = 0;

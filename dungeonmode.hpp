@@ -375,8 +375,18 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
 
             //(*df::global::window_z)-=1;
         }
-        else
+        //else
+        {
+            gps->screen = enabler->renderer->screen = gscreen;
+            gps->screen_limit = gscreen + r->gdimx * r->gdimy * 4;
+            gps->screentexpos = enabler->renderer->screentexpos = gscreentexpos;
+            gps->screentexpos_addcolor = enabler->renderer->screentexpos_addcolor = gscreentexpos_addcolor;
+            gps->screentexpos_grayscale = enabler->renderer->screentexpos_grayscale = gscreentexpos_grayscale;
+            gps->screentexpos_cf = enabler->renderer->screentexpos_cf = gscreentexpos_cf;
+            gps->screentexpos_cbr = enabler->renderer->screentexpos_cbr = gscreentexpos_cbr;
+            
             render_updown();
+        }
 
         init->display.grid_x = gps->dimx = tdimx;
         init->display.grid_y = gps->dimy = tdimy;
