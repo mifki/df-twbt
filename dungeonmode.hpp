@@ -62,7 +62,7 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
 
         static bool tmode_old;
         int m = df::global::ui_advmode->menu;
-        bool tmode = (m == df::ui_advmode_menu::Default || m == df::ui_advmode_menu::Look || m == df::ui_advmode_menu::ThrowAim || m == df::ui_advmode_menu::Talk || m == 14);
+        bool tmode = (m == df::ui_advmode_menu::Default || m == df::ui_advmode_menu::Look || m == df::ui_advmode_menu::ThrowAim || m == df::ui_advmode_menu::Talk || m == 14 || m == df::ui_advmode_menu::Fire || m == df::ui_advmode_menu::Unk35);
         if (tmode != tmode_old)
         {
         	tmode_old = tmode;
