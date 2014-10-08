@@ -286,6 +286,7 @@ void renderer_cool::draw(int vertex_count)
                 || m == 21 //(S)
                 || m == 3 || m == 4 // (k)
                 || m == 20 // (m)
+                || m == 16 // (g)
                 || m == 37 || m == 38 // (A)
                 );
             skip = !tmode;

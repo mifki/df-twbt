@@ -206,6 +206,7 @@ static void write_tile_arrays_text(renderer_cool *r, int x, int y, GLfloat *fg, 
             || m == 21 //(S)
             || m == 3 || m == 4 // (k)
             || m == 20 // (m)
+            || m == 16 // (g)
             || m == 37 || m == 38 // (A)
             );
         if (y < tdimy-2 && tmode)

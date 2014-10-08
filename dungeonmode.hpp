@@ -68,6 +68,7 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
             || m == 21 //(S)
             || m == 3 || m == 4 // (k)
             || m == 20 // (m)
+            || m == 16 // (g)
             || m == 37 || m == 38 // (A)
             );
         if (tmode != tmode_old)
@@ -391,7 +392,7 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
             gps->screentexpos_grayscale = enabler->renderer->screentexpos_grayscale = gscreentexpos_grayscale;
             gps->screentexpos_cf = enabler->renderer->screentexpos_cf = gscreentexpos_cf;
             gps->screentexpos_cbr = enabler->renderer->screentexpos_cbr = gscreentexpos_cbr;
-            
+
             render_updown();
         }
 
