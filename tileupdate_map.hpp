@@ -52,25 +52,29 @@ static void screen_to_texid_map(renderer_cool *r, int tile, struct texture_fulli
     }
 }
 
+static void apply_override (texture_fullid &ret, override &o)
+{
+    if (o.large_texpos != -1)
+        ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
+    if (o.bg != -1)
+    {
+        ret.br = enabler->ccolor[o.bg][0];
+        ret.bg = enabler->ccolor[o.bg][1];
+        ret.bb = enabler->ccolor[o.bg][2];        
+    }
+    if (o.fg != -1)
+    {
+        ret.r = enabler->ccolor[o.fg][0];
+        ret.g = enabler->ccolor[o.fg][1];
+        ret.b = enabler->ccolor[o.fg][2];        
+    }
+}
+
 static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, GLfloat *bg, GLfloat *tex)
 {
     struct texture_fullid ret;
     const int tile = x * r->gdimy + y;        
     screen_to_texid_map(r, tile, ret);
-
-    for (int i = 0; i < 2; i++) {
-        fg += 8;
-        *(fg++) = ret.r;
-        *(fg++) = ret.g;
-        *(fg++) = ret.b;
-        *(fg++) = 1;
-        
-        bg += 8;
-        *(bg++) = ret.br;
-        *(bg++) = ret.bg;
-        *(bg++) = ret.bb;
-        *(bg++) = 1;
-    }
     
     if (has_overrides)
     {
@@ -120,7 +124,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                                 if (o.subtype != -1 && item->getSubtype() != o.subtype)
                                     continue;
 
-                                ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
+                                apply_override(ret, o);
                                 goto matched;
                             }
                         }
@@ -154,7 +158,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                                         continue;
                                 }
 
-                                ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
+                                apply_override(ret, o);
                                 goto matched;
                             }
                         }
@@ -172,7 +176,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
 
                             if (tiletype == o.type)
                             {
-                                ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
+                                apply_override(ret, o);
                                 goto matched;
                             }
                         }
@@ -182,6 +186,21 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
         }
     }
     matched:;
+
+    // Set colour
+    for (int i = 0; i < 2; i++) {
+        fg += 8;
+        *(fg++) = ret.r;
+        *(fg++) = ret.g;
+        *(fg++) = ret.b;
+        *(fg++) = 1;
+        
+        bg += 8;
+        *(bg++) = ret.br;
+        *(bg++) = ret.bg;
+        *(bg++) = ret.bb;
+        *(bg++) = 1;
+    }    
     
     // Set texture coordinates
     gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;

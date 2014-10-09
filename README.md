@@ -61,7 +61,7 @@ Commands described below are to be placed in `data/init/overrides.txt` file and 
 
 **Overrides for items and buildings**
     
-    [OVERRIDE:Tile:Kind:Id:Type:Subtype:Tileset:NewTile]
+    [OVERRIDE:Tile:Kind:Id:Type:Subtype:Tileset:NewTile:NewFg:NewBg]
     
 - `Tile` is the original tile number
 
@@ -77,11 +77,17 @@ Commands described below are to be placed in `data/init/overrides.txt` file and 
 
 - `NewTile` is a new tile number
 
+- `NewFg` is a new foreground colour, `1-15`
+
+- `NewBg` is a new background colour, `1-15`
+
+**Note:** Any of `NewTile`, `NewFg` and `NewBg` parameters may be empty to use existing values without changes, but at least on of them must be present.
+
 **Overrides for tile types**
     
-    [OVERRIDE:Tile:T:Type:Tileset:NewTile]
+    [OVERRIDE:Tile:T:Type:Tileset:NewTile:NewFg:NewBg]
     
-- `Tile`, `Tileset` and `NewTile` parameters are the same as for items/buildings overrides
+- `Tile`, `Tileset`, `NewTile`, `NewFg` and `NewBg` parameters are the same as for items/buildings overrides
 
 - `Type` is a [tile type](#tile-types). For convenience, you can use textual description that you see with live query mode of mousequery plugin, in this case include it in quotes (for example, "stone stair down").
     

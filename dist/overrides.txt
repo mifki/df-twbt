@@ -1,6 +1,6 @@
 # This file is a part of Text Will Be Text plugin and should be placed in data/init folder.
 # See README for documentation.
 
-# Examples - will show coffins instead of some tiles
-# [OVERRIDE:177:B:WINDOW_ANY:WindowGem::map:48]
-# [OVERRIDE:150:B:WORKSHOP_CUSTOM::SOAP_MAKER:map:48]
+# Examples - will show coffins instead of some tiles and will make them red on green background
+# [OVERRIDE:177:B:WINDOW_ANY:WindowGem::map:48:3:3]
+# [OVERRIDE:150:B:WORKSHOP_CUSTOM::SOAP_MAKER:map:48:5:3]

@@ -146,33 +146,29 @@ static bool load_text_font()
 }
 
 // Either of
-// tile:B|I:id:type:subtype:tileset:newtile
-// tile:T:type:tileset:newtile
+// tile:B|I:id:type:subtype:tileset:newtile:fg:bg
+// tile:T:type:tileset:newtile:fg:bg
 // tile:tileset:newtile - disabled for now
 static bool handle_override_command(vector<string> &tokens, std::map<string, int> &tilesetnames)
 {
     if (tokens.size() < 3)
         return false;
 
-    int tile = atoi(tokens[0].c_str());    
-    int newtile = atoi(tokens.back().c_str());
-
-    string &tsname = tokens[tokens.size()-2];
-    if (!tilesetnames.count(tsname))
+    int tile = atoi(tokens[0].c_str());
+    if (tile < 0 || tile > 255)
     {
-        *out2 << COLOR_YELLOW << "TWBT: no tileset with id " << tsname << std::endl;
+        *out2 << COLOR_YELLOW << "TWBT: invalid tile number " << tokens[0] << std::endl;
         *out2 << COLOR_RESET;
-
-        return false;
+        return false;        
     }
-    int tsidx = tilesetnames[tsname];
 
     struct override o;
     char kind = tokens[1][0];
     int id;
+    int basetoken;
 
     // Building or Item
-    if (tokens.size() == 7)
+    if (tokens.size() >= 7 && (kind == 'B' || kind == 'I'))
     {
         if (kind == 'B')
         {
@@ -198,10 +194,12 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
             o.subtype = atoi(tokens[4].c_str());
         else
             o.subtype = -1;
+
+        basetoken = 5;        
     }
 
     // Tiletype
-    else if (tokens.size() == 5 && kind == 'T')
+    else if (tokens.size() >= 5 && kind == 'T')
     {
         std::string &typestr = tokens[2];
         int ln = typestr.length();
@@ -227,7 +225,9 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
             return false;
 
         if (o.type == -1)
-            return false;        
+            return false;
+
+        basetoken = 3;
     }
     /*else if (tokens.size() == 3)
     {
@@ -238,9 +238,67 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     else
         return false;          
 
+    // New tile number
+    if (tokens.size() > basetoken+1 && tokens[basetoken+1].length())
+    {
+        int newtile = atoi(tokens[basetoken+1].c_str());
+        if (newtile < 0 || newtile > 255)
+        {
+            *out2 << COLOR_YELLOW << "TWBT: invalid new tile number " << tokens[basetoken+1] << std::endl;
+            *out2 << COLOR_RESET;
+            return false;        
+        }
 
-    o.small_texpos = tilesets[tsidx].small_texpos[newtile];
-    o.large_texpos = tilesets[tsidx].large_texpos[newtile];
+        string &tsname = tokens[basetoken+0];
+        if (!tilesetnames.count(tsname))
+        {
+            *out2 << COLOR_YELLOW << "TWBT: no tileset with id " << tsname << std::endl;
+            *out2 << COLOR_RESET;
+
+            return false;
+        }
+        int tsidx = tilesetnames[tsname];
+
+        o.small_texpos = tilesets[tsidx].small_texpos[newtile];
+        o.large_texpos = tilesets[tsidx].large_texpos[newtile];
+    }
+    else
+        o.large_texpos = o.small_texpos = -1;
+
+    // New foreground colour
+    if (tokens.size() > basetoken+2 && tokens[basetoken+2].length())
+    {
+        int newfg = atoi(tokens[basetoken+2].c_str());
+        if (newfg < 1 || newfg > 16)
+        {
+            *out2 << COLOR_YELLOW << "TWBT: invalid new fg " << tokens[basetoken+2] << std::endl;
+            *out2 << COLOR_RESET;
+            return false;        
+        }
+
+        o.fg = newfg - 1;
+    }
+    else
+        o.fg = -1;
+
+    // New background colour
+    if (tokens.size() > basetoken+3 && tokens[basetoken+3].length())
+    {
+        int newbg = atoi(tokens[basetoken+3].c_str());
+        if (newbg < 1 || newbg > 16)
+        {
+            *out2 << COLOR_YELLOW << "TWBT: invalid new bg " << tokens[basetoken+3] << std::endl;
+            *out2 << COLOR_RESET;
+            return false;        
+        }
+
+        o.bg = newbg - 1;
+    }
+    else
+        o.bg = -1;
+
+    if (!(o.large_texpos != -1 || o.fg != -1 || o.bg != -1))
+        return false;
 
     if (!overrides[tile])
         overrides[tile] = new tile_overrides;
