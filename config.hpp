@@ -263,7 +263,7 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
         o.large_texpos = tilesets[tsidx].large_texpos[newtile];
     }
     else
-        o.large_texpos = o.small_texpos = -1;
+        o.large_texpos = o.small_texpos = 0;
 
     // New foreground colour
     if (tokens.size() > basetoken+2 && tokens[basetoken+2].length())

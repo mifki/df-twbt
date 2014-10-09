@@ -54,7 +54,7 @@ static void screen_to_texid_map(renderer_cool *r, int tile, struct texture_fulli
 
 static void apply_override (texture_fullid &ret, override &o)
 {
-    if (o.large_texpos != -1)
+    if (o.large_texpos)
         ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
     if (o.bg != -1)
     {

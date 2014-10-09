@@ -77,11 +77,11 @@ Commands described below are to be placed in `data/init/overrides.txt` file and 
 
 - `NewTile` is a new tile number
 
-- `NewFg` is a new foreground colour, `1-15`
+- `NewFg` is a new foreground colour, `1-16`
 
-- `NewBg` is a new background colour, `1-15`
+- `NewBg` is a new background colour, `1-16`
 
-**Note:** Any of `NewTile`, `NewFg` and `NewBg` parameters may be empty to use existing values without changes, but at least on of them must be present.
+**Note:** Any of `NewTile`, `NewFg` and `NewBg` parameters may be empty to use existing values without changes, but at least one of them must be present. Trailing colons may be omitted for empty parameters. 
 
 **Overrides for tile types**
     

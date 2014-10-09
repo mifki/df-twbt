@@ -114,7 +114,7 @@ static vector< struct tileset > tilesets;
 struct override {
     int type, subtype;
     long small_texpos, large_texpos;
-    unsigned char bg, fg;
+    char bg, fg;
     std::string subtypename;
 };
 
