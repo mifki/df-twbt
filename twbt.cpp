@@ -273,8 +273,9 @@ static void replace_renderer()
     renderer_cool *newr = new renderer_cool;
 
     void **vtable_old = ((void ***)oldr)[0];
-    void **vtable_new = ((void ***)newr)[0];
+    void ** volatile vtable_new = ((void ***)newr)[0];
 
+#undef DEFIDX
 #define DEFIDX(n) int IDX_##n = vmethod_pointer_to_idx(&renderer_cool::n);
 
     DEFIDX(draw)

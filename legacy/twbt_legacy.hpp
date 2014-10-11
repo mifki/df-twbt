@@ -22,8 +22,9 @@ static void hook_legacy()
     renderer_legacy *newr = new renderer_legacy;
 
     void **vtable_old = ((void ***)oldr_legacy)[0];
-    void **vtable_new = ((void ***)newr)[0];
+    void ** volatile vtable_new = ((void ***)newr)[0];
 
+#undef DEFIDX
 #define DEFIDX(n) int IDX_##n = vmethod_pointer_to_idx(&renderer_legacy::n);
 
     DEFIDX(draw)
