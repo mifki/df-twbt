@@ -55,8 +55,8 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
             df::unit *u = df::unit::find(df::global::ui->follow_unit);
             if (u)
             {
-                *df::global::window_x = std::min(world->map.x_count - r->gdimxfull, std::max(0, u->pos.x - r->gdimx / 2));
-                *df::global::window_y = std::min(world->map.y_count - r->gdimyfull, std::max(0, u->pos.y - r->gdimy / 2));
+                *df::global::window_x = std::max(0, std::min(world->map.x_count - r->gdimxfull, u->pos.x - r->gdimx / 2));
+                *df::global::window_y = std::max(0, std::min(world->map.y_count - r->gdimyfull, u->pos.y - r->gdimy / 2));
             }
         }                
     }      
@@ -96,12 +96,18 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         for (int y = 0; y < r->gdimy; y++)
         {
             for (int x = world->map.x_count-*df::global::window_x; x < r->gdimx; x++)
+            {
                 z[x*r->gdimy+y] = 0;
+                gscreentexpos[x*r->gdimy+y] = 0;
+            }
         }
         for (int x = 0; x < r->gdimx; x++)
         {
             for (int y = world->map.y_count-*df::global::window_y; y < r->gdimy; y++)
+            {
                 z[x*r->gdimy+y] = 0;
+                gscreentexpos[x*r->gdimy+y] = 0;
+            }
         }        
 
         uint8_t *sctop                     = enabler->renderer->screen;

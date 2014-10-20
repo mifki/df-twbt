@@ -86,7 +86,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
             int xx = gwindow_x + x;
             int yy = gwindow_y + y;
 
-            if (xx < world->map.x_count && yy < world->map.y_count)
+            if (xx >= 0 && yy >= 0 && xx < world->map.x_count && yy < world->map.y_count)
             {
 
                 if (s0 == 88 && df::global::cursor->x == xx && df::global::cursor->y == yy)
