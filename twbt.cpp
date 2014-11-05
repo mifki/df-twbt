@@ -346,6 +346,33 @@ static void restore_renderer()
     gps->force_full_display_count = true;*/
 }
 
+static bool advmode_needs_map(int m)
+{
+    //XXX: these are mostly numerical becuase enumeration seems to be incorrect in dfhack for 0.40.xx
+
+    return (m == df::ui_advmode_menu::Default ||
+            m == df::ui_advmode_menu::Look ||
+            m == df::ui_advmode_menu::ThrowAim ||
+            m == df::ui_advmode_menu::Talk ||
+            m == 14 ||
+            m == df::ui_advmode_menu::Fire ||
+            m == df::ui_advmode_menu::Unk35 ||  // (j)
+            m == df::ui_advmode_menu::Unk30 ||
+            m == 21 ||                          // (S)
+            m == 3  || m == 4 ||                // (k)
+            m == 20 ||                          // (m)
+            m == 16 ||                          // (g)
+            m == 37 || m == 38 ||               // (A)
+            m == 19 ||                          // companions
+            m == 29 ||                          // sleep/wait
+            m == 23 ||                          // move carefully/climbing
+            m == 33 ||                          // falling/grab screen (?)
+            m == 43 ||                          // dodge direction choice
+            m == 39 ||                          // target for striking choice
+            m == 18                             // combat preferences
+            );
+}
+
 #include "tileupdate_text.hpp"
 #include "tileupdate_map.hpp"
 #include "renderer.hpp"

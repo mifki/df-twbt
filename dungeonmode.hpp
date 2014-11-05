@@ -62,15 +62,7 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
 
         static bool tmode_old;
         int m = df::global::ui_advmode->menu;
-        bool tmode = (m == df::ui_advmode_menu::Default || m == df::ui_advmode_menu::Look || m == df::ui_advmode_menu::ThrowAim || m == df::ui_advmode_menu::Talk || m == 14 || m == df::ui_advmode_menu::Fire
-            || m == df::ui_advmode_menu::Unk35 // (j)
-            || m == df::ui_advmode_menu::Unk30 
-            || m == 21 //(S)
-            || m == 3 || m == 4 // (k)
-            || m == 20 // (m)
-            || m == 16 // (g)
-            || m == 37 || m == 38 // (A)
-            );
+        bool tmode = advmode_needs_map(m);
         if (tmode != tmode_old)
         {
             *out2 << "am:" << m << std::endl;
