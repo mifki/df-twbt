@@ -5,6 +5,7 @@
 // To find this address, look for a function with two SDL_GetTicks calls inside,
 // there will be two calls with the same argument right before an increment between 
 // SDL_SemWait and SDL_SemPost near the end - they are renderer->display() and renderer->render(). 
+// (The called function must have conditional `dec` at the end.)
 
 // p_render_lower_levels - Disables standard rendering of lower levels
 /*
@@ -192,6 +193,62 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         };
 
     #endif
+
+#elif defined(DF_04014)
+    #ifdef WIN32
+        #define A_LOAD_MULTI_PDIM 0x00b94670
+
+        #define A_RENDER_MAP      0x009dd9f0
+        #define A_RENDER_UPDOWN   0x00815760
+
+        static patchdef p_display = { 0x00669be1, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x0063742f, 6 };
+        
+        static patchdef p_advmode_render[] = {
+            { 0x005b5265, 2+5+5 }, { 0x005b52b0, 2+5+5 }, { 0x005b5301, 2+5+5 }, { 0x005b5358, 2+5+5 }, { 0x005b5805, 2+5+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x00cb7a50, 15, true, { 0x36,0x8b,0x84,0x24,0x0C,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC2,0x1C,0x00 }
+        };
+
+    #elif defined(__APPLE__)
+        #define A_LOAD_MULTI_PDIM 0x00fc1ea0
+
+        #define A_RENDER_MAP      0x009f1c60
+        #define A_RENDER_UPDOWN   0x00796b10
+
+        static patchdef p_display = { 0x00f56b01, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x004130ea, 5 };
+        
+        static patchdef p_advmode_render[] = {
+            { 0x003d0c70, 5+3+5 }, { 0x003d12cd, 5+3+5 }, { 0x003d1696, 5+3+5 }, { 0x003d16f9, 5+3+5 }, { 0x003d177a, 5+3+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x00cad6b0, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
+        };
+
+    #else
+        #define A_RENDER_MAP      0x08a3f2d0
+        #define A_RENDER_UPDOWN   0x087f1440
+
+        #define NO_DISPLAY_PATCH
+
+        static patchdef p_dwarfmode_render = { 0x08391e3f, 5 };
+        
+        static patchdef p_advmode_render[] = {
+            { 0x0834e05d, 5+7+5 }, { 0x0834e111, 5+7+5 }, { 0x0834e71c, 5+7+5 }, { 0x0834eb51, 5+7+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x08d246b0, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
+        };
+
+    #endif
+
 #else
     #error Unsupported DF version
 #endif
