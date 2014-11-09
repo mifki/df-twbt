@@ -1,10 +1,10 @@
-DFHACKVER ?= 0.40.13-r1
+DFHACKVER ?= 0.40.15-r1
 
 DFVERNUM = `echo $(DFHACKVER) | sed -e s/-r.*// -e s/\\\\.//g`
 
 TWBT_VER ?= "5.xx"
 
-DF ?= /Users/vit/Downloads/df_40_13_osx
+DF ?= /Users/vit/Downloads/df_40_15_osx
 DH ?= /Users/vit/Downloads/dfhack-master
 
 SRC = twbt.cpp
@@ -44,6 +44,12 @@ $(OUT): $(SRC) $(DEP)
 
 inst: $(OUT)
 	cp $(OUT) "$(DF)/hack/plugins/"
+
+inst_all:
+	make inst
+	cd plugins && DFHACKVER=$(DFHACKVER) DF=$(DF) DH=$(DH) PLUGIN=mousequery make inst
+	cd plugins && DFHACKVER=$(DFHACKVER) DF=$(DF) DH=$(DH) PLUGIN=resume make inst
+	cd plugins && DFHACKVER=$(DFHACKVER) DF=$(DF) DH=$(DH) PLUGIN=automaterial make inst
 
 clean:
 	-rm $(OUT)
