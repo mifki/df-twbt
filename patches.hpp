@@ -249,6 +249,61 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
 
     #endif
 
+#elif defined(DF_04015)
+    #ifdef WIN32
+        #define A_LOAD_MULTI_PDIM 0x00b960e0
+
+        #define A_RENDER_MAP      0x009dedf0
+        #define A_RENDER_UPDOWN   0x00815e50
+
+        static patchdef p_display = { 0x00669621, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x00636dc0, 6 };
+        
+        static patchdef p_advmode_render[] = {
+            { 0x005b4dc5, 2+5+5 }, { 0x005b4e10, 2+5+5 }, { 0x005b4e61, 2+5+5 }, { 0x005b4eb8, 2+5+5 }, { 0x005b5365, 2+5+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x00cba3a0, 15, true, { 0x36,0x8b,0x84,0x24,0x0C,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC2,0x1C,0x00 }
+        };
+
+    #elif defined(__APPLE__)
+        #define A_LOAD_MULTI_PDIM 0x00fc5be0
+
+        #define A_RENDER_MAP      0x009f35c0
+        #define A_RENDER_UPDOWN   0x00797510
+
+        static patchdef p_display = { 0x00f5a841, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x00412c2a, 5 };
+        
+        static patchdef p_advmode_render[] = {
+            { 0x003d0690, 5+3+5 }, { 0x003d0ced, 5+3+5 }, { 0x003d1119, 5+3+5 }, { 0x003d10b6, 5+3+5 }, { 0x003d119a, 5+3+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x00cb11e0, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
+        };
+
+    #else
+        #define A_RENDER_MAP      0x08a42250
+        #define A_RENDER_UPDOWN   0x087f2e30
+
+        #define NO_DISPLAY_PATCH
+
+        static patchdef p_dwarfmode_render = { 0x08391f0f, 5 };
+        
+        static patchdef p_advmode_render[] = {
+            { 0x0834e191, 5+7+5 }, { 0x0834e79c, 5+7+5 }, { 0x0834ebd1, 5+7+5 }, { 0x0834e0dd, 5+7+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x08d29380, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
+        };
+
+    #endif        
+
 #else
     #error Unsupported DF version
 #endif
