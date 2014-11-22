@@ -18,6 +18,13 @@ void renderer_cool::update_tile(int x, int y)
         return;
     }
 
+    //XXX: sometimes this might be called while gps->dimx/y are set to map dim > text dim, and this will crash
+    //XXX: better not to use NO_DISPLAY_PATCH, but if we must, let's check x/y here
+#ifdef NO_DISPLAY_PATCH
+    if (x >= tdimx || y >= tdimy)
+        return;
+#endif
+
     const int tile = x * tdimy + y;
 
     GLfloat *_fg  = fg + tile * 4 * 6;
