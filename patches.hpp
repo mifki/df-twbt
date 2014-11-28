@@ -311,8 +311,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         #define A_RENDER_MAP      0x009e1430
         #define A_RENDER_UPDOWN   0x00818280
 
-        //static patchdef p_display = { 0x00669621, 5 };
-        #define NO_DISPLAY_PATCH
+        static patchdef p_display = { 0x0066b941, 5 };
 
         static patchdef p_dwarfmode_render = { 0x0063915f, 6 };
         
@@ -330,8 +329,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         #define A_RENDER_MAP      0x009f7ef0 
         #define A_RENDER_UPDOWN   0x0079bbe0
 
-        //static patchdef p_display = { 0x00f5a841, 5 };
-        #define NO_DISPLAY_PATCH
+        static patchdef p_display = { 0x00f5f641, 5 };
 
         static patchdef p_dwarfmode_render = { 0x0041730a, 5 };
         
