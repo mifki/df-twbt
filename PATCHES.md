@@ -1,4 +1,4 @@
-I use [Hopper Disassembler](http://www.hopperapp.com), it's available for OS X and Linux. You can use trial version that's is limited by 30 minutes which is enough.
+I use [Hopper Disassembler](http://www.hopperapp.com), it's available for OS X and Linux. You can use trial version that's is limited to 30 minutes which is enough.
 
 1. To find the address for `A_LOAD_MULTI_PDIM`:
 
