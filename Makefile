@@ -24,15 +24,16 @@ OUT = dist/$(DFHACKVER)/twbt.plug.$(EXT)
 INC = -I"$(DH)/library/include" -I"$(DH)/library/proto" -I"$(DH)/depends/protobuf" -I"$(DH)/depends/lua/include"
 LIB = -L"$(DH)/build/library" -ldfhack
 
+CXX ?= c++
 CFLAGS = $(INC) -m32 -DLINUX_BUILD -O3
 LDFLAGS = $(LIB) -shared 
 
 ifeq ($(shell uname -s), Darwin)
-	CXX = c++ -std=gnu++0x -stdlib=libstdc++
+	CFLAGS += -std=gnu++0x -stdlib=libstdc++
 	CFLAGS += -Wno-tautological-compare
 	LDFLAGS += -framework OpenGL -mmacosx-version-min=10.6 -undefined dynamic_lookup
 else
-	CXX = c++ -std=c++0x
+	CFLAGS += -std=c++0x
 endif
 
 
