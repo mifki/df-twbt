@@ -1,11 +1,11 @@
-DFHACKVER ?= 0.40.16-r1
+DFHACKVER ?= 0.40.19-r1
 
 DFVERNUM = `echo $(DFHACKVER) | sed -e s/-r.*// -e s/\\\\.//g`
 
 TWBT_VER ?= "5.xx"
 
-DF ?= /Users/vit/Downloads/df_40_16_osx
-DH ?= /Users/vit/Downloads/dfhack-master
+DF ?= /Users/vit/Downloads/df_40_19_osx
+DH ?= /Users/vit/Downloads/buildagent-2/workspace/root/dfhack/master
 
 SRC = twbt.cpp
 DEP = renderer.hpp config.hpp tradefix.hpp dungeonmode.hpp dwarfmode.hpp renderer_twbt.h commands.hpp plugin.hpp tileupdate_text.hpp tileupdate_map.hpp patches.hpp Makefile legacy/renderer_legacy.hpp legacy/twbt_legacy.hpp
