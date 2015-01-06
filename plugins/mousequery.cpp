@@ -224,13 +224,22 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
         case DesignateCarveTrack:
         case DesignateEngrave:
         case DesignateCarveFortification:
+        case DesignateItemsClaim:
+        case DesignateItemsForbid:
+        case DesignateItemsMelt:
+        case DesignateItemsUnmelt:
+        case DesignateItemsDump:
+        case DesignateItemsUndump:
+        case DesignateItemsHide:
+        case DesignateItemsUnhide:
         case DesignateChopTrees:
         case DesignateToggleEngravings:
-        case DesignateRemoveConstruction:
+        case DesignateToggleMarker:
         case DesignateTrafficHigh:
         case DesignateTrafficNormal:
         case DesignateTrafficLow:
         case DesignateTrafficRestricted:
+        case DesignateRemoveConstruction:
             return true;
 
         case Burrows:
@@ -491,7 +500,7 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
             else if (rbutton_enabled)
                 return handleRight(mpos, mx, my);
         }
-        else if (input->count(interface_key::CUSTOM_M) && isInDesignationMenu())
+        else if (input->count(interface_key::CUSTOM_ALT_M) && isInDesignationMenu())
         {
             box_designation_enabled = !box_designation_enabled;
         }
@@ -665,9 +674,9 @@ struct mousequery_hook : public df::viewscreen_dwarfmodest
         if (isInDesignationMenu())
         {
             int x = left_margin;
-            int y = 24;
-            OutputString(COLOR_BROWN, x, y, "DFHack MouseQuery", true, left_margin);
-            OutputToggleString(x, y, "Box Select", "m", box_designation_enabled, true, left_margin);
+            int y = gps->dimy - 2;
+            OutputToggleString(x, y, "Box Select", "Alt+M", box_designation_enabled,
+                true, left_margin, COLOR_WHITE, COLOR_LIGHTRED);
         }
 
         //Display selection dimensions
