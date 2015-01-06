@@ -401,6 +401,61 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
 
     #endif           
 
+#elif defined(DF_04023)
+    #ifdef WIN32
+        #define A_LOAD_MULTI_PDIM 0x00bb39b0
+
+        #define A_RENDER_MAP      0x009fa970
+        #define A_RENDER_UPDOWN   0x00820f90
+
+        static patchdef p_display = { 0x00675171, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x00640200, 6 };
+        
+        static patchdef p_advmode_render[] = {
+            { 0x005b8d25, 2+5+5 }, { 0x005b8d70, 2+5+5 }, { 0x005b8dc1, 2+5+5 }, { 0x005b8e18, 2+5+5 }, { 0x005b92c5, 2+5+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x00cd7190, 15, true, { 0x36,0x8b,0x84,0x24,0x0C,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC2,0x1C,0x00 }
+        };
+
+    #elif defined(__APPLE__)
+        #define A_LOAD_MULTI_PDIM 0x00f9f7f0
+
+        #define A_RENDER_MAP      0x009e58e0
+        #define A_RENDER_UPDOWN   0x007778d0
+
+        static patchdef p_display = { 0x00f34661, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x0040ff4a, 5 };
+        
+        static patchdef p_advmode_render[] = {
+            { 0x003c82c0, 5+3+5 }, { 0x003c891d, 5+3+5 }, { 0x003c8ce6, 5+3+5 }, { 0x003c8d49, 5+3+5 }, { 0x003c8dca, 5+3+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x00c933f0, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
+        };
+
+    #else
+        #define A_RENDER_MAP      0x08a423b0
+        #define A_RENDER_UPDOWN   0x087e1500
+
+        #define NO_DISPLAY_PATCH
+
+        static patchdef p_dwarfmode_render = { 0x083947ff, 5 };
+        
+        static patchdef p_advmode_render[] = {
+            { 0x0834b2dd, 5+7+5 }, { 0x0834b391, 5+7+5 }, { 0x0834b99c, 5+7+5 }, { 0x0834bdca, 5+7+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x08d1e310, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
+        };
+
+    #endif           
+
 #else
     #error Unsupported DF version
 #endif

@@ -1,5 +1,7 @@
 I use [Hopper Disassembler](http://www.hopperapp.com), it's available for OS X and Linux. You can use trial version that's is limited to 30 minutes which is enough.
 
+Note: usually addresses don't change much, and usually they increase. So if some address you found is completely different from the address in previous version, better check again if it's correct.
+
 1. To find the address for `A_LOAD_MULTI_PDIM`:
 
 	**On Windows** find a function that references string "`Tileset not found`".
