@@ -4,7 +4,7 @@ DFVERNUM = `echo $(DFHACKVER) | sed -e s/-r.*// -e s/\\\\.//g`
 
 TWBT_VER ?= "5.xx"
 
-DF ?= /Users/vit/Downloads/df_40_19_osx
+DF ?= /Users/vit/Downloads/df_40_23_osx
 DH ?= /Users/vit/Downloads/buildagent-2/workspace/root/dfhack/master
 
 SRC = twbt.cpp
