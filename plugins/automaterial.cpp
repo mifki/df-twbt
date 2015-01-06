@@ -47,12 +47,12 @@ using std::vector;
 
 using namespace DFHack;
 using namespace df::enums;
-using df::global::enabler;
-using df::global::gps;
-using df::global::ui;
-using df::global::ui_build_selector;
 
 DFHACK_PLUGIN("automaterial");
+REQUIRE_GLOBAL(enabler);
+REQUIRE_GLOBAL(gps);
+REQUIRE_GLOBAL(ui);
+REQUIRE_GLOBAL(ui_build_selector);
 
 struct MaterialDescriptor
 {
@@ -663,6 +663,10 @@ struct jobutils_hook : public df::viewscreen_dwarfmodest
     void draw_box_selection()
     {
         if (!box_select_enabled)
+            return;
+
+        if (ui->main.mode != df::ui_sidebar_mode::Build ||
+            ui_build_selector->building_type != df::building_type::Construction)
             return;
 
         df::coord vport = Gui::getViewportPos();
