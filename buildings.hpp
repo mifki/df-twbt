@@ -1,3 +1,4 @@
+#include <df/building_bedst.h>
 #include <df/building_doorst.h>
 #include <df/building_workshopst.h>
 
@@ -15,7 +16,7 @@ if (!loaded) \
 #define LOAD_END \
     if (!ok) \
     { \
-        INTERPOSE_HOOK(building_doorst_twbt, drawBuilding).apply(false); \
+        unhook(); \
         return; \
     } \
     loaded = true; \
@@ -64,79 +65,80 @@ bool load_tiles(const char *fn, long **tiles, int *frames, int w, int h)
         return false;
     }
 
-    //TODO: free surface
-
     *frames = surf->w / surf->h;
     *tiles = (long*) malloc(sizeof(long)*(*frames));
 
     *out2 << surf->w << " " << surf->h << std::endl;
     load_tileset(fn, *tiles, *frames*w, h, &dx, &dy);
 
+    SDL_FreeSurface(surf);    
+
     return true;
 }
 
-struct building_doorst_twbt : public df::building_doorst
+//INTERPOSE_NEXT(drawBuilding)(dbuf, smth);
+
+#define OVR_BEGIN(cls,code) \
+struct cls##_twbt : public df::cls \
+{ \
+    typedef df::cls interpose_base; \
+\
+    void unhook() { \
+        INTERPOSE_HOOK(cls##_twbt, drawBuilding).apply(false); \
+    } \
+    DEFINE_VMETHOD_INTERPOSE(void, drawBuilding, (df::building_drawbuffer* dbuf, int16_t smth)) \
+    { \
+        DEFINE_TICK \
+        code \
+    } \
+}; \
+IMPLEMENT_VMETHOD_INTERPOSE(cls##_twbt, drawBuilding);
+
+#define OVR_END(cls) \
+    } \
+}; \
+IMPLEMENT_VMETHOD_INTERPOSE(cls##_twbt, drawBuilding);
+
+OVR_BEGIN(building_doorst,
 {
-    typedef df::building_doorst interpose_base;
+    DEFINE_SIZE(1,1)
+    DEFINE_VARS(normal)
+    DEFINE_VARS(locked)
 
-    DEFINE_VMETHOD_INTERPOSE(void, drawBuilding, (df::building_drawbuffer* dbuf, int16_t smth))
-    {
-        //INTERPOSE_NEXT(drawBuilding)(dbuf, smth);
+    LOAD_BEGIN
+    LOAD_IMAGE(normal, "door")
+    LOAD_IMAGE(locked, "door-locked")
+    LOAD_END
 
-        DEFINE_SIZE(1,1)
-        DEFINE_VARS(normal)
-        DEFINE_VARS(locked)
+    MaterialInfo material;
+    material.decode(this->mat_type, this->mat_index);
+    int fg = material.material->basic_color[0];
+    int br = material.material->basic_color[1];
 
-        LOAD_BEGIN
-        LOAD_IMAGE(normal, "door")
-        LOAD_IMAGE(locked, "door-locked")
-        LOAD_END
+    FILL_PLACEHOLDER(fg,br)
 
-        DEFINE_TICK
-
-        MaterialInfo material;
-        material.decode(this->mat_type, this->mat_index);
-        int fg = material.material->basic_color[0];
-        int br = material.material->basic_color[1];
-
-        FILL_PLACEHOLDER(fg,br)
-
-        if (IS_LOADED(locked) && this->door_flags.bits.forbidden)
-            DRAW_IMAGE(locked)
-        else
-            DRAW_IMAGE(normal)
-    }
-};
-
-IMPLEMENT_VMETHOD_INTERPOSE(building_doorst_twbt, drawBuilding);
-
-
-struct building_workshopst_twbt : public df::building_workshopst
-{
-    typedef df::building_workshopst interpose_base;
-
-    DEFINE_VMETHOD_INTERPOSE(void, drawBuilding, (df::building_drawbuffer* dbuf, int16_t smth))
-    {
-        //INTERPOSE_NEXT(drawBuilding)(dbuf, smth);
-
-        DEFINE_SIZE(3,3)
-        DEFINE_VARS(normal)
-
-        LOAD_BEGIN
-        LOAD_IMAGE(normal, "workshop")
-        LOAD_END
-
-        DEFINE_TICK
-
-        MaterialInfo material;
-        material.decode(this->mat_type, this->mat_index);
-        int fg = material.material->basic_color[0];
-        int br = material.material->basic_color[1];
-
-        FILL_PLACEHOLDER(fg,br)
-
+    if (IS_LOADED(locked) && this->door_flags.bits.forbidden)
+        DRAW_IMAGE(locked)
+    else
         DRAW_IMAGE(normal)
-    }
-};
+})
 
-IMPLEMENT_VMETHOD_INTERPOSE(building_workshopst_twbt, drawBuilding);
+
+OVR_BEGIN(building_workshopst,
+{
+    DEFINE_SIZE(3,3)
+    DEFINE_VARS(normal)
+
+    LOAD_BEGIN
+    LOAD_IMAGE(normal, "workshop")
+    LOAD_END
+
+    MaterialInfo material;
+    material.decode(this->mat_type, this->mat_index);
+    int fg = material.material->basic_color[0];
+    int br = material.material->basic_color[1];
+
+    FILL_PLACEHOLDER(fg,br)
+
+    DRAW_IMAGE(normal)
+})
