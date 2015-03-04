@@ -87,6 +87,10 @@
 
 #include "renderer_twbt.h"
 
+extern "C" {
+    DFSDL_Surface *IMG_Load(const char *file);
+}
+
 using df::global::world;
 using std::string;
 using std::vector;

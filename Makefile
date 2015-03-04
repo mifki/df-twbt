@@ -1,10 +1,10 @@
-DFHACKVER ?= 0.40.23-r1
+DFHACKVER ?= 0.40.24-r0
 
 DFVERNUM = `echo $(DFHACKVER) | sed -e s/-r.*// -e s/\\\\.//g`
 
-TWBT_VER ?= "5.xx"
+TWBT_VER ?= "6.xx"
 
-DF ?= /Users/vit/Downloads/df_40_23_osx
+DF ?= /Users/vit/Downloads/df_40_24_osx
 DH ?= /Users/vit/Downloads/buildagent-2/workspace/root/dfhack/master
 
 SRC = twbt.cpp
@@ -21,8 +21,8 @@ else
 endif
 OUT = dist/$(DFHACKVER)/twbt.plug.$(EXT)
 
-INC = -I"$(DH)/library/include" -I"$(DH)/library/proto" -I"$(DH)/depends/protobuf" -I"$(DH)/depends/lua/include"
-LIB = -L"$(DH)/build/library" -ldfhack
+INC = -I"$(DH)/library/include" -I"$(DH)/library/proto" -I"$(DH)/depends/protobuf" -I"$(DH)/depends/lua/include" -I"$(DF)/libs/SDL.framework/Headers"
+LIB = -L"$(DH)/build/library" -ldfhack -F"$(DF)/libs" -framework SDL -framework SDL_image
 
 CXX ?= c++
 CFLAGS = $(INC) -m32 -DLINUX_BUILD -O3

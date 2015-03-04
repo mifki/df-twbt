@@ -149,6 +149,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     }
 
     INTERPOSE_HOOK(building_doorst_twbt, drawBuilding).apply(true); 
+    INTERPOSE_HOOK(building_workshopst_twbt, drawBuilding).apply(true); 
 
     return CR_OK;
 }
