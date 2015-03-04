@@ -148,9 +148,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         INTERPOSE_HOOK(dwarfmode_hook_legacy, render).apply(true);
     }
 
-#if defined(__APPLE__) && defined(DF_03411)
-    INTERPOSE_HOOK(traderesize_hook, render).apply(true);
-#endif    
+    INTERPOSE_HOOK(building_doorst_twbt, drawBuilding).apply(true); 
 
     return CR_OK;
 }

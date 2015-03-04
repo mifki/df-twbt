@@ -25,8 +25,6 @@ Change and reload colours without restarting the game.
 [Mapshot!](#mapshot)  
 A command to save full-size screenshot of the map.
 
-[Other Improvements](#other-improvements)
-
 ## Authors and Links ##
 
 Vitaly Pronkin aka mifki <pronvit@me.com>
@@ -59,19 +57,13 @@ Commands described below are to be placed in `data/init/overrides.txt` file and 
 
 - `Id` is an arbitrary string to refer this tileset later
 
-**Overrides for items and buildings**
+**Overrides for tile types**
     
-    [OVERRIDE:Tile:Kind:Id:Type:Subtype:Tileset:NewTile:NewFg:NewBg]
+    [OVERRIDE:Tile:T:Type:Tileset:NewTile:NewFg:NewBg]
     
 - `Tile` is the original tile number
 
-- `Kind` is `B` for building or `I` for item
-
-- `Id` is an [item ID](#item-ids) or [building ID](#building-ids), or empty to match any ID
-
-- `Type` is an [item type](#item-types) or [building type](#building-types), or empty to match any type
-
-- `Subtype` 
+- `Type` is a [tile type](#tile-types). For convenience, you can use textual description that you see with live query mode of mousequery plugin, in this case include it in quotes (for example, "stone stair down").
 
 - `Tileset` is a tileset identifier specified previously in `TILESET` command. Two predefined values are `map` for the main graphics font and `text` for the text font.
 
@@ -82,15 +74,6 @@ Commands described below are to be placed in `data/init/overrides.txt` file and 
 - `NewBg` is a new background colour, `1-16`
 
 **Note:** Any of `NewTile`, `NewFg` and `NewBg` parameters may be empty to use existing values without changes, but at least one of them must be present. Trailing colons may be omitted for empty parameters. 
-
-**Overrides for tile types**
-    
-    [OVERRIDE:Tile:T:Type:Tileset:NewTile:NewFg:NewBg]
-    
-- `Tile`, `Tileset`, `NewTile`, `NewFg` and `NewBg` parameters are the same as for items/buildings overrides
-
-- `Type` is a [tile type](#tile-types). For convenience, you can use textual description that you see with live query mode of mousequery plugin, in this case include it in quotes (for example, "stone stair down").
-    
 
 ## Multi-level Rendering ##
 
@@ -127,27 +110,13 @@ Reload all colours from `init/colors.txt`.
 **`mapshot`**  
 Save an image of entire map in full size to `mapshot.tga` in your DF folder.
 
-## Other Improvements ##
-
-Trade screen divided equally on OS X (DF 0.34.11 only).
-
 ## Tables ##
-Please note that values from these lists are **case-sensitive** when used in `OVERRIDE` command.
-
-### Item IDs ###
-This list comes from `df/items_other_id.h` include file in DFHack source code.
-
-> AMMO, AMULET, ANIMALTRAP, ANVIL, ANY_ARMOR_GLOVES, ANY_ARMOR_HELM, ANY_ARMOR_PANTS, ANY_ARMOR_SHOES, ANY_ARTIFACT, ANY_AUTO_CLEAN, ANY_CAGE_OR_TRAP, ANY_CAN_ROT, ANY_COOKABLE, ANY_CORPSE, ANY_CRITTER, ANY_DEAD_DWARF, ANY_DRINK, ANY_EDIBLE_BONECARN, ANY_EDIBLE_CARNIVORE, ANY_EDIBLE_RAW, ANY_EDIBLE_VERMIN, ANY_EDIBLE_VERMIN_BOX, ANY_ENCASED, ANY_FURNITURE, ANY_GENERIC123, ANY_GENERIC23, ANY_GENERIC24, ANY_GENERIC35, ANY_GENERIC36, ANY_GENERIC37, ANY_GENERIC38, ANY_GENERIC82, ANY_GOOD_FOOD, ANY_IN_CONSTRUCTION, ANY_MELT_DESIGNATED, ANY_MURDERED, ANY_RECENTLY_DROPPED, ANY_REFUSE, ANY_SPIKE, ANY_TRUE_ARMOR, ANY_WEAPON, ANY_WEBS, ARMOR, ARMORSTAND, BACKPACK, BAD, BALLISTAARROWHEAD, BALLISTAPARTS, BAR, BARREL, BED, BIN, BLOCKS, BOOK, BOULDER, BOX, BRACELET, BUCKET, CABINET, CAGE, CATAPULTPARTS, CHAIN, CHAIR, CHEESE, CLOTH, COFFIN, COIN, CORPSE, CORPSEPIECE, CROWN, CRUTCH, DOOR, DRINK, EARRING, EGG, FIGURINE, FISH, FISH_RAW, FLASK, FLOODGATE, FOOD, FOOD_STORAGE, GEM, GLOB, GLOVES, GOBLET, GRATE, HATCH_COVER, HELM, INSTRUMENT, LEAVES *(0.34)*, LIQUID_MISC, MEAT, MILLSTONE, ORTHOPEDIC_CAST, PANTS, PET, PIPE_SECTION, PLANT, PLANT_GROWTH *(0.40)*, POWDER_MISC, QUERN, QUIVER, REMAINS, RING, ROCK, ROUGH, SCEPTER, SEEDS, SHIELD, SHOES, SIEGEAMMO, SKIN_TANNED, SLAB, SMALLGEM, SPLINT, STATUE, TABLE, THREAD, TOOL, TOTEM, TOY, TRACTION_BENCH, TRAPCOMP, TRAPPARTS, VERMIN, WEAPON, WEAPONRACK, WINDOW, WOOD
+Please note that values from these lists are **case-sensitive** when used in the `OVERRIDE` command.
 
 ### Item Types ###
 This list comes from `df/item_type.h` include file in DFHack source code.
 
-> AMMO, AMULET, ANIMALTRAP, ANVIL, ARMOR, ARMORSTAND, BACKPACK, BALLISTAARROWHEAD, BALLISTAPARTS, BAR, BARREL, BED, BIN, BLOCKS, BOOK BOULDER, BOX, BRACELET, BUCKET, CABINET, CAGE, CATAPULTPARTS, CHAIN, CHAIR, CHEESE, CLOTH, COFFIN, COIN, CORPSE, CORPSEPIECE, CROWN, CRUTCH, DOOR, DRINK, EARRING, EGG, FIGURINE, FISH, FISH_RAW, FLASK, FLOODGATE, FOOD, GEM, GLOB, GLOVES, GOBLET, GRATE, HATCH_COVER, HELM, INSTRUMENT, LEAVES *(0.34)*, LIQUID_MISC, MEAT, MILLSTONE, ORTHOPEDIC_CAST, PANTS, PET, PIPE_SECTION, PLANT, PLANT_GROWTH *(0.40)*, POWDER_MISC, QUERN, QUIVER, REMAINS, RING, ROCK, ROUGH, SCEPTER, SEEDS, SHIELD, SHOES, SIEGEAMMO, SKIN_TANNED, SLAB, SMALLGEM, SPLINT, STATUE, TABLE, THREAD, TOOL, TOTEM, TOY, TRACTION_BENCH, TRAPCOMP, TRAPPARTS, VERMIN, WEAPON, WEAPONRACK, WINDOW, WOOD
-
-### Building IDs ###
-This list comes from `df/buildings_other_id.h` include file in DFHack source code.
-
-> ACTIVITY_ZONE, ANY_ACTUAL, ANY_BARRACKS, ANY_HOSPITAL, ANY_HOSPITAL_STORAGE, ANY_MACHINE, ANY_NOBLE_ROOM, ANY_ROAD, ANY_STORAGE, ANY_ZONE, ARCHERY_TARGET, ARMOR_STAND, AXLE_HORIZONTAL, AXLE_VERTICAL, BARS_FLOOR, BARS_VERTICAL, BED, BOX, BRIDGE, CABINET, CAGE, CHAIN, CHAIR, COFFIN, DOOR, FARM_PLOT, FLOODGATE, FURNACE_ANY, FURNACE_CUSTOM, FURNACE_GLASS_ANY, FURNACE_KILN_ANY, FURNACE_SMELTER_ANY, FURNACE_SMELTER_MAGMA, FURNACE_WOOD, GEAR_ASSEMBLY, GRATE_FLOOR, GRATE_WALL, HATCH, HIVE, NEST, NEST_BOX, ROLLERS, SCREW_PUMP, SHOP, SLAB, STATUE, STOCKPILE, SUPPORT, TABLE, TRACTION_BENCH, TRADE_DEPOT, TRAP, WAGON, WATER_WHEEL, WEAPON_RACK, WEAPON_UPRIGHT WELL, WINDMILL, WINDOW_ANY, WORKSHOP_ANY, WORKSHOP_ASHERY, WORKSHOP_BOWYER, WORKSHOP_BUTCHER, WORKSHOP_CARPENTER, WORKSHOP_CLOTHIER, WORKSHOP_CRAFTSDWARF, WORKSHOP_CUSTOM, WORKSHOP_DYER, WORKSHOP_FARMER, WORKSHOP_FISHERY, WORKSHOP_FORGE_ANY, WORKSHOP_JEWELER, WORKSHOP_KENNEL, WORKSHOP_KITCHEN, WORKSHOP_LEATHER, WORKSHOP_LOOM, WORKSHOP_MAGMA_FORGE, WORKSHOP_MASON, WORKSHOP_MECHANIC, WORKSHOP_MILL_ANY, WORKSHOP_MILLSTONE, WORKSHOP_QUERN, WORKSHOP_SIEGE, WORKSHOP_STILL, WORKSHOP_TANNER, WORKSHOP_TOOL
+> AMMO, AMULET, ANIMALTRAP, ANVIL, ARMOR, ARMORSTAND, BACKPACK, BALLISTAARROWHEAD, BALLISTAPARTS, BAR, BARREL, BED, BIN, BLOCKS, BOOK BOULDER, BOX, BRACELET, BUCKET, CABINET, CAGE, CATAPULTPARTS, CHAIN, CHAIR, CHEESE, CLOTH, COFFIN, COIN, CORPSE, CORPSEPIECE, CROWN, CRUTCH, DOOR, DRINK, EARRING, EGG, FIGURINE, FISH, FISH_RAW, FLASK, FLOODGATE, FOOD, GEM, GLOB, GLOVES, GOBLET, GRATE, HATCH_COVER, HELM, INSTRUMENT, LIQUID_MISC, MEAT, MILLSTONE, ORTHOPEDIC_CAST, PANTS, PET, PIPE_SECTION, PLANT, PLANT_GROWTH, POWDER_MISC, QUERN, QUIVER, REMAINS, RING, ROCK, ROUGH, SCEPTER, SEEDS, SHIELD, SHOES, SIEGEAMMO, SKIN_TANNED, SLAB, SMALLGEM, SPLINT, STATUE, TABLE, THREAD, TOOL, TOTEM, TOY, TRACTION_BENCH, TRAPCOMP, TRAPPARTS, VERMIN, WEAPON, WEAPONRACK, WINDOW, WOOD
 
 ### Building Types
 This list comes from `df/building_type.h` include file in DFHack source code.
@@ -161,7 +130,7 @@ This list comes from `df/tiletype.h` include file in DFHack source code.
 
 > BrookE, BrookN, BrookNE, BrookNW, BrookS, BrookSE, BrookSW, BrookTop, BrookW, 
 
-> *0.40:* BurningTreeBranches, BurningTreeCapFloor, BurningTreeCapRamp, BurningTreeCapWall, BurningTreeTrunk, BurningTreeTwigs, 
+> BurningTreeBranches, BurningTreeCapFloor, BurningTreeCapRamp, BurningTreeCapWall, BurningTreeTrunk, BurningTreeTwigs, 
 
 > Campfire, Chasm, 
 
@@ -197,10 +166,8 @@ This list comes from `df/tiletype.h` include file in DFHack source code.
 
 > StoneBoulder, StoneFloor1, StoneFloor2, StoneFloor3, StoneFloor4, StoneFloorSmooth, StoneFloorTrackE, StoneFloorTrackEW, StoneFloorTrackN, StoneFloorTrackNE, StoneFloorTrackNEW, StoneFloorTrackNS, StoneFloorTrackNSE, StoneFloorTrackNSEW, StoneFloorTrackNSW, StoneFloorTrackNW, StoneFloorTrackS, StoneFloorTrackSE, StoneFloorTrackSEW, StoneFloorTrackSW, StoneFloorTrackW, StoneFortification, StonePebbles1, StonePebbles2, StonePebbles3, StonePebbles4, StonePillar, StoneRamp, StoneRampTrackE, StoneRampTrackEW, StoneRampTrackN, StoneRampTrackNE, StoneRampTrackNEW, StoneRampTrackNS, StoneRampTrackNSE, StoneRampTrackNSEW, StoneRampTrackNSW, StoneRampTrackNW, StoneRampTrackS, StoneRampTrackSE, StoneRampTrackSEW, StoneRampTrackSW, StoneRampTrackW, StoneStairD, StoneStairU, StoneStairUD, StoneWall, StoneWallSmoothL2D, StoneWallSmoothL2U, StoneWallSmoothLD, StoneWallSmoothLD2, StoneWallSmoothLR, StoneWallSmoothLRD, StoneWallSmoothLRU, StoneWallSmoothLRUD, StoneWallSmoothLU, StoneWallSmoothLU2, StoneWallSmoothLUD, StoneWallSmoothR2D, StoneWallSmoothR2U, StoneWallSmoothRD, StoneWallSmoothRD2, StoneWallSmoothRU, StoneWallSmoothRU2, StoneWallSmoothRUD, StoneWallSmoothUD, StoneWallWorn1, StoneWallWorn2, StoneWallWorn3, 
 
-> *0.34:* Tree, TreeDead,
+> TreeBranches, TreeBranchesSmooth, TreeBranchEW, TreeBranchNE, TreeBranchNEW, TreeBranchNS, TreeBranchNSE, TreeBranchNSEW, TreeBranchNSW, TreeBranchNW, TreeBranchSE, TreeBranchSEW, TreeBranchSW, TreeCapFloor1, TreeCapFloor2, TreeCapFloor3, TreeCapFloor4, TreeCapPillar, TreeCapRamp, TreeCapWallE, TreeCapWallN, TreeCapWallNE, TreeCapWallNW, TreeCapWallS, TreeCapWallSE, TreeCapWallSW, TreeCapWallW, TreeDeadBranches, TreeDeadBranchesSmooth, TreeDeadBranchEW, TreeDeadBranchNE, TreeDeadBranchNEW, TreeDeadBranchNS, TreeDeadBranchNSE, TreeDeadBranchNSEW, TreeDeadBranchNSW, TreeDeadBranchNW, TreeDeadBranchSE, TreeDeadBranchSEW, TreeDeadBranchSW, TreeDeadCapFloor1, TreeDeadCapFloor2, TreeDeadCapFloor3, TreeDeadCapFloor4, TreeDeadCapPillar, TreeDeadCapRamp, TreeDeadCapWallE, TreeDeadCapWallN, TreeDeadCapWallNE, TreeDeadCapWallNW, TreeDeadCapWallS, TreeDeadCapWallSE, TreeDeadCapWallSW, TreeDeadCapWallW, TreeDeadRoots, TreeDeadRootSloping, TreeDeadTrunkBranchE, TreeDeadTrunkBranchN, TreeDeadTrunkBranchS, TreeDeadTrunkBranchW, TreeDeadTrunkE, TreeDeadTrunkEW, TreeDeadTrunkInterior, TreeDeadTrunkN, TreeDeadTrunkNE, TreeDeadTrunkNEW, TreeDeadTrunkNS, TreeDeadTrunkNSE, TreeDeadTrunkNSEW, TreeDeadTrunkNSW, TreeDeadTrunkNW, TreeDeadTrunkPillar, TreeDeadTrunkS, TreeDeadTrunkSE, TreeDeadTrunkSEW, TreeDeadTrunkSloping, TreeDeadTrunkSW, TreeDeadTrunkW, TreeDeadTwigs, TreeRoots, TreeRootSloping, TreeTrunkBranchE, TreeTrunkBranchN, TreeTrunkBranchS, TreeTrunkBranchW, TreeTrunkE, TreeTrunkEW, TreeTrunkInterior, TreeTrunkN, TreeTrunkNE, TreeTrunkNEW, TreeTrunkNS, TreeTrunkNSE, TreeTrunkNSEW, TreeTrunkNSW, TreeTrunkNW, TreeTrunkPillar, TreeTrunkS, TreeTrunkSE, TreeTrunkSEW, TreeTrunkSloping, TreeTrunkSW, TreeTrunkW, TreeTwigs, 
 
-> *0.40:* TreeBranches, TreeBranchesSmooth, TreeBranchEW, TreeBranchNE, TreeBranchNEW, TreeBranchNS, TreeBranchNSE, TreeBranchNSEW, TreeBranchNSW, TreeBranchNW, TreeBranchSE, TreeBranchSEW, TreeBranchSW, TreeCapFloor1, TreeCapFloor2, TreeCapFloor3, TreeCapFloor4, TreeCapPillar, TreeCapRamp, TreeCapWallE, TreeCapWallN, TreeCapWallNE, TreeCapWallNW, TreeCapWallS, TreeCapWallSE, TreeCapWallSW, TreeCapWallW, TreeDeadBranches, TreeDeadBranchesSmooth, TreeDeadBranchEW, TreeDeadBranchNE, TreeDeadBranchNEW, TreeDeadBranchNS, TreeDeadBranchNSE, TreeDeadBranchNSEW, TreeDeadBranchNSW, TreeDeadBranchNW, TreeDeadBranchSE, TreeDeadBranchSEW, TreeDeadBranchSW, TreeDeadCapFloor1, TreeDeadCapFloor2, TreeDeadCapFloor3, TreeDeadCapFloor4, TreeDeadCapPillar, TreeDeadCapRamp, TreeDeadCapWallE, TreeDeadCapWallN, TreeDeadCapWallNE, TreeDeadCapWallNW, TreeDeadCapWallS, TreeDeadCapWallSE, TreeDeadCapWallSW, TreeDeadCapWallW, TreeDeadRoots, TreeDeadRootSloping, TreeDeadTrunkBranchE, TreeDeadTrunkBranchN, TreeDeadTrunkBranchS, TreeDeadTrunkBranchW, TreeDeadTrunkE, TreeDeadTrunkEW, TreeDeadTrunkInterior, TreeDeadTrunkN, TreeDeadTrunkNE, TreeDeadTrunkNEW, TreeDeadTrunkNS, TreeDeadTrunkNSE, TreeDeadTrunkNSEW, TreeDeadTrunkNSW, TreeDeadTrunkNW, TreeDeadTrunkPillar, TreeDeadTrunkS, TreeDeadTrunkSE, TreeDeadTrunkSEW, TreeDeadTrunkSloping, TreeDeadTrunkSW, TreeDeadTrunkW, TreeDeadTwigs, TreeRoots, TreeRootSloping, TreeTrunkBranchE, TreeTrunkBranchN, TreeTrunkBranchS, TreeTrunkBranchW, TreeTrunkE, TreeTrunkEW, TreeTrunkInterior, TreeTrunkN, TreeTrunkNE, TreeTrunkNEW, TreeTrunkNS, TreeTrunkNSE, TreeTrunkNSEW, TreeTrunkNSW, TreeTrunkNW, TreeTrunkPillar, TreeTrunkS, TreeTrunkSE, TreeTrunkSEW, TreeTrunkSloping, TreeTrunkSW, TreeTrunkW, TreeTwigs, 
-
-> *0.40:* UnderworldGateStairD, UnderworldGateStairU, UnderworldGateStairUD, 
+> UnderworldGateStairD, UnderworldGateStairU, UnderworldGateStairUD, 
 
 > Void, Waterfall

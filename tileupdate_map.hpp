@@ -75,6 +75,20 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
     struct texture_fullid ret;
     const int tile = x * r->gdimy + y;        
     screen_to_texid_map(r, tile, ret);
+
+    const unsigned char *s = gscreen + tile*4;
+    int s0 = s[0];
+    if (s[0] == 0xff || s[0] == 0xfe)
+    {
+            int xx = gwindow_x + x;
+            int yy = gwindow_y + y;
+        long texpos = gscreen_over[xx*256+yy];
+            //*out2 << "= " << (int)xx << " "  << (int)yy << " "  << texpos << std::endl;
+        if (texpos)
+        {
+            ret.texpos = texpos;
+        }
+    }
     
     if (has_overrides)
     {
@@ -100,69 +114,6 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                     int zz = gwindow_z - ((s[3]&0xf0)>>4);
 
                     tile_overrides *to = overrides[s0];
-
-                    // Items
-                    for (auto it = to->item_overrides.begin(); it != to->item_overrides.end(); it++)
-                    {
-                        override_group &og = *it;
-
-                        auto ilist = world->items.other[og.other_id];
-                        for (auto it2 = ilist.begin(); it2 != ilist.end(); it2++)
-                        {
-                            df::item *item = *it2;
-                            if (!(zz == item->pos.z && xx == item->pos.x && yy == item->pos.y))
-                                continue;
-                            if (item->flags.whole & bad_item_flags.whole)
-                                continue;
-
-                            for (auto it3 = og.overrides.begin(); it3 != og.overrides.end(); it3++)
-                            {
-                                override &o = *it3;
-
-                                if (o.type != -1 && item->getType() != o.type)
-                                    continue;
-                                if (o.subtype != -1 && item->getSubtype() != o.subtype)
-                                    continue;
-
-                                apply_override(ret, o);
-                                goto matched;
-                            }
-                        }
-                    }
-
-                    // Buildings
-                    for (auto it = to->building_overrides.begin(); it != to->building_overrides.end(); it++)
-                    {
-                        override_group &og = *it;
-
-                        auto ilist = world->buildings.other[og.other_id];
-                        for (auto it2 = ilist.begin(); it2 != ilist.end(); it2++)
-                        {
-                            df::building *bld = *it2;
-                            if (zz != bld->z || xx < bld->x1 || xx > bld->x2 || yy < bld->y1 || yy > bld->y2)
-                                continue;
-
-                            for (auto it3 = og.overrides.begin(); it3 != og.overrides.end(); it3++)
-                            {
-                                override &o = *it3;
-
-                                if (o.type != -1 && bld->getType() != o.type)
-                                    continue;
-                                
-                                if (o.subtype != -1)
-                                {
-                                    int subtype = (og.other_id == buildings_other_id::WORKSHOP_CUSTOM || og.other_id == buildings_other_id::FURNACE_CUSTOM) ?
-                                        bld->getCustomType() : bld->getSubtype();
-
-                                    if (subtype != o.subtype)
-                                        continue;
-                                }
-
-                                apply_override(ret, o);
-                                goto matched;
-                            }
-                        }
-                    }
 
                     // Tile types
                     df::map_block *block = world->map.block_index[xx>>4][yy>>4][zz];

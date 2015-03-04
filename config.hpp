@@ -146,7 +146,6 @@ static bool load_text_font()
 }
 
 // Either of
-// tile:B|I:id:type:subtype:tileset:newtile:fg:bg
 // tile:T:type:tileset:newtile:fg:bg
 // tile:tileset:newtile - disabled for now
 static bool handle_override_command(vector<string> &tokens, std::map<string, int> &tilesetnames)
@@ -167,39 +166,8 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     int id;
     int basetoken;
 
-    // Building or Item
-    if (tokens.size() >= 7 && (kind == 'B' || kind == 'I'))
-    {
-        if (kind == 'B')
-        {
-            if (!parse_enum_or_int<buildings_other_id::buildings_other_id>(tokens[2], id, buildings_other_id::IN_PLAY))
-                return false;
-            if (!parse_enum_or_int<building_type::building_type>(tokens[3], o.type))
-                return false;
-
-            if (id == buildings_other_id::WORKSHOP_CUSTOM || id == buildings_other_id::FURNACE_CUSTOM)
-                o.subtypename = tokens[4];
-        }
-        else if (kind == 'I')
-        {
-            if (!parse_enum_or_int<items_other_id::items_other_id>(tokens[2], id, items_other_id::IN_PLAY))
-                return false;
-            if (!parse_enum_or_int<item_type::item_type>(tokens[3], o.type))
-                return false;
-        }
-        else
-            return false;
-
-        if (tokens[4].length() > 0)
-            o.subtype = atoi(tokens[4].c_str());
-        else
-            o.subtype = -1;
-
-        basetoken = 5;        
-    }
-
     // Tiletype
-    else if (tokens.size() >= 5 && kind == 'T')
+    if (tokens.size() >= 5 && kind == 'T')
     {
         std::string &typestr = tokens[2];
         int ln = typestr.length();
@@ -308,24 +276,6 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
         overrides[tile]->tiletype_overrides.push_back(o);
         return true;
     }
-
-    auto &groups = (kind == 'I') ? overrides[tile]->item_overrides : overrides[tile]->building_overrides;
-
-    for (auto it = groups.begin(); it != groups.end(); it++)
-    {
-        override_group &grp = *it;
-
-        if (grp.other_id == id)
-        {
-            grp.overrides.push_back(o);
-            return true;
-        }
-    }
-
-    override_group grp;
-    grp.other_id = id;
-    grp.overrides.push_back(o);
-    groups.push_back(grp);
 
     return true;
 }
@@ -555,7 +505,7 @@ int get_mode()
 
 void update_custom_building_overrides()
 {
-    for (int j = 0; j < 256; j++)
+    /*for (int j = 0; j < 256; j++)
     {
         if (!overrides[j])
             continue;
@@ -596,5 +546,5 @@ void update_custom_building_overrides()
                 }
             }
         }
-    }
+    }*/
 }

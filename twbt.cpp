@@ -83,6 +83,7 @@
 #include "df/viewscreen_tradegoodsst.h"
 #include "df/ui_sidebar_mode.h"
 #include "df/ui_advmode.h"
+#include "df/building_drawbuffer.h"
 
 #include "renderer_twbt.h"
 
@@ -118,15 +119,7 @@ struct override {
     std::string subtypename;
 };
 
-struct override_group {
-    int other_id;
-
-    vector< struct override > overrides;
-};
-
 struct tile_overrides {
-    vector< struct override_group > item_overrides;
-    vector< struct override_group > building_overrides;
     vector< struct override > tiletype_overrides;
 };
 
@@ -194,6 +187,8 @@ static int8_t *mscreentexpos_addcolor;
 static uint8_t *mscreentexpos_grayscale;
 static uint8_t *mscreentexpos_cf;
 static uint8_t *mscreentexpos_cbr;
+
+static long gscreen_over[256*256];
 
 #include "patches.hpp"
 
@@ -378,9 +373,9 @@ static bool advmode_needs_map(int m)
 #include "renderer.hpp"
 #include "dwarfmode.hpp"
 #include "dungeonmode.hpp"
-#include "tradefix.hpp"
 #include "legacy/renderer_legacy.hpp"
 #include "legacy/twbt_legacy.hpp"
 #include "config.hpp"
 #include "commands.hpp"
+#include "buildings.hpp"
 #include "plugin.hpp"
