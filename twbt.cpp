@@ -89,6 +89,7 @@
 
 extern "C" {
     DFSDL_Surface *IMG_Load(const char *file);
+    void SDL_FreeSurface(void*);
 }
 
 using df::global::world;

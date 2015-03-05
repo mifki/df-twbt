@@ -148,8 +148,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         INTERPOSE_HOOK(dwarfmode_hook_legacy, render).apply(true);
     }
 
-    INTERPOSE_HOOK(building_doorst_twbt, drawBuilding).apply(true); 
-    INTERPOSE_HOOK(building_workshopst_twbt, drawBuilding).apply(true); 
+    apply_building_hooks();
 
     return CR_OK;
 }
