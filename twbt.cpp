@@ -353,10 +353,10 @@ static bool advmode_needs_map(int m)
     return (m == df::ui_advmode_menu::Default ||
             m == df::ui_advmode_menu::Look ||
             m == df::ui_advmode_menu::ThrowAim ||
-            m == df::ui_advmode_menu::Talk ||
+            m == df::ui_advmode_menu::ConversationAddress ||
             m == 14 ||
             m == df::ui_advmode_menu::Fire ||
-            m == df::ui_advmode_menu::Unk35 ||  // (j)
+            m == df::ui_advmode_menu::Jump ||   // (j)
             m == df::ui_advmode_menu::Unk30 ||
             m == 21 ||                          // (S)
             m == 3  || m == 4 ||                // (k)
