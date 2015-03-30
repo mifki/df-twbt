@@ -60,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="$(dfhack)\build\VC2010\library\Release\SDL.lib" />
+    <Library Include="$(dfhack)\build\VC2010\library\Release\dfhack-version.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

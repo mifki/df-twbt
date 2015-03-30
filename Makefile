@@ -22,7 +22,7 @@ endif
 OUT = dist/$(DFHACKVER)/twbt.plug.$(EXT)
 
 INC = -I"$(DH)/library/include" -I"$(DH)/library/proto" -I"$(DH)/depends/protobuf" -I"$(DH)/depends/lua/include"
-LIB = -L"$(DH)/build/library" -ldfhack
+LIB = -L"$(DH)/build/library" -ldfhack -ldfhack-version
 
 CXX ?= c++
 CFLAGS = $(INC) -m32 -DLINUX_BUILD -O3
