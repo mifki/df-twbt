@@ -65,7 +65,6 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         bool tmode = advmode_needs_map(m);
         if (tmode != tmode_old)
         {
-            *out2 << "am:" << m << std::endl;
         	tmode_old = tmode;
         	gps->force_full_display_count = 1;
         }
