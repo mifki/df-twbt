@@ -1,8 +1,8 @@
-DFHACKVER ?= 0.40.16-r1
+DFHACKVER ?= 0.40.24-r3
 
 DFVERNUM = `echo $(DFHACKVER) | sed -e s/-r.*// -e s/\\\\.//g`
 
-DF ?= /Users/vit/Downloads/df_40_16_osx
+DF ?= /Users/vit/Downloads/df_40_24_osx
 DH ?= /Users/vit/Downloads/dfhack-master
 
 SRC = $(PLUGIN).cpp
@@ -20,7 +20,7 @@ endif
 OUT = ../dist/$(DFHACKVER)/$(PLUGIN).plug.$(EXT)
 
 INC = -I"$(DH)/library/include" -I"$(DH)/library/proto" -I"$(DH)/depends/protobuf" -I"$(DH)/depends/lua/include" -I"$(DH)/plugins" -I..
-LIB = -L"$(DH)/build/library" -ldfhack
+LIB = -L"$(DH)/build/library" -ldfhack -ldfhack-version
 
 CXX ?= c++
 CFLAGS = $(INC) -m32 -DLINUX_BUILD -O3
