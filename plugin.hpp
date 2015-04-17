@@ -21,12 +21,10 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         mode = -1;
 #else        
     #ifdef NO_RENDERING_PATCH
-        *out2 << COLOR_YELLOW << "TWBT: no rendering patch" << std::endl;
-        *out2 << COLOR_RESET;
+        *out2 << "TWBT: no rendering patch (not an error)" << std::endl;
     #endif
     #ifdef NO_DISPLAY_PATCH
-        *out2 << COLOR_YELLOW << "TWBT: no display patch" << std::endl;
-        *out2 << COLOR_RESET;
+        *out2 << "TWBT: no display patch (not an error)" << std::endl;
     #endif
 #endif
     }
