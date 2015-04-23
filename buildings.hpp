@@ -239,7 +239,7 @@ OVR_SIMPLEST(hatch)
 OVR_SIMPLEST(hive)
 
 #include <df/building_nest_boxst.h>
-OVR_SIMPLEST(nest_box)
+OVR_SIMPLEST(nestbox)
 
 
 #include <df/building_slabst.h>

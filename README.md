@@ -45,7 +45,41 @@ These commands adjust the size of map tiles or set the exact size.
 **`twbt tilesize reset`**  
 This command resets map tile size back to normal.
 
-## Overrides ##
+## Building Overrides ##
+
+Place `<override>.png` files in `data/art/tiles` folder. Possible file names listed below.
+
+&nbsp;|&nbsp;
+---|---
+Archery Target|archerytarget
+Armor Stand|armorstand
+Floor Bars|bars_floor
+Vertical Bars|bars_vertical
+Bed|bed<br>bed-dorm
+Box|box
+Cabinet|cabinet
+Cage|cage
+Chain|chain
+Chair|chair
+Door|door<br>door-locked
+Floodgate|floodgate
+Floor Grate|grate_floor
+Wall Grate|grate_wall
+Hatch|hatch
+Hive|hive
+Next Box|nestbox<br>nestbox-claimed
+Slab|slab
+Statue|statue
+Support|support
+Table|table
+Traction Bench|tractionbench
+Weapon Rack|weaponrack
+Well|well
+Gem Window|window_gem
+Glass Window|window_glass
+
+
+## Tile Overrides ##
 
 Commands described below are to be placed in `data/init/overrides.txt` file and allow to change tile images used for specific buildings, items and tile types.
 
