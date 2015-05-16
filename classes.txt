@@ -64,7 +64,7 @@ item_barst
 item_bedst	
 item_binst	
 item_blocksst	
-item_body_componentst	
+item_body_component	
 item_bookst	
 item_boulderst	
 item_boxst	

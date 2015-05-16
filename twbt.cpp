@@ -382,5 +382,7 @@ static bool advmode_needs_map(int m)
 #include "legacy/twbt_legacy.hpp"
 #include "config.hpp"
 #include "commands.hpp"
+#include "macros.hpp"
+#include "items.hpp"
 #include "buildings.hpp"
 #include "plugin.hpp"
