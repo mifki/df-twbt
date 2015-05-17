@@ -1,10 +1,49 @@
+static void resolve_color(int fg, int bg, int bold, struct texture_fullid &ret)
+{
+    if (fg >= 100)
+    {
+        fg = (fg-100) % df::global::world->raws.language.colors.size();
+        df::descriptor_color *fgdc = df::global::world->raws.language.colors[fg];
+
+        ret.r = fgdc->red;
+        ret.g = fgdc->green;
+        ret.b = fgdc->blue;
+    }
+    else
+    {
+        fg = (fg + bold * 8) % 16;
+
+        ret.r = enabler->ccolor[fg][0];
+        ret.g = enabler->ccolor[fg][1];
+        ret.b = enabler->ccolor[fg][2];
+    }
+
+    if (bg >= 100)
+    {
+        bg = (bg-100) % df::global::world->raws.language.colors.size();
+        df::descriptor_color *bgdc = df::global::world->raws.language.colors[bg];
+
+        ret.br = bgdc->red;
+        ret.bg = bgdc->green;
+        ret.bb = bgdc->blue;
+    }
+    else
+    {
+        bg = bg % 16;
+
+        ret.br = enabler->ccolor[bg][0];
+        ret.bg = enabler->ccolor[bg][1];
+        ret.bb = enabler->ccolor[bg][2];
+    }    
+}
+
 static void screen_to_texid_map(renderer_cool *r, int tile, struct texture_fullid &ret)
 {
     const unsigned char *s = gscreen + tile*4;
 
-    int bold = (s[3] & 0x0f) * 8;
-    int fg   = (s[1] + bold) % 16;
-    int bg   = s[2] % 16;
+    int fg   = s[1];
+    int bg   = s[2];
+    int bold = s[3] & 0x0f;
 
     const long texpos = gscreentexpos[tile];
 
@@ -12,13 +51,7 @@ static void screen_to_texid_map(renderer_cool *r, int tile, struct texture_fulli
     {
         ret.texpos = map_texpos[s[0]];
 
-        ret.r = enabler->ccolor[fg][0];
-        ret.g = enabler->ccolor[fg][1];
-        ret.b = enabler->ccolor[fg][2];
-        ret.br = enabler->ccolor[bg][0];
-        ret.bg = enabler->ccolor[bg][1];
-        ret.bb = enabler->ccolor[bg][2];
-
+        resolve_color(fg, bg, bold, ret);
         return;
     }        
 
@@ -29,22 +62,10 @@ static void screen_to_texid_map(renderer_cool *r, int tile, struct texture_fulli
         const unsigned char cf = gscreentexpos_cf[tile];
         const unsigned char cbr = gscreentexpos_cbr[tile];
 
-        ret.r = enabler->ccolor[cf][0];
-        ret.g = enabler->ccolor[cf][1];
-        ret.b = enabler->ccolor[cf][2];
-        ret.br = enabler->ccolor[cbr][0];
-        ret.bg = enabler->ccolor[cbr][1];
-        ret.bb = enabler->ccolor[cbr][2];
+        resolve_color(cf, cbr, 0, ret);
     }
     else if (gscreentexpos_addcolor[tile])
-    {
-        ret.r = enabler->ccolor[fg][0];
-        ret.g = enabler->ccolor[fg][1];
-        ret.b = enabler->ccolor[fg][2];
-        ret.br = enabler->ccolor[bg][0];
-        ret.bg = enabler->ccolor[bg][1];
-        ret.bb = enabler->ccolor[bg][2];
-    }
+        resolve_color(fg, bg, bold, ret);
     else
     {
         ret.r = ret.g = ret.b = 1;
