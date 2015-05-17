@@ -60,6 +60,7 @@
 #include "df/renderer.h"
 #include "df/interfacest.h"
 #include "df/world_raws.h"
+#include "df/descriptor_color.h"
 #include "df/building.h"
 #include "df/building_workshopst.h"
 #include "df/building_def_workshopst.h"
