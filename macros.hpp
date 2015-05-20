@@ -3,6 +3,24 @@ static bool id##_loaded; \
 static int id##_frames; \
 static long *id##_tiles;
 
+#define VARS2(cls,id) \
+bool cls##_twbt::id##_loaded; \
+int cls##_twbt::id##_frames; \
+long *cls##_twbt::id##_tiles;
+
+#define DEFINE_VARS_DYN() \
+static bool *loaded; \
+static int *frames; \
+static long **tiles; \
+static bool *tried;
+
+#define VARS_DYN2(cls) \
+bool *cls##_twbt::loaded; \
+int *cls##_twbt::frames; \
+long **cls##_twbt::tiles; \
+bool *cls##_twbt::tried;
+
+
 #define LOAD_BEGIN \
 static bool loaded = false; \
 if (!loaded) \
@@ -21,6 +39,10 @@ if (!loaded) \
 #define LOAD_IMAGE(id,fn) \
     id##_loaded = load_tiles("data/art/tiles/" fn ".png", &id##_tiles, &id##_frames, bldw, bldh); \
     ok |= id##_loaded;
+
+#define LOAD_IMAGE_DYN(id,fn) \
+    id##_loaded = load_tiles("data/art/tiles/" fn ".png", &id##_tiles, &id##_frames, bldw, bldh); \
+    id_tried = true;
 
 #define IS_LOADED(id) id##_loaded
 
