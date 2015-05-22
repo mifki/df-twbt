@@ -47,44 +47,6 @@
 
 #define ITEM_HOOK(cls) INTERPOSE_HOOK(cls##_twbt, drawSelf).apply(true); 
 
-#define ITEM_OVR_BEGIN(cls,code) \
-struct cls##_twbt : public df::cls \
-{ \
-    typedef df::cls interpose_base; \
-\
-    void unhook() { \
-        INTERPOSE_HOOK(cls##_twbt, drawSelf).apply(false); \
-    } \
-    DEFINE_VMETHOD_INTERPOSE(uint8_t, drawSelf, ()) \
-    { \
-        DEFINE_TICK \
-        code \
-    } \
-}; \
-IMPLEMENT_VMETHOD_INTERPOSE(cls##_twbt, drawSelf);
-
-#define ITEM_OVR_END(cls) \
-    } \
-}; \
-IMPLEMENT_VMETHOD_INTERPOSE(cls##_twbt, drawSelf);
-
-#define ITEM_OVR_SIMPLE(cls, fn) \
-ITEM_OVR_BEGIN(cls, \
-{ \
-    DEFINE_SIZE(1,1) \
-    DEFINE_VARS(normal) \
-\
-    LOAD_BEGIN \
-    LOAD_IMAGE(normal, fn) \
-    ITEM_LOAD_END \
-\
-    ITEM_DRAW_IMAGE(normal) \
-    return 0xfe + (TICK%2); \
-})
-
-#define ITEM_OVR_SIMPLEST(name) \
-    ITEM_OVR_SIMPLE(item_##name##st, #name)
-
 template <typename T, typename Q>
 struct ovr_custom 
 {
@@ -114,7 +76,9 @@ struct ovr_custom
         }
         if (loaded[subtype])
         {
-            gscreen_over[((((T*)this)->pos.x+0)*256 + ((T*)this)->pos.y + 0)] = tiles[subtype][((TICK % frames[subtype]) + 0*frames[subtype]) * bldw + 0];
+            for (int i = 0; i < 1; i++)
+                for (int j = 0; j < 1; j++)
+                    gscreen_over[((((T*)this)->pos.x+i)*256 + ((T*)this)->pos.y + j)] = tiles[subtype][((TICK % frames[subtype]) + j*frames[subtype]) * bldw + i];
             return true;
         }
 
@@ -148,7 +112,7 @@ struct ovr_simple
 };
 
 #define ITEM_OVR_BEGIN2(cls, itemdefcls) \
-struct cls##_twbt : df::cls, ovr_custom<df::cls, df::itemdefcls>, ovr_simple<df::cls> \
+struct cls##_twbt : public df::cls, ovr_custom<df::cls, df::itemdefcls>, ovr_simple<df::cls> \
 { \
     typedef df::cls interpose_base; \
 \
@@ -168,16 +132,6 @@ IMPLEMENT_VMETHOD_INTERPOSE(cls##_twbt, drawSelf);
     } \
 
 
-#define CUSTOM_INIT() \
-    if (!loaded) \
-    { \
-        int count = df::global::world->raws.itemdefs.armor.size(); \
-        loaded = new bool[count]; bzero(loaded, count*sizeof(bool)); \
-        tried = new bool[count]; bzero(tried, count*sizeof(bool)); \
-        frames = new int[count]; bzero(frames, count*sizeof(int)); \
-        tiles = new long*[count]; bzero(tiles, count*sizeof(long*)); \
-    }
-
 #define ITEM_OVR_SUBTYPES_SIMPLEST(cls) \
 ITEM_OVR_BEGIN2(item_##cls##st, itemdef_##cls##st) \
 ITEM_OVR_BODY2( \
@@ -191,38 +145,40 @@ ITEM_OVR_END2(item_##cls##st)
 
 
 #define ITEM_OVR_SIMPLEST2(cls) \
-struct item_##cls##st##_twbt : df::item_##cls##st, ovr_simple<df::item_##cls##st> \
+struct item_##cls##st##_twbt : public df::item_##cls##st, ovr_simple<df::item_##cls##st> \
 { \
     typedef df::item_##cls##st interpose_base; \
 \
     void unhook() { \
         INTERPOSE_HOOK(item_##cls##st##_twbt, drawSelf).apply(false); \
     } \
-ITEM_OVR_BODY2( \
-{ \
-    if (handle_simple(#cls)) \
-        return 0xfe + (TICK%2); \
-\
-    uint8_t t = INTERPOSE_NEXT(drawSelf)(); \
-    unhook(); \
-    return t; \
-}) \
+    ITEM_OVR_BODY2( \
+    { \
+        if (handle_simple(#cls)) \
+            return 0xfe + (TICK%2); \
+    \
+        uint8_t t = INTERPOSE_NEXT(drawSelf)(); \
+        unhook(); \
+        return t; \
+    }) \
 ITEM_OVR_END2(item_##cls##st)
 
 
+
+
+
 #include <df/item_ammost.h>
-ITEM_OVR_SIMPLEST2(ammo)
+#include <df/itemdef_ammost.h>
+ITEM_OVR_SUBTYPES_SIMPLEST(ammo)
 #include <df/item_amuletst.h>
 ITEM_OVR_SIMPLEST2(amulet)
 #include <df/item_animaltrapst.h>
 ITEM_OVR_SIMPLEST2(animaltrap)
 #include <df/item_anvilst.h>
 ITEM_OVR_SIMPLEST2(anvil)
-
 #include <df/item_armorst.h>
 #include <df/itemdef_armorst.h>
 ITEM_OVR_SUBTYPES_SIMPLEST(armor)
-
 #include <df/item_armorstandst.h>
 ITEM_OVR_SIMPLEST2(armorstand)
 #include <df/item_backpackst.h>
@@ -298,13 +254,15 @@ ITEM_OVR_SIMPLEST2(flask)
 #include <df/item_floodgatest.h>
 ITEM_OVR_SIMPLEST2(floodgate)
 #include <df/item_foodst.h>
-ITEM_OVR_SIMPLEST2(food)
+#include <df/itemdef_foodst.h>
+ITEM_OVR_SUBTYPES_SIMPLEST(food)
 #include <df/item_gemst.h>
 ITEM_OVR_SIMPLEST2(gem)
 #include <df/item_globst.h>
 ITEM_OVR_SIMPLEST2(glob)
 #include <df/item_glovesst.h>
-ITEM_OVR_SIMPLEST2(gloves)
+#include <df/itemdef_glovesst.h>
+ITEM_OVR_SUBTYPES_SIMPLEST(gloves)
 #include <df/item_gobletst.h>
 ITEM_OVR_SIMPLEST2(goblet)
 #include <df/item_gratest.h>
@@ -326,7 +284,8 @@ ITEM_OVR_SIMPLEST2(millstone)
 #include <df/item_orthopedic_castst.h>
 ITEM_OVR_SIMPLEST2(orthopedic_cast)
 #include <df/item_pantsst.h>
-ITEM_OVR_SIMPLEST2(pants)
+#include <df/itemdef_pantsst.h>
+ITEM_OVR_SUBTYPES_SIMPLEST(pants)
 #include <df/item_petst.h>
 ITEM_OVR_SIMPLEST2(pet)
 #include <df/item_pipe_sectionst.h>
@@ -360,7 +319,8 @@ ITEM_OVR_SUBTYPES_SIMPLEST(shield)
 #include <df/itemdef_shoesst.h>
 ITEM_OVR_SUBTYPES_SIMPLEST(shoes)
 #include <df/item_siegeammost.h>
-ITEM_OVR_SIMPLEST2(siegeammo)
+#include <df/itemdef_siegeammost.h>
+ITEM_OVR_SUBTYPES_SIMPLEST(siegeammo)
 #include <df/item_skin_tannedst.h>
 ITEM_OVR_SIMPLEST2(skin_tanned)
 #include <df/item_slabst.h>
@@ -376,7 +336,8 @@ ITEM_OVR_SIMPLEST2(table)
 #include <df/item_threadst.h>
 ITEM_OVR_SIMPLEST2(thread)
 #include <df/item_toolst.h>
-ITEM_OVR_SIMPLEST2(tool)
+#include <df/itemdef_toolst.h>
+ITEM_OVR_SUBTYPES_SIMPLEST(tool)
 #include <df/item_totemst.h>
 ITEM_OVR_SIMPLEST2(totem)
 #include <df/item_toyst.h>
@@ -385,7 +346,8 @@ ITEM_OVR_SUBTYPES_SIMPLEST(toy)
 #include <df/item_traction_benchst.h>
 ITEM_OVR_SIMPLEST2(traction_bench)
 #include <df/item_trapcompst.h>
-ITEM_OVR_SIMPLEST2(trapcomp)
+#include <df/itemdef_trapcompst.h>
+ITEM_OVR_SUBTYPES_SIMPLEST(trapcomp)
 #include <df/item_trappartsst.h>
 ITEM_OVR_SIMPLEST2(trapparts)
 #include <df/item_verminst.h>
