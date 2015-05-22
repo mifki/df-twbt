@@ -102,7 +102,9 @@ bool load_tiles(const char *fn, long **tiles, int *frames, int w, int h)
     load_tileset(fn, *tiles, *frames*w, h, &dx, &dy);
 
     SDL_FreeSurface(surf);    
-
+    
+    ((renderer_cool*)enabler->renderer)->needs_full_update = true; \
+    gps->force_full_display_count = 1;
     return true;
 }
 

@@ -195,59 +195,105 @@ BLD_OVR_SIMPLEST(window_glass)
 
 
 #include <df/building_workshopst.h>
+
+#define BLD_WORKSHOP_LOADIMG_SIMPLE(name) \
+    name##_loaded = load_tiles("data/art/tiles/workshops/" #name ".png", &name##_tiles, &name##_frames, bldw, bldh); \
+    ok |= name##_loaded;
+
+#define BLD_WORKSHOP_SIMPLE(type,name) \
+    case df::workshop_type::type: \
+        BLD_DRAW_IMAGE_AND_RETURN(name) \
+        break;
+
 BLD_OVR_BEGIN(building_workshopst,
 {
     DEFINE_SIZE(3,3)
     DEFINE_VARS(carpenters)
     DEFINE_VARS(masons)
     DEFINE_VARS(jewelers)
+    DEFINE_VARS(farmers)
+    DEFINE_VARS(craftsdwarf)
+    DEFINE_VARS(forge)
+    DEFINE_VARS(magmaforge)
+    DEFINE_VARS(bowyers)
+    DEFINE_VARS(mechanics)
+    DEFINE_VARS(siege)
+    DEFINE_VARS(butchers)
+    DEFINE_VARS(leatherworks)
+    DEFINE_VARS(tanners)
+    DEFINE_VARS(clothiers)
+    DEFINE_VARS(fishery)
+    DEFINE_VARS(still)
+    DEFINE_VARS(loom)
+    DEFINE_VARS(quern)
+    DEFINE_VARS(kennels)
+    DEFINE_VARS(kitchen)
+    DEFINE_VARS(ashery)
+    DEFINE_VARS(dyers)
+    DEFINE_VARS(millstone)
+    DEFINE_VARS(tool)
 
     LOAD_BEGIN
-    LOAD_IMAGE(carpenters, "workshops/carpenters")
-    LOAD_IMAGE(masons, "workshops/masons")
-    LOAD_IMAGE(jewelers, "workshops/jewelers")
+    BLD_WORKSHOP_LOADIMG_SIMPLE(carpenters)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(masons)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(jewelers)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(farmers)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(craftsdwarf)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(forge)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(magmaforge)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(bowyers)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(mechanics)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(siege)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(butchers)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(leatherworks)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(tanners)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(clothiers)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(fishery)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(still)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(loom)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(quern)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(kennels)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(kitchen)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(ashery)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(dyers)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(millstone)
+    BLD_WORKSHOP_LOADIMG_SIMPLE(tool)
     LOAD_END
 
     FILL_PLACEHOLDER_1
 
+    //TODO: can be done by deriving file name from type, but what if we will want custom states for some of them?
+    /*std::string name = df::enum_traits<df::workshop_type>::key_table[this->type];
+    std::transform(name.begin(), name.end(), name.begin(), ::tolower);*/
+
     switch (this->type)
     {
-        case df::workshop_type::Carpenters:
-            BLD_DRAW_IMAGE_AND_RETURN(carpenters)
-            break;
+        BLD_WORKSHOP_SIMPLE(Carpenters, carpenters)
+        BLD_WORKSHOP_SIMPLE(Masons, masons)
+        BLD_WORKSHOP_SIMPLE(Jewelers, jewelers)
+        BLD_WORKSHOP_SIMPLE(Farmers, farmers)
+        BLD_WORKSHOP_SIMPLE(Craftsdwarfs, craftsdwarf)
+        BLD_WORKSHOP_SIMPLE(MetalsmithsForge, forge)
+        BLD_WORKSHOP_SIMPLE(MagmaForge, magmaforge)
+        BLD_WORKSHOP_SIMPLE(Bowyers, bowyers)
+        BLD_WORKSHOP_SIMPLE(Mechanics, mechanics)
+        BLD_WORKSHOP_SIMPLE(Siege, siege)
+        BLD_WORKSHOP_SIMPLE(Butchers, butchers)
+        BLD_WORKSHOP_SIMPLE(Leatherworks, leatherworks)
+        BLD_WORKSHOP_SIMPLE(Tanners, tanners)
+        BLD_WORKSHOP_SIMPLE(Clothiers, clothiers)
+        BLD_WORKSHOP_SIMPLE(Fishery, fishery)
+        BLD_WORKSHOP_SIMPLE(Still, still)
+        BLD_WORKSHOP_SIMPLE(Loom, loom)
+        BLD_WORKSHOP_SIMPLE(Quern, quern)
+        BLD_WORKSHOP_SIMPLE(Kennels, kennels)
+        BLD_WORKSHOP_SIMPLE(Kitchen, kitchen)
+        BLD_WORKSHOP_SIMPLE(Ashery, ashery)
+        BLD_WORKSHOP_SIMPLE(Dyers, dyers)
+        BLD_WORKSHOP_SIMPLE(Millstone, millstone)
+        BLD_WORKSHOP_SIMPLE(Tool, tool)
 
-        case df::workshop_type::Masons:
-            BLD_DRAW_IMAGE_AND_RETURN(masons)
-            break;
-
-        case df::workshop_type::Jewelers:
-            BLD_DRAW_IMAGE_AND_RETURN(jewelers)
-            break;
-
-/*
-        Farmers,
-        Craftsdwarfs,
-        MetalsmithsForge,
-        MagmaForge,
-        Bowyers,
-        Mechanics,
-        Siege,
-        Butchers,
-        Leatherworks,
-        Tanners,
-        Clothiers,
-        Fishery,
-        Still,
-        Loom,
-        Quern,
-        Kennels,
-        Kitchen,
-        Ashery,
-        Dyers,
-        Millstone,
-        Custom,
-        Tool
-*/        
+        //Custom
     }
 
     BLD_DRAW_DEFAULT

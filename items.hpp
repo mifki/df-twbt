@@ -1,12 +1,14 @@
 #define ITEM_DRAW_IMAGE(id) \
+    df::coord _pos = Items::getPosition(this); \
     for (int i = 0; i < 1; i++) \
         for (int j = 0; j < 1; j++) \
-            gscreen_over[((pos.x+i)*256 + pos.y + j)] = id##_tiles[((TICK % id##_frames) + j*id##_frames) * bldw + i];
+            gscreen_over[((_pos.x+i)*256 + _pos.y + j)] = id##_tiles[((TICK % id##_frames) + j*id##_frames) * bldw + i];
 
 #define ITEM_DRAW_IMAGE2(id) \
+    df::coord _pos = Items::getPosition((T*)this); \
     for (int i = 0; i < 1; i++) \
         for (int j = 0; j < 1; j++) \
-            gscreen_over[((((T*)this)->pos.x+i)*256 + ((T*)this)->pos.y + j)] = id##_tiles[((TICK % id##_frames) + j*id##_frames) * bldw + i];
+            gscreen_over[((_pos.x+i)*256 + _pos.y + j)] = id##_tiles[((TICK % id##_frames) + j*id##_frames) * bldw + i];
 
 
 
