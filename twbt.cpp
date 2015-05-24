@@ -67,6 +67,7 @@
 #include "df/building_def_workshopst.h"
 #include "df/building_type.h"
 #include "df/buildings_other_id.h"
+#include "df/machine.h"
 #include "df/item.h"
 #include "df/item_type.h"
 #include "df/items_other_id.h"
