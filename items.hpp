@@ -145,8 +145,7 @@ ITEM_OVR_BODY2( \
 }) \
 ITEM_OVR_END2(item_##cls##st)
 
-
-#define ITEM_OVR_SIMPLEST2(cls) \
+#define ITEM_OVR_SIMPLE2(cls,name) \
 struct item_##cls##st##_twbt : public df::item_##cls##st, ovr_simple<df::item_##cls##st> \
 { \
     typedef df::item_##cls##st interpose_base; \
@@ -156,7 +155,7 @@ struct item_##cls##st##_twbt : public df::item_##cls##st, ovr_simple<df::item_##
     } \
     ITEM_OVR_BODY2( \
     { \
-        if (handle_simple(#cls)) \
+        if (handle_simple(name)) \
             return 0xfe + (TICK%2); \
     \
         uint8_t t = INTERPOSE_NEXT(drawSelf)(); \
@@ -165,7 +164,7 @@ struct item_##cls##st##_twbt : public df::item_##cls##st, ovr_simple<df::item_##
     }) \
 ITEM_OVR_END2(item_##cls##st)
 
-
+#define ITEM_OVR_SIMPLEST2(cls) ITEM_OVR_SIMPLE2(cls, #cls)
 
 
 
@@ -186,9 +185,9 @@ ITEM_OVR_SIMPLEST2(armorstand)
 #include <df/item_backpackst.h>
 ITEM_OVR_SIMPLEST2(backpack)
 #include <df/item_ballistaarrowheadst.h>
-ITEM_OVR_SIMPLEST2(ballistaarrowhead)
+ITEM_OVR_SIMPLE2(ballistaarrowhead, "ballista_arrowhead")
 #include <df/item_ballistapartsst.h>
-ITEM_OVR_SIMPLEST2(ballistaparts)
+ITEM_OVR_SIMPLE2(ballistaparts, "ballista_parts")
 #include <df/item_barrelst.h>
 ITEM_OVR_SIMPLEST2(barrel)
 #include <df/item_barst.h>
