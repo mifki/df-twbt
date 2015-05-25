@@ -41,8 +41,7 @@ building_siegeenginest
 +building_traction_benchst	
 building_tradedepotst	
 building_trapst	
-building_wagonst	
-	see todo
++!building_wagonst	
 building_water_wheelst	
 +building_weaponrackst	
 building_weaponst	
@@ -52,7 +51,7 @@ building_weaponst
 +building_window_glassst	
 building_workshopst	
 
-	custom
+
 
 
 
