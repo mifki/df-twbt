@@ -31,6 +31,74 @@
     } \
 }
 
+// Stretch MxN
+#define BLD_DRAW_IMAGE_STRETCH33(id) \
+    /*//TODO: handle 1x1, 1xQ and Qx1 cases*/ \
+    /*// Corners*/ \
+    gscreen_over[(dbuf->x1+0)*256 + dbuf->y1 + 0] = id##_tiles[((TICK % id##_frames) + 0*id##_frames) * 3 + 0]; \
+    gscreen_over[(dbuf->x2+0)*256 + dbuf->y1 + 0] = id##_tiles[((TICK % id##_frames) + 0*id##_frames) * 3 + 2]; \
+    gscreen_over[(dbuf->x1+0)*256 + dbuf->y2 + 0] = id##_tiles[((TICK % id##_frames) + 2*id##_frames) * 3 + 0]; \
+    gscreen_over[(dbuf->x2+0)*256 + dbuf->y2 + 0] = id##_tiles[((TICK % id##_frames) + 2*id##_frames) * 3 + 2]; \
+\
+    /*// Top and bottom*/ \
+    for (int x = dbuf->x1+1; x < dbuf->x2; x++) \
+        gscreen_over[x*256 + dbuf->y1] = id##_tiles[((TICK % id##_frames) + 0*id##_frames) * 3 + 1]; \
+    for (int x = dbuf->x1+1; x < dbuf->x2; x++) \
+        gscreen_over[x*256 + dbuf->y2] = id##_tiles[((TICK % id##_frames) + 2*id##_frames) * 3 + 1]; \
+\
+    /*// Left and right*/ \
+    for (int y = dbuf->y1+1; y < dbuf->y2; y++) \
+        gscreen_over[dbuf->x1*256 + y] = id##_tiles[((TICK % id##_frames) + 1*id##_frames) * 3 + 0]; \
+    for (int y = dbuf->y1+1; y < dbuf->y2; y++) \
+        gscreen_over[dbuf->x2*256 + y] = id##_tiles[((TICK % id##_frames) + 1*id##_frames) * 3 + 2]; \
+\
+    /*// Middle*/ \
+    for (int x = dbuf->x1+1; x < dbuf->x2; x++) \
+        for (int y = dbuf->y1+1; y < dbuf->y2; y++) \
+            gscreen_over[x*256 + y] = id##_tiles[((TICK % id##_frames) + 1*id##_frames) * 3 + 1];
+
+#define BLD_DRAW_IMAGE_STRETCH33_AND_RETURN(id) { \
+    if (IS_LOADED(id)) { \
+        BLD_DRAW_IMAGE_STRETCH33(id) \
+        return; \
+    } \
+}
+
+// Stretch Mx1
+#define BLD_DRAW_IMAGE_STRETCH31(id) \
+    /*// Ends*/ \
+    gscreen_over[(dbuf->x1+0)*256 + dbuf->y1 + 0] = id##_tiles[((TICK % id##_frames) + 0*id##_frames) * 3 + 0]; \
+    gscreen_over[(dbuf->x2+0)*256 + dbuf->y1 + 0] = id##_tiles[((TICK % id##_frames) + 0*id##_frames) * 3 + 2]; \
+\
+    /*// Middle*/ \
+    for (int x = dbuf->x1+1; x < dbuf->x2; x++) \
+        gscreen_over[x*256 + dbuf->y1] = id##_tiles[((TICK % id##_frames) + 0*id##_frames) * 3 + 1];
+
+#define BLD_DRAW_IMAGE_STRETCH31_AND_RETURN(id) { \
+    if (IS_LOADED(id)) { \
+        BLD_DRAW_IMAGE_STRETCH31(id) \
+        return; \
+    } \
+}
+
+
+// Stretch 1xN
+#define BLD_DRAW_IMAGE_STRETCH13(id) \
+    /*// Ends*/ \
+    gscreen_over[(dbuf->x1+0)*256 + dbuf->y1 + 0] = id##_tiles[((TICK % id##_frames) + 0*id##_frames) * 1 + 0]; \
+    gscreen_over[(dbuf->x1+0)*256 + dbuf->y2 + 0] = id##_tiles[((TICK % id##_frames) + 2*id##_frames) * 1 + 0]; \
+\
+    /*// Middle*/ \
+    for (int y = dbuf->y1+1; y < dbuf->y2; y++) \
+        gscreen_over[dbuf->x1*256 + y] = id##_tiles[((TICK % id##_frames) + 1*id##_frames) * 1 + 0]; \
+
+#define BLD_DRAW_IMAGE_STRETCH13_AND_RETURN(id) { \
+    if (IS_LOADED(id)) { \
+        BLD_DRAW_IMAGE_STRETCH13(id) \
+        return; \
+    } \
+}
+
 
 #define BLD_HOOK(cls) INTERPOSE_HOOK(cls##_twbt, drawBuilding).apply(true); 
 
@@ -74,9 +142,13 @@ BLD_OVR_BEGIN(cls, \
 #define BLD_OVR_SIMPLEST(name) \
     BLD_OVR_SIMPLE(building_##name##st, #name, 1, 1)
 
+//TODO: shouldn't animate if game paused
+#define DEFINE_MACHINE_ACTIVE \
+    df::machine *machine = df::machine::find(this->machine.machine_id); \
+    bool active = machine && machine->cur_power >= machine->min_power && machine->cur_power > 0;
 
 
-
+//TODO: support directions
 #include <df/building_archerytargetst.h>
 BLD_OVR_SIMPLEST(archerytarget)
 
@@ -86,7 +158,6 @@ BLD_OVR_SIMPLEST(armorstand)
 #include <df/building_axle_horizontalst.h>
 BLD_OVR_BEGIN(building_axle_horizontalst,
 {
-    DEFINE_SIZE(1,1)
     DEFINE_VARS(any)
     DEFINE_VARS(any_active)
     DEFINE_VARS(ew)
@@ -95,21 +166,45 @@ BLD_OVR_BEGIN(building_axle_horizontalst,
     DEFINE_VARS(ns_active)
 
     LOAD_BEGIN
-    LOAD_IMAGE(any, "axle_horizontal")
-    LOAD_IMAGE(any_active, "axle_horizontal-active")
+    {
+        DEFINE_SIZE(1,1)
+        LOAD_IMAGE(any, "axle_horizontal")
+        LOAD_IMAGE(any_active, "axle_horizontal-active")
+    }
+    {
+        DEFINE_SIZE(3,1)
+        LOAD_IMAGE(ew, "axle_horizontal_ew")
+        LOAD_IMAGE(ew_active, "axle_horizontal_ew-active")
+    }
+    {
+        DEFINE_SIZE(1,3)
+        LOAD_IMAGE(ns, "axle_horizontal_ns")
+        LOAD_IMAGE(ns_active, "axle_horizontal_ns-active")
+    }
     LOAD_END
 
     {
-        int bldw = dbuf->x2 - dbuf->x1 + 1;
-        int bldh = dbuf->y2 - dbuf->y1 + 1;
+        DEFINE_SIZE(dbuf->x2 - dbuf->x1 + 1, dbuf->y2 - dbuf->y1 + 1)
         FILL_PLACEHOLDER_2
     }
 
-    //TODO: shouldn't animate if game paused
-    df::machine *machine = df::machine::find(this->machine.machine_id);
-    if (machine && machine->cur_power >= machine->min_power && machine->cur_power > 0)
-        BLD_DRAW_IMAGE_FILL_AND_RETURN(any_active)
+    DEFINE_MACHINE_ACTIVE
 
+    if (this->is_vertical)
+    {
+        if (active)
+            BLD_DRAW_IMAGE_STRETCH13_AND_RETURN(ns_active)
+        BLD_DRAW_IMAGE_STRETCH13(ns)
+    }
+    else
+    {
+        if (active)
+            BLD_DRAW_IMAGE_STRETCH31_AND_RETURN(ew_active)
+        BLD_DRAW_IMAGE_STRETCH31(ew)
+    }
+
+    if (active)
+        BLD_DRAW_IMAGE_FILL_AND_RETURN(any_active)
     BLD_DRAW_IMAGE_FILL_AND_RETURN(any)
 
     INTERPOSE_NEXT(drawBuilding)(dbuf, smth);
@@ -129,9 +224,8 @@ BLD_OVR_BEGIN(building_axle_verticalst,
 
     FILL_PLACEHOLDER_2
 
-    //TODO: shouldn't animate if game paused
-    df::machine *machine = df::machine::find(this->machine.machine_id);
-    if (machine && machine->cur_power >= machine->min_power && machine->cur_power > 0)
+    DEFINE_MACHINE_ACTIVE
+    if (active)
         BLD_DRAW_IMAGE_AND_RETURN(active)
 
     BLD_DRAW_IMAGE_OR_DEFAULT(normal)
@@ -177,39 +271,11 @@ BLD_OVR_BEGIN(building_bridgest,
     LOAD_END
 
     {
-        int bldw = dbuf->x2 - dbuf->x1 + 1;
-        int bldh = dbuf->y2 - dbuf->y1 + 1;
+        DEFINE_SIZE(dbuf->x2 - dbuf->x1 + 1, dbuf->y2 - dbuf->y1 + 1)
         FILL_PLACEHOLDER_2
     }
 
-    if (IS_LOADED(normal))
-    {
-        //TODO: handle 1x1, 1xQ and Qx1 cases
-        // Corners
-        gscreen_over[(dbuf->x1+0)*256 + dbuf->y1 + 0] = normal_tiles[((TICK % normal_frames) + 0*normal_frames) * bldw + 0];
-        gscreen_over[(dbuf->x2+0)*256 + dbuf->y1 + 0] = normal_tiles[((TICK % normal_frames) + 0*normal_frames) * bldw + 2];
-        gscreen_over[(dbuf->x1+0)*256 + dbuf->y2 + 0] = normal_tiles[((TICK % normal_frames) + 2*normal_frames) * bldw + 0];
-        gscreen_over[(dbuf->x2+0)*256 + dbuf->y2 + 0] = normal_tiles[((TICK % normal_frames) + 2*normal_frames) * bldw + 2];
-
-        // Top and bottom
-        for (int x = dbuf->x1+1; x < dbuf->x2; x++)
-            gscreen_over[x*256 + dbuf->y1] = normal_tiles[((TICK % normal_frames) + 0*normal_frames) * bldw + 1];
-        for (int x = dbuf->x1+1; x < dbuf->x2; x++)
-            gscreen_over[x*256 + dbuf->y2] = normal_tiles[((TICK % normal_frames) + 2*normal_frames) * bldw + 1];
-
-        // Left and right
-        for (int y = dbuf->y1+1; y < dbuf->y2; y++)
-            gscreen_over[dbuf->x1*256 + y] = normal_tiles[((TICK % normal_frames) + 1*normal_frames) * bldw + 0];
-        for (int y = dbuf->y1+1; y < dbuf->y2; y++)
-            gscreen_over[dbuf->x2*256 + y] = normal_tiles[((TICK % normal_frames) + 1*normal_frames) * bldw + 2];
-
-        // Middle
-        for (int x = dbuf->x1+1; x < dbuf->x2; x++)
-            for (int y = dbuf->y1+1; y < dbuf->y2; y++)
-                gscreen_over[x*256 + y] = normal_tiles[((TICK % normal_frames) + 1*normal_frames) * bldw + 1];
-
-        return;
-    }
+    BLD_DRAW_IMAGE_STRETCH33_AND_RETURN(normal)
 
     INTERPOSE_NEXT(drawBuilding)(dbuf, smth);
 })
@@ -229,9 +295,41 @@ BLD_OVR_SIMPLEST(chain)
 BLD_OVR_SIMPLEST(chair)
 
 
+//TODO: support custom images for flags, empty/occupied
 #include <df/building_coffinst.h>
 BLD_OVR_SIMPLEST(coffin)
 
+
+//TODO: support special image versions for 1x1, Mx1, 1xN walls and floors
+#include <df/building_constructionst.h>
+BLD_OVR_BEGIN(building_constructionst,
+{
+    DEFINE_VARS(wall)
+    DEFINE_VARS(floor)
+
+    LOAD_BEGIN
+    {
+        DEFINE_SIZE(3,3)
+        LOAD_IMAGE(wall, "wall")
+        LOAD_IMAGE(floor, "floor")
+    }
+    LOAD_END
+
+    {
+        DEFINE_SIZE(dbuf->x2 - dbuf->x1 + 1, dbuf->y2 - dbuf->y1 + 1)
+        FILL_PLACEHOLDER_2
+    }
+
+    switch (this->type)
+    {
+        case df::construction_type::Wall:
+            BLD_DRAW_IMAGE_STRETCH33_AND_RETURN(wall)
+        case df::construction_type::Floor:
+            BLD_DRAW_IMAGE_STRETCH33_AND_RETURN(floor)
+    }
+
+    INTERPOSE_NEXT(drawBuilding)(dbuf, smth);
+})
 
 #include <df/building_doorst.h>
 BLD_OVR_BEGIN(building_doorst,
@@ -326,9 +424,8 @@ BLD_OVR_BEGIN(building_gear_assemblyst,
 
     FILL_PLACEHOLDER_2
 
-    //TODO: shouldn't animate if game paused
-    df::machine *machine = df::machine::find(this->machine.machine_id);
-    if (machine && machine->cur_power >= machine->min_power && machine->cur_power > 0)
+    DEFINE_MACHINE_ACTIVE
+    if (active)
         BLD_DRAW_IMAGE_AND_RETURN(active)
 
     BLD_DRAW_IMAGE_OR_DEFAULT(normal)
@@ -375,15 +472,88 @@ BLD_OVR_BEGIN(building_rollersst,
         FILL_PLACEHOLDER_2
     }
 
-    //TODO: shouldn't animate if game paused
-    df::machine *machine = df::machine::find(this->machine.machine_id);
-    if (machine && machine->cur_power >= machine->min_power && machine->cur_power > 0)
+    DEFINE_MACHINE_ACTIVE
+    if (active)
         BLD_DRAW_IMAGE_FILL_AND_RETURN(any_active)
 
     BLD_DRAW_IMAGE_FILL_AND_RETURN(any)
 
     INTERPOSE_NEXT(drawBuilding)(dbuf, smth);
 })
+
+
+#include <df/building_screw_pumpst.h>
+BLD_OVR_BEGIN(building_screw_pumpst,
+{
+    DEFINE_VARS(ns)
+    DEFINE_VARS(ns_active)
+    DEFINE_VARS(sn)
+    DEFINE_VARS(sn_active)
+    DEFINE_VARS(ew)
+    DEFINE_VARS(ew_active)
+    DEFINE_VARS(we)
+    DEFINE_VARS(we_active)
+
+    LOAD_BEGIN
+    {
+        DEFINE_SIZE(1,2)
+        LOAD_IMAGE(ns, "screwpump_ns")
+        LOAD_IMAGE(ns_active, "screwpump_ns-active")
+        LOAD_IMAGE(sn, "screwpump_sn")
+        LOAD_IMAGE(sn_active, "screwpump_sn-active")
+    }
+    {
+        DEFINE_SIZE(2,1)
+        LOAD_IMAGE(ew, "screwpump_ew")
+        LOAD_IMAGE(ew_active, "screwpump_ew-active")
+        LOAD_IMAGE(we, "screwpump_we")
+        LOAD_IMAGE(we_active, "screwpump_we-active")
+    }
+    LOAD_END
+
+    {
+        DEFINE_SIZE(dbuf->x2 - dbuf->x1 + 1, dbuf->y2 - dbuf->y1 + 1)
+        FILL_PLACEHOLDER_2
+    }
+
+    //TODO: what if it's pumped manually?
+    DEFINE_MACHINE_ACTIVE
+
+    switch (this->direction)
+    {
+        case df::screw_pump_direction::FromNorth:
+        {
+            DEFINE_SIZE(1,2)
+            if (active)
+                BLD_DRAW_IMAGE_AND_RETURN(ns_active)
+            BLD_DRAW_IMAGE_AND_RETURN(ns)
+        }
+        case df::screw_pump_direction::FromSouth:
+        {
+            DEFINE_SIZE(1,2)
+            if (active)
+                BLD_DRAW_IMAGE_AND_RETURN(sn_active)
+            BLD_DRAW_IMAGE_AND_RETURN(sn)
+        }
+        case df::screw_pump_direction::FromEast:
+        {
+            DEFINE_SIZE(2,1)
+            if (active)
+                BLD_DRAW_IMAGE_AND_RETURN(ew_active)
+            BLD_DRAW_IMAGE_AND_RETURN(ew)
+        }
+        case df::screw_pump_direction::FromWest:
+        {
+            DEFINE_SIZE(2,1)
+            if (active)
+                BLD_DRAW_IMAGE_AND_RETURN(we_active)
+            BLD_DRAW_IMAGE_AND_RETURN(we)
+        }
+    }
+
+    INTERPOSE_NEXT(drawBuilding)(dbuf, smth);
+})
+
 
 #include <df/building_slabst.h>
 BLD_OVR_SIMPLEST(slab)
@@ -432,9 +602,9 @@ BLD_OVR_BEGIN(building_windmillst,
 
     FILL_PLACEHOLDER_2
 
-    //TODO: shouldn't animate if game paused
-    df::machine *machine = df::machine::find(this->machine.machine_id);
-    if (machine && machine->cur_power > 0)
+    //TODO: use this->is_working instead ?
+    DEFINE_MACHINE_ACTIVE
+    if (active)
         BLD_DRAW_IMAGE_AND_RETURN(active)
 
     BLD_DRAW_IMAGE_OR_DEFAULT(normal)
@@ -571,6 +741,7 @@ void apply_building_hooks()
     BLD_HOOK(building_chainst)
     BLD_HOOK(building_chairst)
     BLD_HOOK(building_coffinst)
+    BLD_HOOK(building_constructionst)
     BLD_HOOK(building_doorst)
     BLD_HOOK(building_floodgatest)
     BLD_HOOK(building_furnacest)
@@ -582,6 +753,7 @@ void apply_building_hooks()
     BLD_HOOK(building_nest_boxst)
     BLD_HOOK(building_tablest)
     BLD_HOOK(building_rollersst)
+    BLD_HOOK(building_screw_pumpst)
     BLD_HOOK(building_slabst)
     BLD_HOOK(building_statuest)
     BLD_HOOK(building_supportst)
