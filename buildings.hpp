@@ -194,13 +194,13 @@ BLD_OVR_BEGIN(building_axle_horizontalst,
     {
         if (active)
             BLD_DRAW_IMAGE_STRETCH13_AND_RETURN(ns_active)
-        BLD_DRAW_IMAGE_STRETCH13(ns)
+        BLD_DRAW_IMAGE_STRETCH13_AND_RETURN(ns)
     }
     else
     {
         if (active)
             BLD_DRAW_IMAGE_STRETCH31_AND_RETURN(ew_active)
-        BLD_DRAW_IMAGE_STRETCH31(ew)
+        BLD_DRAW_IMAGE_STRETCH31_AND_RETURN(ew)
     }
 
     if (active)
@@ -324,8 +324,10 @@ BLD_OVR_BEGIN(building_constructionst,
     {
         case df::construction_type::Wall:
             BLD_DRAW_IMAGE_STRETCH33_AND_RETURN(wall)
+            break;
         case df::construction_type::Floor:
             BLD_DRAW_IMAGE_STRETCH33_AND_RETURN(floor)
+            break;
     }
 
     INTERPOSE_NEXT(drawBuilding)(dbuf, smth);
@@ -449,7 +451,6 @@ BLD_OVR_SIMPLE(building_nest_boxst, "nestbox", 1, 1)
 #include <df/building_rollersst.h>
 BLD_OVR_BEGIN(building_rollersst,
 {
-    DEFINE_SIZE(1,1)
     DEFINE_VARS(any)
     DEFINE_VARS(any_active)
     DEFINE_VARS(we)
@@ -462,20 +463,69 @@ BLD_OVR_BEGIN(building_rollersst,
     DEFINE_VARS(sn_active)
 
     LOAD_BEGIN
-    LOAD_IMAGE(any, "rollers")
-    LOAD_IMAGE(any_active, "rollers-active")
+    {
+        DEFINE_SIZE(1,1)
+        LOAD_IMAGE(any, "rollers")
+        LOAD_IMAGE(any_active, "rollers-active")
+    }
+    {
+        DEFINE_SIZE(3,1)
+        LOAD_IMAGE(we, "rollers_we")
+        LOAD_IMAGE(we_active, "rollers_we-active")
+        LOAD_IMAGE(ew, "rollers_ew")
+        LOAD_IMAGE(ew_active, "rollers_ew-active")
+    }
+    {
+        DEFINE_SIZE(1,3)
+        LOAD_IMAGE(ns, "rollers_ns")
+        LOAD_IMAGE(ns_active, "rollers_ns-active")
+        LOAD_IMAGE(sn, "rollers_sn")
+        LOAD_IMAGE(sn_active, "rollers_sn-active")
+    }
     LOAD_END
 
     {
-        int bldw = dbuf->x2 - dbuf->x1 + 1;
-        int bldh = dbuf->y2 - dbuf->y1 + 1;
+        DEFINE_SIZE(dbuf->x2 - dbuf->x1 + 1, dbuf->y2 - dbuf->y1 + 1)
         FILL_PLACEHOLDER_2
     }
 
     DEFINE_MACHINE_ACTIVE
+
+    switch (this->direction)
+    {
+        //XXX: S/N falls back to N/S is unavailable
+        case df::screw_pump_direction::FromSouth:
+        {
+            if (active)
+                BLD_DRAW_IMAGE_STRETCH13_AND_RETURN(sn_active)
+            BLD_DRAW_IMAGE_STRETCH13_AND_RETURN(sn)
+        }
+        case df::screw_pump_direction::FromNorth:
+        {
+            if (active)
+                BLD_DRAW_IMAGE_STRETCH13_AND_RETURN(ns_active)
+            BLD_DRAW_IMAGE_STRETCH13_AND_RETURN(ns)
+            break;
+        }
+
+        //XXX: S/N falls back to N/S is unavailable
+        case df::screw_pump_direction::FromWest:
+        {
+            if (active)
+                BLD_DRAW_IMAGE_STRETCH31_AND_RETURN(we_active)
+            BLD_DRAW_IMAGE_STRETCH31_AND_RETURN(we)
+        }        
+        case df::screw_pump_direction::FromEast:
+        {
+            if (active)
+                BLD_DRAW_IMAGE_STRETCH31_AND_RETURN(ew_active)
+            BLD_DRAW_IMAGE_STRETCH31_AND_RETURN(ew)
+            break;
+        }
+    }
+
     if (active)
         BLD_DRAW_IMAGE_FILL_AND_RETURN(any_active)
-
     BLD_DRAW_IMAGE_FILL_AND_RETURN(any)
 
     INTERPOSE_NEXT(drawBuilding)(dbuf, smth);
@@ -527,6 +577,7 @@ BLD_OVR_BEGIN(building_screw_pumpst,
             if (active)
                 BLD_DRAW_IMAGE_AND_RETURN(ns_active)
             BLD_DRAW_IMAGE_AND_RETURN(ns)
+            break;
         }
         case df::screw_pump_direction::FromSouth:
         {
@@ -534,6 +585,7 @@ BLD_OVR_BEGIN(building_screw_pumpst,
             if (active)
                 BLD_DRAW_IMAGE_AND_RETURN(sn_active)
             BLD_DRAW_IMAGE_AND_RETURN(sn)
+            break;
         }
         case df::screw_pump_direction::FromEast:
         {
@@ -541,6 +593,7 @@ BLD_OVR_BEGIN(building_screw_pumpst,
             if (active)
                 BLD_DRAW_IMAGE_AND_RETURN(ew_active)
             BLD_DRAW_IMAGE_AND_RETURN(ew)
+            break;
         }
         case df::screw_pump_direction::FromWest:
         {
@@ -548,6 +601,7 @@ BLD_OVR_BEGIN(building_screw_pumpst,
             if (active)
                 BLD_DRAW_IMAGE_AND_RETURN(we_active)
             BLD_DRAW_IMAGE_AND_RETURN(we)
+            break;
         }
     }
 
