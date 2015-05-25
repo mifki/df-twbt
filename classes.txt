@@ -19,6 +19,7 @@ building_constructionst
 building_farmplotst	
 +building_floodgatest	
 building_furnacest	
+	custom
 +building_gear_assemblyst	
 +building_grate_floorst	
 +building_grate_wallst	
@@ -40,7 +41,8 @@ building_siegeenginest
 +building_traction_benchst	
 building_tradedepotst	
 building_trapst	
-+building_wagonst	
+building_wagonst	
+	see todo
 building_water_wheelst	
 +building_weaponrackst	
 building_weaponst	
@@ -49,3 +51,4 @@ building_weaponst
 +building_window_gemst	
 +building_window_glassst	
 building_workshopst	
+	custom
