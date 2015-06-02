@@ -24,13 +24,13 @@ OUT = dist/$(DFHACKVER)/twbt.plug.$(EXT)
 INC = -I"$(DH)/library/include" -I"$(DH)/library/proto" -I"$(DH)/depends/protobuf" -I"$(DH)/depends/lua/include" -I"$(DF)/libs/SDL.framework/Headers"
 LIB = -L"$(DH)/build/library" -F"$(DF)/libs" -framework SDL -framework SDL_image -ldfhack -ldfhack-version
 
-CXX = g++-4.5
+CXX = c++
 CFLAGS = $(INC) -m32 -DLINUX_BUILD -g #-O3
 LDFLAGS = $(LIB) -shared 
 
 ifeq ($(shell uname -s), Darwin)
-	CFLAGS += -std=c++0x #-stdlib=libstdc++
-	#CFLAGS += -Wno-tautological-compare
+	CFLAGS += -std=gnu++0x -stdlib=libstdc++
+	CFLAGS += -Wno-tautological-compare
 	LDFLAGS += -framework OpenGL -mmacosx-version-min=10.6 #-undefined dynamic_lookup
 else
 	CFLAGS += -std=c++0x
