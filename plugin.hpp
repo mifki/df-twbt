@@ -136,6 +136,10 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         INTERPOSE_HOOK(dwarfmode_hook, logic).apply(true);
         INTERPOSE_HOOK(dwarfmode_hook, feed).apply(true);
 
+        INTERPOSE_HOOK(viewscreen_unitlistst_zoomfix, feed).apply(true);
+        INTERPOSE_HOOK(viewscreen_buildinglistst_zoomfix, feed).apply(true);        
+        INTERPOSE_HOOK(viewscreen_layer_unit_relationshipst_zoomfix, feed).apply(true);        
+
         INTERPOSE_HOOK(dungeonmode_hook, render).apply(true);
         INTERPOSE_HOOK(dungeonmode_hook, logic).apply(true);
         INTERPOSE_HOOK(dungeonmode_hook, feed).apply(true);        
