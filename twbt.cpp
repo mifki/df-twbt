@@ -386,6 +386,6 @@ static bool advmode_needs_map(int m)
 #include "config.hpp"
 #include "commands.hpp"
 #include "macros.hpp"
-#include "items.hpp"
+//#include "items.hpp"
 #include "buildings.hpp"
 #include "plugin.hpp"
