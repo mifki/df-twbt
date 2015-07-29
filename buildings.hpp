@@ -779,15 +779,90 @@ BLD_OVR_BEGIN(building_workshopst,
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#define DECLARE_IMG(id) \
+    static int id##_frames; \
+    static long *id##_tiles;
+
+#define DEFINE_IMG(cls,id) \
+    int cls::id##_frames; \
+    long* cls::id##_tiles;
+
+
+
+struct building_doorst_twbt2 : public df::building_doorst
+{
+    typedef df::building_doorst interpose_base;
+
+    DECLARE_IMG(normal)
+    DECLARE_IMG(locked)
+
+    void unhook() {
+        INTERPOSE_HOOK(building_doorst_twbt2, drawBuilding).apply(false);
+    }
+
+    static bool loadTiles()
+    {
+        if (!load_tiles("data/art/tiles/buildings/door.png", &normal_tiles, &normal_frames, 1, 1))
+        {
+            normal_frames = 1;
+            normal_tiles = (long*) malloc(sizeof(long)*(normal_frames));
+            normal_tiles[0] = map_texpos[48];
+        }
+
+        return true;
+    }    
+    
+    DEFINE_VMETHOD_INTERPOSE(void, drawBuilding, (df::building_drawbuffer* dbuf, int16_t smth))
+    {
+        int bldw=1,bldh=1;
+        DEFINE_TICK
+        FILL_PLACEHOLDER_2
+
+        BLD_DRAW_IMAGE(normal)
+    }
+};
+
+DEFINE_IMG(building_doorst_twbt2,normal);
+DEFINE_IMG(building_doorst_twbt2,locked);
+IMPLEMENT_VMETHOD_INTERPOSE(building_doorst_twbt2, drawBuilding);
+
+
+
+
 void apply_building_hooks()
 {
+    if (building_doorst_twbt2::loadTiles())
+        INTERPOSE_HOOK(building_doorst_twbt2, drawBuilding).apply(true); 
+return;
     BLD_HOOK(building_archerytargetst)
     BLD_HOOK(building_armorstandst)
     BLD_HOOK(building_axle_horizontalst)
     BLD_HOOK(building_axle_verticalst)
     BLD_HOOK(building_bars_floorst)
     BLD_HOOK(building_bars_verticalst)
-    BLD_HOOK(building_bedst)
+    //BLD_HOOK(building_bedst)
     BLD_HOOK(building_boxst)
     BLD_HOOK(building_bridgest)
     BLD_HOOK(building_cabinetst)
@@ -821,52 +896,3 @@ void apply_building_hooks()
     BLD_HOOK(building_workshopst)
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-struct building_bedst_twbt2 : public df::building_bedst
-{
-    typedef df::building_bedst interpose_base;
-
-    /*static bool id##_loaded;
-    static int id##_frames;
-    static long *id##_tiles;*/
-
-    void unhook() {
-        INTERPOSE_HOOK(building_bedst_twbt2, drawBuilding).apply(false);
-    }
-
-    static void loadTiles()
-    {
-        
-    }    
-    
-    DEFINE_VMETHOD_INTERPOSE(void, drawBuilding, (df::building_drawbuffer* dbuf, int16_t smth))
-    {
-    }
-};
-
-IMPLEMENT_VMETHOD_INTERPOSE(building_bedst_twbt2, drawBuilding);

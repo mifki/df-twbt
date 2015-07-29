@@ -19,6 +19,8 @@ command_result mapshot_cmd (color_ostream &out, std::vector <std::string> & para
 
 command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & parameters)
 {
+    return CR_OK;
+    
     if (!enabled)
         return CR_FAILURE;
 
