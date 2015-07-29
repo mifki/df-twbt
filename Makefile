@@ -4,8 +4,8 @@ DFVERNUM = `echo $(DFHACKVER) | sed -e s/-r.*// -e s/\\\\.//g`
 
 TWBT_VER ?= "6.xx"
 
-DF ?= /Users/vit/Downloads/df_40_24_osx
-DH ?= /Users/vit/Downloads/dfhack-4024
+DF ?= /Users/vit/df/df4024
+DH ?= /Users/vit/df/dfhack
 
 SRC = twbt.cpp
 DEP = renderer.hpp config.hpp dungeonmode.hpp dwarfmode.hpp renderer_twbt.h commands.hpp plugin.hpp tileupdate_text.hpp tileupdate_map.hpp patches.hpp macros.hpp items.hpp buildings.hpp Makefile legacy/renderer_legacy.hpp legacy/twbt_legacy.hpp

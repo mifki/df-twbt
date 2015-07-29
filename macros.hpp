@@ -40,9 +40,11 @@ if (!loaded) \
     id##_loaded = load_tiles("data/art/tiles/" fn ".png", &id##_tiles, &id##_frames, bldw, bldh); \
     ok |= id##_loaded;
 
+#define LOAD_BLD_IMAGE(id,fn) LOAD_IMAGE(id, "buildings/" fn)
+
 #define LOAD_IMAGE_DYN(id,fn) \
     id##_loaded = load_tiles("data/art/tiles/" fn ".png", &id##_tiles, &id##_frames, bldw, bldh); \
-    id_tried = true;
+    id##_tried = true;
 
 #define IS_LOADED(id) id##_loaded
 

@@ -245,8 +245,8 @@ BLD_OVR_BEGIN(building_bedst,
     DEFINE_VARS(dorm)
 
     LOAD_BEGIN
-    LOAD_IMAGE(normal, "bed")
-    LOAD_IMAGE(dorm, "bed-dorm")
+    LOAD_BLD_IMAGE(normal, "bed")
+    LOAD_BLD_IMAGE(dorm, "bed-dorm")
     LOAD_END
 
     FILL_PLACEHOLDER_2
@@ -820,3 +820,53 @@ void apply_building_hooks()
     BLD_HOOK(building_window_glassst)
     BLD_HOOK(building_workshopst)
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+struct building_bedst_twbt2 : public df::building_bedst
+{
+    typedef df::building_bedst interpose_base;
+
+    /*static bool id##_loaded;
+    static int id##_frames;
+    static long *id##_tiles;*/
+
+    void unhook() {
+        INTERPOSE_HOOK(building_bedst_twbt2, drawBuilding).apply(false);
+    }
+
+    static void loadTiles()
+    {
+        
+    }    
+    
+    DEFINE_VMETHOD_INTERPOSE(void, drawBuilding, (df::building_drawbuffer* dbuf, int16_t smth))
+    {
+    }
+};
+
+IMPLEMENT_VMETHOD_INTERPOSE(building_bedst_twbt2, drawBuilding);

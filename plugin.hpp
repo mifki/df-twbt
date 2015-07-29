@@ -148,7 +148,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         INTERPOSE_HOOK(dwarfmode_hook_legacy, render).apply(true);
     }
 
-    apply_item_hooks();
+    //apply_item_hooks();
     apply_building_hooks();
 
     return CR_OK;
