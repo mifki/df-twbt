@@ -37,13 +37,13 @@ if (!loaded) \
 }
 
 #define LOAD_IMAGE(id,fn) \
-    id##_loaded = load_tiles("data/art/tiles/" fn ".png", &id##_tiles, &id##_frames, bldw, bldh); \
+    id##_loaded = load_tiles(fn, &id##_tiles, &id##_frames, bldw, bldh); \
     ok |= id##_loaded;
 
 #define LOAD_BLD_IMAGE(id,fn) LOAD_IMAGE(id, "buildings/" fn)
 
 #define LOAD_IMAGE_DYN(id,fn) \
-    id##_loaded = load_tiles("data/art/tiles/" fn ".png", &id##_tiles, &id##_frames, bldw, bldh); \
+    id##_loaded = load_tiles(fn, &id##_tiles, &id##_frames, bldw, bldh); \
     id##_tried = true;
 
 #define IS_LOADED(id) id##_loaded
@@ -86,8 +86,12 @@ const int bldw = w, bldh = h;
 
 bool load_tiles(const char *fn, long **tiles, int *frames, int w, int h)
 {
+    bool b = tileset_fns.find(fn) != tileset_fns.end();    
+
+    string fullfn = string("data/art/tiles/") + (b ? tileset_fns[fn] : string(fn)) + ".png";
+
     long dx, dy;
-    DFSDL_Surface *surf = IMG_Load(fn);
+    DFSDL_Surface *surf = IMG_Load(fullfn.c_str());
     if (!surf)
         return false;
 
@@ -101,7 +105,7 @@ bool load_tiles(const char *fn, long **tiles, int *frames, int w, int h)
     *tiles = (long*) malloc(sizeof(long)*(*frames));
 
     *out2 << surf->w << " " << surf->h << std::endl;
-    load_tileset(fn, *tiles, *frames*w, h, &dx, &dy);
+    load_tileset(fullfn, *tiles, *frames*w, h, &dx, &dy);
 
     SDL_FreeSurface(surf);    
     

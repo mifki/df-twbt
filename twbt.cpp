@@ -98,6 +98,7 @@ extern "C" {
 using df::global::world;
 using std::string;
 using std::vector;
+using std::map;
 using df::global::enabler;
 using df::global::gps;
 using df::global::ui;
@@ -136,6 +137,8 @@ static struct tile_overrides *overrides[256];
 long *text_texpos, *map_texpos;
 
 long cursor_small_texpos, cursor_large_texpos;
+
+static map< string, string > tileset_fns;
 
 static bool enabled;
 static bool has_textfont, has_overrides;

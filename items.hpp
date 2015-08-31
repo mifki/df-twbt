@@ -72,7 +72,7 @@ struct ovr_custom
         if (!tried[subtype])
         {
             Q *itemdef = Q::get_vector()[subtype];
-            std::string fn = "data/art/tiles/" + folder + "/" + itemdef->id + ".png";
+            std::string fn = folder + "/" + itemdef->id;
             loaded[subtype] = load_tiles(fn.c_str(), &tiles[subtype], &frames[subtype], bldw, bldh);
             tried[subtype] = true;
         }
@@ -103,7 +103,7 @@ struct ovr_simple
 
         {
             LOAD_BEGIN
-            normal_loaded = load_tiles(("data/art/tiles/" + name + ".png").c_str(), &normal_tiles, &normal_frames, bldw, bldh); \
+            normal_loaded = load_tiles(name.c_str(), &normal_tiles, &normal_frames, bldw, bldh); \
             //LOAD_IMAGE(normal, fn)
             ok = true;
             ITEM_LOAD_END

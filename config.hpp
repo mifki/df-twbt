@@ -548,3 +548,20 @@ void update_custom_building_overrides()
         }
     }*/
 }
+
+void load_tileset_index()
+{
+    std::ifstream fseed("data/art/tiles/index.txt");
+    if(fseed.is_open())
+    {
+        string str;
+
+        while(std::getline(fseed, str))
+        {
+            auto parts = split(str.c_str());
+        }
+
+        fseed.close();
+    }
+
+}

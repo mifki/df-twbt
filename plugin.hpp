@@ -85,6 +85,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 
     has_textfont = load_text_font();
     has_overrides = load_overrides();
+    load_tileset_index();
 
     if (!has_textfont)
     {

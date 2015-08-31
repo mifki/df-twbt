@@ -360,7 +360,7 @@ BLD_OVR_SIMPLEST(floodgate)
 #include <df/building_furnacest.h>
 
 #define BLD_FURNACE_LOADIMG_SIMPLE(name) \
-    name##_loaded = load_tiles("data/art/tiles/furnaces/" #name ".png", &name##_tiles, &name##_frames, bldw, bldh); \
+    name##_loaded = load_tiles("furnaces/" #name, &name##_tiles, &name##_frames, bldw, bldh); \
     ok |= name##_loaded;
 
 #define BLD_FURNACE_SIMPLE(type,name) \
@@ -675,7 +675,7 @@ BLD_OVR_SIMPLEST(window_glass)
 #include <df/building_workshopst.h>
 
 #define BLD_WORKSHOP_LOADIMG_SIMPLE(name) \
-    name##_loaded = load_tiles("data/art/tiles/workshops/" #name ".png", &name##_tiles, &name##_frames, bldw, bldh); \
+    name##_loaded = load_tiles("workshops/" #name, &name##_tiles, &name##_frames, bldw, bldh); \
     ok |= name##_loaded;
 
 #define BLD_WORKSHOP_SIMPLE(type,name) \
@@ -824,7 +824,7 @@ struct building_doorst_twbt2 : public df::building_doorst
 
     static bool loadTiles()
     {
-        if (!load_tiles("data/art/tiles/buildings/door.png", &normal_tiles, &normal_frames, 1, 1))
+        if (!load_tiles("buildings/door", &normal_tiles, &normal_frames, 1, 1))
         {
             normal_frames = 1;
             normal_tiles = (long*) malloc(sizeof(long)*(normal_frames));
@@ -836,7 +836,7 @@ struct building_doorst_twbt2 : public df::building_doorst
     
     DEFINE_VMETHOD_INTERPOSE(void, drawBuilding, (df::building_drawbuffer* dbuf, int16_t smth))
     {
-        int bldw=1,bldh=1;
+        const int bldw=1,bldh=1;
         DEFINE_TICK
         FILL_PLACEHOLDER_2
 
@@ -851,10 +851,57 @@ IMPLEMENT_VMETHOD_INTERPOSE(building_doorst_twbt2, drawBuilding);
 
 
 
+struct building_bedst_twbt2 : public df::building_doorst
+{
+    typedef df::building_doorst interpose_base;
+
+    DECLARE_IMG(normal)
+    DECLARE_IMG(locked)
+
+    void unhook() {
+        INTERPOSE_HOOK(building_bedst_twbt2, drawBuilding).apply(false);
+    }
+
+    static bool loadTiles()
+    {
+        if (!load_tiles("buildings/bed", &normal_tiles, &normal_frames, 1, 1))
+        {
+            normal_frames = 1;
+            normal_tiles = (long*) malloc(sizeof(long)*(normal_frames));
+            normal_tiles[0] = map_texpos[48];
+        }
+
+        return true;
+    }    
+    
+    DEFINE_VMETHOD_INTERPOSE(void, drawBuilding, (df::building_drawbuffer* dbuf, int16_t smth))
+    {
+        const int bldw=1,bldh=1;
+        DEFINE_TICK
+        FILL_PLACEHOLDER_2
+
+        BLD_DRAW_IMAGE(normal)
+    }
+};
+
+DEFINE_IMG(building_bedst_twbt2,normal);
+DEFINE_IMG(building_bedst_twbt2,locked);
+IMPLEMENT_VMETHOD_INTERPOSE(building_bedst_twbt2, drawBuilding);
+
+
+
+
+
+
+
+
+
 void apply_building_hooks()
 {
     if (building_doorst_twbt2::loadTiles())
         INTERPOSE_HOOK(building_doorst_twbt2, drawBuilding).apply(true); 
+    if (building_bedst_twbt2::loadTiles())
+        INTERPOSE_HOOK(building_bedst_twbt2, drawBuilding).apply(true); 
 return;
     BLD_HOOK(building_archerytargetst)
     BLD_HOOK(building_armorstandst)
