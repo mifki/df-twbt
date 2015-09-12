@@ -1,16 +1,67 @@
 command_result mapshot_cmd (color_ostream &out, std::vector <std::string> & parameters)
 {
-    if (!legacy_mode)
-    {
-        *out2 << COLOR_RED << "This command currently works in legacy mode only" << std::endl;
-        *out2 << COLOR_RESET;
-        return CR_FAILURE;
-    }
-
     if (!enabled)
         return CR_FAILURE;
 
-    CoreSuspender suspend;
+//    CoreSuspender suspend;
+
+    for (int z = 50; z < df::global::world->map.z_count; z++)
+    {
+        for (int bx = 0; bx < df::global::world->map.x_count_block; bx++)
+        {
+            for (int by = 0; by < df::global::world->map.y_count_block; by++)
+            {
+                df::map_block *block = world->map.block_index[bx][by][z];
+                if (block)
+                {
+                    memset(block->fog_of_war, 0x00, 16*16);
+
+                    for (int x = 0; x < 16; x++)
+                    {
+                        for (int y = 0; y < 16; y++)
+                        {
+                            block->designation[x][y].bits.hidden = false;
+                            block->designation[x][y].bits.pile = true;
+                        }
+                    }                    
+                }
+            }
+        }
+    }    
+
+    int z;
+    for (z = 50; z < df::global::world->map.z_count; z++)
+    {
+        for (int bx = 0; bx < df::global::world->map.x_count_block; bx++)
+        {
+            for (int by = 0; by < df::global::world->map.y_count_block; by++)
+            {
+                df::map_block *block = world->map.block_index[bx][by][z];
+                if (block)
+                {
+                    for (int x = 0; x < 16; x++)
+                    {
+                        for (int y = 0; y < 16; y++)
+                        {
+                            /*df::tiletype tt = block->tiletype[x][y];
+                            if (tt == df::tiletype::StoneWall || tt == df::tiletype::SoilWall || tt == df::tiletype::LavaWall
+                                || tt == df::tiletype::FeatureWall || tt == df::tiletype::FrozenWall || tt == df::tiletype::MineralWall)
+                                goto nextz;*/
+                            if (block->designation[x][y].bits.subterranean)
+                                goto nextz;
+                        }
+                    }
+                }
+            }            
+        }
+
+        break;
+
+        nextz:;
+    }
+    done:;
+*out2 << "ZZ " << z << std::endl;
+    df::global::world->units.active[0]->pos.z = z;
 
     domapshot = 10;
 
@@ -270,4 +321,188 @@ command_result colormap_cmd (color_ostream &out, std::vector <std::string> & par
     }
 
     return CR_OK;    
+}
+
+typedef void (*TTT)(void *world, short rx, short ry, short ex, short ey, int unk1, int unk2, void *unk3);
+typedef void (*QQQ)(void *world);
+
+int _rx;
+int _ry;
+int _ex;
+int _ey;
+
+command_result ttt_cmd (color_ostream &out, std::vector <std::string> & parameters)
+{
+    TTT ttt = (TTT)0xd43a10;
+
+    int kk[] = { 8, -1, 0, -1, -1 };
+    int kk2[] = { 0, -1, 0, -1, 0x18 };
+
+    int rx;
+    int ry;
+    int ex;
+    int ey;
+    if (parameters.size())
+    {
+        rx = atoi(parameters[0].c_str());
+        ry = atoi(parameters[1].c_str());
+        ex = atoi(parameters[2].c_str());
+        ey = atoi(parameters[3].c_str());
+    }
+    else
+    {
+        rx = _rx;
+        ry = _ry;
+        ex = _ex;
+        ey = _ey;
+    }
+
+    MemoryPatcher p(Core::getInstance().p);
+    p.makeWritable((void*)0xd0681b, 5);
+    memset((void*)0xd06817, 0x90, 5);
+
+    ttt(df::global::world, rx,ry,ex,ey,   1, 0,   kk);
+
+    //*df::global::window_x = 144/3*ex+1;
+    //*df::global::window_y = 144/3*ey+1;
+out << df::global::world->units.active[0]->pos.x << std::endl;
+out << df::global::world->units.active[0]->pos.y << std::endl;
+out << df::global::world->units.active[0]->pos.z << std::endl;
+df::global::world->units.active[0]->pos.x = 10;
+df::global::world->units.active[0]->pos.y = 10;
+df::global::world->world_data->unk_x1 = 0;
+df::global::world->world_data->unk_x2 = 144;
+df::global::world->world_data->unk_y1 = 0;
+df::global::world->world_data->unk_y2 = 144;
+    int z;
+    for (z = 50; z < df::global::world->map.z_count; z++)
+    {
+        for (int bx = 0; bx < df::global::world->map.x_count_block; bx++)
+        {
+            for (int by = 0; by < df::global::world->map.y_count_block; by++)
+            {
+                df::map_block *block = world->map.block_index[bx][by][z];
+                if (block)
+                {
+                    for (int x = 0; x < 16; x++)
+                    {
+                        for (int y = 0; y < 16; y++)
+                        {
+                            /*df::tiletype tt = block->tiletype[x][y];
+                            if (tt == df::tiletype::StoneWall || tt == df::tiletype::SoilWall || tt == df::tiletype::LavaWall
+                                || tt == df::tiletype::FeatureWall || tt == df::tiletype::FrozenWall || tt == df::tiletype::MineralWall)
+                                goto nextz;*/
+                            if (block->designation[x][y].bits.subterranean)
+                                goto nextz;
+                        }
+                    }
+                }
+            }            
+        }
+
+        break;
+
+        nextz:;
+    }
+    done:;
+*out2 << "ZZ " << z << std::endl;
+    *df::global::window_z = z;
+
+    return CR_OK;
+}
+
+command_result qqq_cmd (color_ostream &out, std::vector <std::string> & parameters)
+{
+    //QQQ qqq = (QQQ)0x34edd0;
+    QQQ qqq = (QQQ)0xd454f0;
+    //QQQ qqq = (QQQ)0xd42e40;
+
+    qqq(df::global::world);
+    return CR_OK;
+}
+
+command_result www_cmd (color_ostream &out, std::vector <std::string> & parameters)
+{
+    CoreSuspender suspend;
+    qqq_cmd(out, parameters);
+    ttt_cmd(out, parameters);
+    df::viewscreen *ws = Gui::getCurViewscreen();
+    for (int i = 0; i < 3; i++)
+    {
+        ws->logic();
+        ws->render();
+    }
+    mapshot_cmd(out, parameters);
+    return CR_OK;
+}
+
+typedef void (*PPP)(void *world, int unload, void *coords);
+
+command_result ppp_cmd (color_ostream &out, std::vector <std::string> & parameters)
+{
+    std::vector <std::string> q;
+    int x1 = atoi(parameters[0].c_str());
+    int x2 = atoi(parameters[1].c_str());
+    int y1 = atoi(parameters[2].c_str());
+    int y2 = atoi(parameters[3].c_str());
+
+    x1 /= 3;
+    x1 *= 3;
+    y1 /= 3;
+    y1 *= 3;
+
+    for (int y = y1; y <= y2; y+=3)
+    {
+        for (int x = x1; x <= x2; x+=3)
+        {
+            _rx = x / 16;
+            _ry = y / 16;
+            _ex = x % 16+1;
+            _ey = y % 16+1;
+    
+            www_cmd(out, q);
+            while(domapshot);
+        }        
+    }
+
+    return CR_OK;
+
+    while(df::global::world->map.region_x < 500){
+    {
+    CoreSuspender suspend;
+
+ /*   PPP ppp = (PPP)0xd42e40;
+
+
+    int x1 = atoi(parameters[0].c_str());
+    int x2 = atoi(parameters[1].c_str());
+    int y1 = atoi(parameters[2].c_str());
+    int y2 = atoi(parameters[3].c_str());
+
+    int kk[] = { x1, x2, y1, y2 };
+
+    *out2 << "ppp 1" << std::endl;
+    //ppp(df::global::world, 0, 0);
+    *out2 << "ppp 2" << std::endl;
+    ppp(df::global::world, 1, kk);
+    *out2 << "ppp 3" << std::endl;
+
+    *out2 << df::global::world->map.region_x << std::endl;*/
+
+    *out2 << df::global::world->map.region_x << std::endl;
+    df::global::world->units.active[0]->pos.x = 150;
+    df::viewscreen *ws = Gui::getCurViewscreen();
+    for (int i = 0; i < 3; i++)
+    {
+        ws->logic();
+        ws->render();
+    }
+    *out2 << df::global::world->map.region_x << std::endl;
+    mapshot_cmd(out, parameters);
+}
+    while(domapshot);
+
+    *out2 << "done" << std::endl;
+}
+    return CR_OK;
 }

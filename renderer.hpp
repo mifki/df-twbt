@@ -192,6 +192,8 @@ void renderer_cool::reshape_gl()
 static bool is_main_scr;
 void renderer_cool::draw(int vertex_count)
 {
+    int _domapshot = domapshot;
+
     static bool initial_resize = false;
     if (!initial_resize)
     {
@@ -226,6 +228,51 @@ void renderer_cool::draw(int vertex_count)
         }*/
     }    
 
+    static int old_dimx, old_dimy, old_winx, old_winy;
+    if (_domapshot)
+    {
+        old_dimx = gps->dimx;
+        old_dimy = gps->dimy;
+        old_winx = *df::global::window_x;
+        old_winy = *df::global::window_y;
+
+        gdimx = gdimxfull = world->map.x_count;
+        gdimy = gdimyfull = world->map.y_count;
+
+        //if (df::viewscreen_dwarfmodest::_identity.is_direct_instance(ws))
+            goff_x = goff_y_gl = 0;
+
+        int tiles = gdimx * gdimy;
+
+        // Recreate tile buffers
+        allocate_buffers(tiles);
+
+        // Recreate OpenGL buffers
+        gvertexes = (GLfloat*)realloc(gvertexes, sizeof(GLfloat) * tiles * 2 * 6);
+        gfg = (GLfloat*)realloc(gfg, sizeof(GLfloat) * tiles * 4 * 6);
+        gbg = (GLfloat*)realloc(gbg, sizeof(GLfloat) * tiles * 4 * 6);
+        gtex = (GLfloat*)realloc(gtex, sizeof(GLfloat) * tiles * 2 * 6);
+
+        // Initialise vertex coords
+        int tile = 0;   
+        for (GLfloat x = 0; x < gdimx; x++)
+            for (GLfloat y = 0; y < gdimy; y++, tile++)
+                write_tile_vertexes(x, y, gvertexes + 6 * 2 * tile);
+
+        needs_full_update = true;
+
+
+        *df::global::window_x = 0;
+        *df::global::window_y = 0;
+        gps->force_full_display_count = 1;
+
+        for (int i = 0; i < 3; i++)
+        {
+            ws->logic();
+            ws->render();
+        }
+    }    
+
     display_new(is_main_scr);
 
 #ifdef WIN32
@@ -240,40 +287,23 @@ void renderer_cool::draw(int vertex_count)
     }
 #endif
 
-    static int old_dimx, old_dimy, old_winx, old_winy;
-    if (domapshot)
-    {
-        if (domapshot == 10)
-        {
-            old_dimx = gps->dimx;
-            old_dimy = gps->dimy;
-            old_winx = *df::global::window_x;
-            old_winy = *df::global::window_y;
 
-            grid_resize(world->map.x_count + 36, world->map.y_count + 2);
-            *df::global::window_x = 0;
-            *df::global::window_y = 0;
-            gps->force_full_display_count = 1;
-        }
-        domapshot--;
-    }
 
     GLuint framebuffer, renderbuffer;
     GLenum status;
-    if (domapshot == 5)
+    if (_domapshot)
     {
         // Set the width and height appropriately for your image
-        GLuint imageWidth = gps->dimx * dispx,
-               imageHeight = gps->dimy * dispy;
+        GLuint imageWidth = gdimx * gdispx,
+               imageHeight = gdimy * gdispy;
         //Set up a FBO with one renderbuffer attachment
         glGenFramebuffers(1, &framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glGenRenderbuffers(1, &renderbuffer);
         glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, imageWidth, imageHeight);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                                  GL_RENDERBUFFER, renderbuffer);
-        glViewport(0, 0, gps->dimx * dispx, gps->dimy * dispy);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderbuffer);
+        glViewport(0, 0, imageWidth, imageHeight);
 
         /*glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
@@ -434,12 +464,16 @@ void renderer_cool::draw(int vertex_count)
 
             glDisable(GL_SCISSOR_TEST);
 
-            glViewport(off_x, off_y, size_x, size_y);
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-            glOrtho(0, tdimx, tdimy, 0, -1, 1);            
+            if (!_domapshot)
+            {
+                glViewport(off_x, off_y, size_x, size_y);
+                glMatrixMode(GL_PROJECTION);
+                glLoadIdentity();
+                glOrtho(0, tdimx, tdimy, 0, -1, 1);            
+            }
         }
     }
+    if (!_domapshot)
     {
         glVertexPointer(2, GL_FLOAT, 0, vertexes);
 
@@ -461,16 +495,16 @@ void renderer_cool::draw(int vertex_count)
     }
 
 
-    if (domapshot == 1)
+    if (_domapshot)
     {
-        int w = world->map.x_count * dispx;
-        int h = world->map.y_count * dispy;
+        int w = world->map.x_count * gdispx;
+        int h = world->map.y_count * gdispy;
 
         unsigned char *data = (unsigned char *) malloc(w * h * 3);
 
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glPixelStorei(GL_PACK_ROW_LENGTH, 0);
-        glReadPixels(dispx, dispy, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
+        glReadPixels(0, 0, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
 
 
 #pragma pack(push,1)
@@ -498,9 +532,12 @@ void renderer_cool::draw(int vertex_count)
         hdr.Height = h;
         hdr.PixelDepth = 24;
 
-
         *out2 << w << " " << h << std::endl;
-        std::ofstream img("mapshot.tga", std::ofstream::binary);
+
+        char fn[256];
+        sprintf(fn, "mapshot_%d_%d.tga", df::global::world->map.region_y, df::global::world->map.region_x);
+        std::ofstream img(fn, std::ofstream::binary);
+
         img.write((const char *)&hdr, sizeof(hdr));
         /*        for (int j = 0; j<w*h*3; j++)
                 {
@@ -509,10 +546,12 @@ void renderer_cool::draw(int vertex_count)
                     data[j+2] = c;
                 }*/
         img.write((const char *)data, w * h * 3);
+        free(data);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         // Delete the renderbuffer attachment
         glDeleteRenderbuffers(1, &renderbuffer);
+        glDeleteFramebuffers(1, &framebuffer);
 
         grid_resize(old_dimx, old_dimy);
         *df::global::window_x = old_winx;

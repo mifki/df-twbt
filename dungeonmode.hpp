@@ -116,7 +116,7 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         int oldgridx = init->display.grid_x;
         int oldgridy = init->display.grid_y;
         init->display.grid_x = r->gdimx;
-        init->display.grid_y = r->gdimy+1;
+        init->display.grid_y = r->gdimy+2;
         gps->dimx = r->gdimx;
         gps->dimy = r->gdimy;
         gps->clipx[1] = r->gdimx-1;
@@ -202,7 +202,7 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
                         if (ch == 0)
                         {
                             df::map_block *block0 = world->map.block_index[xxquot][yyquot][zz];
-                            if (!block0->designation[xxrem][yyrem].bits.pile)
+                            if (block0 && !block0->designation[xxrem][yyrem].bits.pile)
                             {
                                 *((int*)gscreen+tile) = 0;
                                 continue;
@@ -214,7 +214,7 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
                         {
                             //TODO: zz0 or zz ??
                             df::map_block *block0 = world->map.block_index[xxquot][yyquot][zz];
-                            if (block0->tiletype[xxrem][yyrem] != df::tiletype::RampTop || block0->designation[xxrem][yyrem].bits.flow_size || !block0->designation[xxrem][yyrem].bits.pile)
+                            if (block0&&(block0->tiletype[xxrem][yyrem] != df::tiletype::RampTop || block0->designation[xxrem][yyrem].bits.flow_size || !block0->designation[xxrem][yyrem].bits.pile))
                                 continue;
                         	ramp = true;                            
                         }
@@ -249,7 +249,7 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
                             {
                                 df::map_block *block0 = world->map.block_index[xxquot][yyquot][zz-1];
 
-                                if (block0->designation[xxrem][yyrem].bits.pile)
+                                if (!block0 || block0->designation[xxrem][yyrem].bits.pile)
                                 {
                                     empty_tiles_left = true;
                                     continue;
@@ -258,11 +258,19 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
                             else if (ch == 31)
                             {
                                 df::map_block *block1 = world->map.block_index[xxquot][yyquot][zz-1];
-                                df::tiletype t1 = block1->tiletype[xxrem][yyrem];
-                                if (t1 == df::tiletype::RampTop && !block1->designation[xxrem][yyrem].bits.flow_size)
+                                if (!block1)
                                 {
                                     empty_tiles_left = true;
-                                    continue;
+                                    continue;                                    
+                                }
+                                else
+                                {
+                                    df::tiletype t1 = block1->tiletype[xxrem][yyrem];
+                                    if (t1 == df::tiletype::RampTop && !block1->designation[xxrem][yyrem].bits.flow_size)
+                                    {
+                                        empty_tiles_left = true;
+                                        continue;
+                                    }
                                 }
                             }
                         }
@@ -390,7 +398,8 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
             gps->screentexpos_cf = enabler->renderer->screentexpos_cf = gscreentexpos_cf;
             gps->screentexpos_cbr = enabler->renderer->screentexpos_cbr = gscreentexpos_cbr;
 
-            render_updown();
+            if (!domapshot)
+                render_updown();
         }
 
         init->display.grid_x = gps->dimx = tdimx;

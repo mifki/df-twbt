@@ -109,9 +109,19 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 
     commands.push_back(PluginCommand(
         "mapshot", "Mapshot!",
-        mapshot_cmd, true,
-        ""
-    ));        
+        mapshot_cmd));        
+    commands.push_back(PluginCommand(
+        "ttt", "ttt",
+        ttt_cmd));        
+    commands.push_back(PluginCommand(
+        "qqq", "qqq",
+        qqq_cmd));        
+    commands.push_back(PluginCommand(
+        "www", "www",
+        www_cmd));        
+    commands.push_back(PluginCommand(
+        "ppp", "ppp",
+        ppp_cmd));        
     commands.push_back(PluginCommand(
         "multilevel", "Multi-level rendering",
         multilevel_cmd, false,
