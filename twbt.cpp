@@ -89,6 +89,8 @@
 
 #include "renderer_twbt.h"
 
+#include <jpeglib.h>
+
 using df::global::world;
 using std::string;
 using std::vector;

@@ -21,15 +21,15 @@ else
 endif
 OUT = dist/$(DFHACKVER)/twbt.plug.$(EXT)
 
-INC = -I"$(DH)/library/include" -I"$(DH)/library/proto" -I"$(DH)/depends/protobuf" -I"$(DH)/depends/lua/include"
-LIB = -L"$(DH)/build/library" -ldfhack -ldfhack-version
+INC = -I"$(DH)/library/include" -I"$(DH)/library/proto" -I"$(DH)/depends/protobuf" -I"$(DH)/depends/lua/include" -I./libjpeg
+LIB = -L"$(DH)/build/library" -ldfhack -ldfhack-version ./libjpeg/.libs/libjpeg.a
 
-CXX = c++
-CFLAGS = $(INC) -m32 -DLINUX_BUILD -g #-O3
+CXX = g++-4.5
+CFLAGS = $(INC) -m32 -DLINUX_BUILD -O3
 LDFLAGS = $(LIB) -shared 
 
 ifeq ($(shell uname -s), Darwin)
-	CFLAGS += -std=gnu++0x -stdlib=libstdc++
+	CFLAGS += -std=gnu++0x #-stdlib=libstdc++
 	CFLAGS += -Wno-tautological-compare
 	LDFLAGS += -framework OpenGL -mmacosx-version-min=10.6 -undefined dynamic_lookup
 else

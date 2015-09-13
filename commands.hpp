@@ -365,16 +365,17 @@ command_result ttt_cmd (color_ostream &out, std::vector <std::string> & paramete
 
     //*df::global::window_x = 144/3*ex+1;
     //*df::global::window_y = 144/3*ey+1;
-out << df::global::world->units.active[0]->pos.x << std::endl;
-out << df::global::world->units.active[0]->pos.y << std::endl;
-out << df::global::world->units.active[0]->pos.z << std::endl;
-df::global::world->units.active[0]->pos.x = 10;
-df::global::world->units.active[0]->pos.y = 10;
-df::global::world->world_data->unk_x1 = 0;
-df::global::world->world_data->unk_x2 = 144;
-df::global::world->world_data->unk_y1 = 0;
-df::global::world->world_data->unk_y2 = 144;
-    int z;
+    out << df::global::world->units.active[0]->pos.x << std::endl;
+    out << df::global::world->units.active[0]->pos.y << std::endl;
+    out << df::global::world->units.active[0]->pos.z << std::endl;
+    df::global::world->units.active[0]->pos.x = 10;
+    df::global::world->units.active[0]->pos.y = 10;
+    df::global::world->world_data->unk_x1 = 0;
+    df::global::world->world_data->unk_x2 = 144;
+    df::global::world->world_data->unk_y1 = 0;
+    df::global::world->world_data->unk_y2 = 144;
+    
+    /*int z;
     for (z = 50; z < df::global::world->map.z_count; z++)
     {
         for (int bx = 0; bx < df::global::world->map.x_count_block; bx++)
@@ -388,10 +389,6 @@ df::global::world->world_data->unk_y2 = 144;
                     {
                         for (int y = 0; y < 16; y++)
                         {
-                            /*df::tiletype tt = block->tiletype[x][y];
-                            if (tt == df::tiletype::StoneWall || tt == df::tiletype::SoilWall || tt == df::tiletype::LavaWall
-                                || tt == df::tiletype::FeatureWall || tt == df::tiletype::FrozenWall || tt == df::tiletype::MineralWall)
-                                goto nextz;*/
                             if (block->designation[x][y].bits.subterranean)
                                 goto nextz;
                         }
@@ -406,7 +403,7 @@ df::global::world->world_data->unk_y2 = 144;
     }
     done:;
 *out2 << "ZZ " << z << std::endl;
-    *df::global::window_z = z;
+    *df::global::window_z = z;*/
 
     return CR_OK;
 }
@@ -446,10 +443,10 @@ command_result ppp_cmd (color_ostream &out, std::vector <std::string> & paramete
     int y1 = atoi(parameters[2].c_str());
     int y2 = atoi(parameters[3].c_str());
 
-    x1 /= 3;
+    /*x1 /= 3;
     x1 *= 3;
     y1 /= 3;
-    y1 *= 3;
+    y1 *= 3;*/
 
     for (int y = y1; y <= y2; y+=3)
     {

@@ -504,49 +504,64 @@ void renderer_cool::draw(int vertex_count)
 
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glPixelStorei(GL_PACK_ROW_LENGTH, 0);
-        glReadPixels(0, 0, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
+        glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, data);
 
+/*
 
-#pragma pack(push,1)
-        typedef struct _TgaHeader
-        {
-            unsigned char IDLength;        /* 00h  Size of Image ID field */
-            unsigned char ColorMapType;    /* 01h  Color map type */
-            unsigned char ImageType;       /* 02h  Image type code */
-            unsigned short CMapStart;       /* 03h  Color map origin */
-            unsigned short CMapLength;      /* 05h  Color map length */
-            unsigned char CMapDepth;       /* 07h  Depth of color map entries */
-            unsigned short XOffset;         /* 08h  X origin of image */
-            unsigned short YOffset;         /* 0Ah  Y origin of image */
-            unsigned short Width;           /* 0Ch  Width of image */
-            unsigned short Height;          /* 0Eh  Height of image */
-            unsigned char PixelDepth;      /* 10h  Image pixel size */
-            unsigned char ImageDescriptor; /* 11h  Image descriptor byte */
-        } TGAHEAD;
-#pragma pop
 
         TGAHEAD hdr;
         memset(&hdr, 0, sizeof(hdr));
         hdr.ImageType = 2;
         hdr.Width = w;
         hdr.Height = h;
-        hdr.PixelDepth = 24;
+        hdr.PixelDepth = 24;*/
 
         *out2 << w << " " << h << std::endl;
+        mkdir("worldmap", 0755);
+        for (int row = 0; row < world->map.y_count_block; row++)
+        {
+            char dir[256];
+            sprintf(dir, "worldmap/%d", df::global::world->map.region_y*3+row);
 
-        char fn[256];
-        sprintf(fn, "mapshot_%d_%d.tga", df::global::world->map.region_y, df::global::world->map.region_x);
-        std::ofstream img(fn, std::ofstream::binary);
+            for (int col = 0; col < world->map.x_count_block; col++)
+            {
+                mkdir(dir, 0755);
+                char fn[256];
+                sprintf(fn, "worldmap/%d/map_%d_%d.jpg", df::global::world->map.region_y*3+row, df::global::world->map.region_y*3+row, df::global::world->map.region_x*3+col);
 
-        img.write((const char *)&hdr, sizeof(hdr));
-        /*        for (int j = 0; j<w*h*3; j++)
-                {
-                    unsigned char c = data[j+0];
-                    data[0] = data[j+2];
-                    data[j+2] = c;
-                }*/
-        img.write((const char *)data, w * h * 3);
+                struct jpeg_compress_struct cinfo;
+                struct jpeg_error_mgr jerr;
+
+                JSAMPROW row_pointer[1];    /* pointer to JSAMPLE row[s] */
+                int row_stride;
+                cinfo.err = jpeg_std_error(&jerr);
+                jpeg_create_compress(&cinfo);
+                FILE *outfile = fopen(fn, "wb");
+                jpeg_stdio_dest(&cinfo, outfile);
+
+                cinfo.image_width = 16*gdispx;    /* image width and height, in pixels */
+                cinfo.image_height = 16*gdispy;
+                cinfo.input_components = 3;       /* # of color components per pixel */
+                cinfo.in_color_space = JCS_RGB;
+
+                jpeg_set_defaults(&cinfo);
+                jpeg_set_quality(&cinfo, 95, FALSE /* limit to baseline-JPEG values */);
+                jpeg_start_compress(&cinfo, TRUE);
+                row_stride = w * 3;
+
+                while (cinfo.next_scanline < cinfo.image_height) {
+                    row_pointer[0] = & data[(h-(16*gdispy*row+cinfo.next_scanline)-1) * row_stride + 16*gdispx*col*3];
+                    (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
+                }
+
+                jpeg_finish_compress(&cinfo);
+                fclose(outfile);
+                jpeg_destroy_compress(&cinfo);
+            }
+        }
+
         free(data);
+
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         // Delete the renderbuffer attachment
