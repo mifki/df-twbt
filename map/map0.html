@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html style="width:100%;height:100%;">
+<head>
+	<title>Dwarf Fortress World Map (Excerpt)</title>
+	<meta name="author" content="Vitaly Pronkin">
+	<link rel="stylesheet" href="leaflet-0/leaflet.css" />
+	<link rel="stylesheet" href="minimap/Control.MiniMap.min.css" />
+	<link rel="stylesheet" href="leaflet-fullscreen/leaflet.fullscreen.css" />
+	<link rel="stylesheet" href="leaflet-bookmarks/leaflet.bookmarks.min.css" />
+	<script src="leaflet-0/leaflet.js"></script>
+	<script src="minimap/Control.MiniMap.min.js"></script>
+	<script src="leaflet-hash.js"></script>
+	<script src="leaflet-fullscreen/Leaflet.fullscreen.min.js"></script>
+	<script src="leaflet-bookmarks/Leaflet.Bookmarks.min.js"></script>
+	<style>
+		.leaflet-tile {
+		    _outline: 1px solid transparent;
+		}
+		.leaflet-tile-pane {
+			_z-index: 10;
+		}
+	</style>
+</head>
+
+<body style="width:100%;height:100%;margin:0;">
+	<div id="map" style="width:100%;height:100%;_background:transparent;"></div>
+
+	<script>
+	var ww = 17, wh = 17;
+	var wregw = ww * 16, wregh = wh * 16;
+	var wblockw = wregw * 3, wblockh = wregh * 3;
+	var maxZoom = Math.ceil(Math.log(wblockw)/Math.log(2));
+
+	var crs = L.extend({}, L.CRS, {
+		projection: L.Projection.LonLat,
+		scale: function (zoom) {
+			return 256 * Math.pow(2, zoom);
+		},
+		transformation: new L.Transformation(1 / (1*Math.pow(2, maxZoom)), 0, -1 / (1*Math.pow(2, maxZoom)), 0)
+	});
+
+	var map = L.map('map', {
+		center: new L.LatLng(0,0), zoom:9, minZoom:1,
+		maxBounds:[ [50,-50],[-272*3-50,272*3+50] ],
+		inertia:false, boxZoom:true, scrollWheelZoom:false, crs:crs,
+		fullscreenControl: true,
+	});
+
+	var bg = L.tileLayer('white.png', {
+	    maxZoom: maxZoom,
+	    noWrap: true,
+	}).addTo(map);
+
+	//var bg = L.imageOverlay('white.png', [[0, 0], [-272*3, 272*3]]).addTo(map);
+
+	var l = L.tileLayer('out0/{key}.jpg', {
+	    maxZoom: maxZoom,
+	    noWrap: true,
+	    key: function(obj) {
+	    	return (obj.z) + '/' + (obj.y) + '/map_' + (obj.y) + '_' + (obj.x);
+	    },
+	}).addTo(map);
+
+	var minil = L.tileLayer('out0/{key}.jpg', {
+	    maxZoom: maxZoom,
+	    noWrap: true,
+	    key: function(obj) {
+	    	return (obj.z) + '/' + (obj.y) + '/map_' + (obj.y) + '_' + (obj.x);
+	    },
+	});
+	var miniMap = new L.Control.MiniMap(minil, {_zoomLevelFixed:2 }).addTo(map);
+
+	var hash = new L.Hash(map);
+	var bm = new L.Control.Bookmarks().addTo(map);
+
+    bm._appendItems([{id:'qqq',name:'eweq',latlng:[-100*3,100*3],zoom:5}]);
+
+	</script>
+</body>
+</html>

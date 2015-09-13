@@ -1,9 +1,55 @@
+int find_top_z()
+{
+    int z;
+    bool ramp = false;
+    for (z = 50; z < df::global::world->map.z_count; z++)
+    {
+        for (int bx = 0; bx < df::global::world->map.x_count_block; bx++)
+        {
+            for (int by = 0; by < df::global::world->map.y_count_block; by++)
+            {
+                df::map_block *block = world->map.block_index[bx][by][z];
+                if (block)
+                {
+                    for (int x = 0; x < 16; x++)
+                    {
+                        for (int y = 0; y < 16; y++)
+                        {
+                            df::tiletype tt = block->tiletype[x][y];
+                            df::tiletype_shape tshape = tileShape(tt);
+
+                            if (!ramp && (tt == df::tiletype::SoilRamp ||
+                                tt == df::tiletype::StoneRamp ||
+                                tt == df::tiletype::MineralRamp))
+                            {
+                                //ramp = true;
+                                goto nextz;
+                            }
+
+                            if (block->designation[x][y].bits.subterranean)
+                            {
+                                ramp = false;
+                                goto nextz;
+                            }
+                        }
+                    }
+                }
+            }            
+        }
+
+        break;
+
+        nextz:;
+    }
+    done:;
+
+    return z;
+}
+
 command_result mapshot_cmd (color_ostream &out, std::vector <std::string> & parameters)
 {
     if (!enabled)
         return CR_FAILURE;
-
-//    CoreSuspender suspend;
 
     for (int z = 50; z < df::global::world->map.z_count; z++)
     {
@@ -29,38 +75,8 @@ command_result mapshot_cmd (color_ostream &out, std::vector <std::string> & para
         }
     }    
 
-    int z;
-    for (z = 50; z < df::global::world->map.z_count; z++)
-    {
-        for (int bx = 0; bx < df::global::world->map.x_count_block; bx++)
-        {
-            for (int by = 0; by < df::global::world->map.y_count_block; by++)
-            {
-                df::map_block *block = world->map.block_index[bx][by][z];
-                if (block)
-                {
-                    for (int x = 0; x < 16; x++)
-                    {
-                        for (int y = 0; y < 16; y++)
-                        {
-                            /*df::tiletype tt = block->tiletype[x][y];
-                            if (tt == df::tiletype::StoneWall || tt == df::tiletype::SoilWall || tt == df::tiletype::LavaWall
-                                || tt == df::tiletype::FeatureWall || tt == df::tiletype::FrozenWall || tt == df::tiletype::MineralWall)
-                                goto nextz;*/
-                            if (block->designation[x][y].bits.subterranean)
-                                goto nextz;
-                        }
-                    }
-                }
-            }            
-        }
-
-        break;
-
-        nextz:;
-    }
-    done:;
-*out2 << "ZZ " << z << std::endl;
+    int z = find_top_z();
+    *out2 << " z = " << z << std::endl;
     df::global::world->units.active[0]->pos.z = z;
 
     domapshot = 10;
@@ -363,11 +379,6 @@ command_result ttt_cmd (color_ostream &out, std::vector <std::string> & paramete
 
     ttt(df::global::world, rx,ry,ex,ey,   1, 0,   kk);
 
-    //*df::global::window_x = 144/3*ex+1;
-    //*df::global::window_y = 144/3*ey+1;
-    out << df::global::world->units.active[0]->pos.x << std::endl;
-    out << df::global::world->units.active[0]->pos.y << std::endl;
-    out << df::global::world->units.active[0]->pos.z << std::endl;
     df::global::world->units.active[0]->pos.x = 10;
     df::global::world->units.active[0]->pos.y = 10;
     df::global::world->world_data->unk_x1 = 0;
@@ -375,35 +386,7 @@ command_result ttt_cmd (color_ostream &out, std::vector <std::string> & paramete
     df::global::world->world_data->unk_y1 = 0;
     df::global::world->world_data->unk_y2 = 144;
     
-    /*int z;
-    for (z = 50; z < df::global::world->map.z_count; z++)
-    {
-        for (int bx = 0; bx < df::global::world->map.x_count_block; bx++)
-        {
-            for (int by = 0; by < df::global::world->map.y_count_block; by++)
-            {
-                df::map_block *block = world->map.block_index[bx][by][z];
-                if (block)
-                {
-                    for (int x = 0; x < 16; x++)
-                    {
-                        for (int y = 0; y < 16; y++)
-                        {
-                            if (block->designation[x][y].bits.subterranean)
-                                goto nextz;
-                        }
-                    }
-                }
-            }            
-        }
-
-        break;
-
-        nextz:;
-    }
-    done:;
-*out2 << "ZZ " << z << std::endl;
-    *df::global::window_z = z;*/
+    *df::global::window_z = find_top_z();
 
     return CR_OK;
 }
@@ -457,6 +440,7 @@ command_result ppp_cmd (color_ostream &out, std::vector <std::string> & paramete
             _ex = x % 16+1;
             _ey = y % 16+1;
     
+            *out2 << x << " " << y << std::endl; 
             www_cmd(out, q);
             while(domapshot);
         }        
@@ -466,37 +450,36 @@ command_result ppp_cmd (color_ostream &out, std::vector <std::string> & paramete
 
     while(df::global::world->map.region_x < 500){
     {
-    CoreSuspender suspend;
+        CoreSuspender suspend;
 
- /*   PPP ppp = (PPP)0xd42e40;
+     /*   PPP ppp = (PPP)0xd42e40;
 
 
-    int x1 = atoi(parameters[0].c_str());
-    int x2 = atoi(parameters[1].c_str());
-    int y1 = atoi(parameters[2].c_str());
-    int y2 = atoi(parameters[3].c_str());
+        int x1 = atoi(parameters[0].c_str());
+        int x2 = atoi(parameters[1].c_str());
+        int y1 = atoi(parameters[2].c_str());
+        int y2 = atoi(parameters[3].c_str());
 
-    int kk[] = { x1, x2, y1, y2 };
+        int kk[] = { x1, x2, y1, y2 };
 
-    *out2 << "ppp 1" << std::endl;
-    //ppp(df::global::world, 0, 0);
-    *out2 << "ppp 2" << std::endl;
-    ppp(df::global::world, 1, kk);
-    *out2 << "ppp 3" << std::endl;
+        *out2 << "ppp 1" << std::endl;
+        //ppp(df::global::world, 0, 0);
+        *out2 << "ppp 2" << std::endl;
+        ppp(df::global::world, 1, kk);
+        *out2 << "ppp 3" << std::endl;
 
-    *out2 << df::global::world->map.region_x << std::endl;*/
+        *out2 << df::global::world->map.region_x << std::endl;*/
 
-    *out2 << df::global::world->map.region_x << std::endl;
-    df::global::world->units.active[0]->pos.x = 150;
-    df::viewscreen *ws = Gui::getCurViewscreen();
-    for (int i = 0; i < 3; i++)
-    {
-        ws->logic();
-        ws->render();
+        df::global::world->units.active[0]->pos.x = 150;
+        df::viewscreen *ws = Gui::getCurViewscreen();
+        for (int i = 0; i < 3; i++)
+        {
+            ws->logic();
+            ws->render();
+        }
+
+        mapshot_cmd(out, parameters);
     }
-    *out2 << df::global::world->map.region_x << std::endl;
-    mapshot_cmd(out, parameters);
-}
     while(domapshot);
 
     *out2 << "done" << std::endl;

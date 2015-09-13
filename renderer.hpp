@@ -115,7 +115,6 @@ void renderer_cool::reshape_graphics()
     }
     else //Adv. mode
     {
-        *out2 << "reshape_graphics" << std::endl;
         gsize_x = size_x;
         gsize_y = size_y;
         goff_x = off_x;
@@ -506,17 +505,6 @@ void renderer_cool::draw(int vertex_count)
         glPixelStorei(GL_PACK_ROW_LENGTH, 0);
         glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, data);
 
-/*
-
-
-        TGAHEAD hdr;
-        memset(&hdr, 0, sizeof(hdr));
-        hdr.ImageType = 2;
-        hdr.Width = w;
-        hdr.Height = h;
-        hdr.PixelDepth = 24;*/
-
-        *out2 << w << " " << h << std::endl;
         mkdir("worldmap", 0755);
         for (int row = 0; row < world->map.y_count_block; row++)
         {
