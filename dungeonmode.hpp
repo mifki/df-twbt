@@ -127,6 +127,13 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
          
         // if (maxlevels && shadowsloaded)
             // (*df::global::window_z)+=1;
+    
+        int uz;
+        if (domapshot)
+        {
+            uz = df::global::world->units.active[0]->pos.z;
+            df::global::world->units.active[0]->pos.z = 0;
+        }
 
        	render_map();
 
@@ -414,6 +421,9 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         gps->screentexpos_grayscale = enabler->renderer->screentexpos_grayscale = screentexpos_grayscaletop;
         gps->screentexpos_cf = enabler->renderer->screentexpos_cf = screentexpos_cftop;
         gps->screentexpos_cbr = enabler->renderer->screentexpos_cbr = screentexpos_cbrtop;
+
+        if (domapshot)
+            df::global::world->units.active[0]->pos.z = uz;
 
         //clock_t c2 = clock();
         //*out2 << (c2-c1) << std::endl;
