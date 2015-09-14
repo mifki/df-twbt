@@ -154,7 +154,7 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
 
         else if (param0 == "more")
         {
-            if (maxlevels < 15)
+            if (maxlevels < 127)
                 newmaxlevels = maxlevels + 1;
         }
         else if (param0 == "less")
@@ -166,7 +166,7 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
         {
             int val;
             if (parse_int(param0, val))
-                newmaxlevels = std::max (std::min(val, 15), 0);
+                newmaxlevels = std::max (std::min(val, 127), 0);
             else
                 return CR_WRONG_USAGE;
         }
@@ -349,7 +349,11 @@ int _ey;
 
 command_result ttt_cmd (color_ostream &out, std::vector <std::string> & parameters)
 {
+#ifndef __APPLE__
+    TTT ttt = (TTT)0x8de5e30;    
+#else
     TTT ttt = (TTT)0xd43a10;
+#endif
 
     int kk[] = { 8, -1, 0, -1, -1 };
     int kk2[] = { 0, -1, 0, -1, 0x18 };
@@ -374,8 +378,13 @@ command_result ttt_cmd (color_ostream &out, std::vector <std::string> & paramete
     }
 
     MemoryPatcher p(Core::getInstance().p);
+#ifndef __APPLE__
+    p.makeWritable((void*)0x8dad12a, 5);
+    memset((void*)0x8dad12a, 0x90, 5);
+#else
     p.makeWritable((void*)0xd0681b, 5);
     memset((void*)0xd06817, 0x90, 5);
+#endif
 
     ttt(df::global::world, rx,ry,ex,ey,   1, 0,   kk);
 
@@ -393,9 +402,13 @@ command_result ttt_cmd (color_ostream &out, std::vector <std::string> & paramete
 
 command_result qqq_cmd (color_ostream &out, std::vector <std::string> & parameters)
 {
+#ifndef __APPLE__
+    QQQ qqq = (QQQ)0x8de7320;
+#else
     //QQQ qqq = (QQQ)0x34edd0;
     QQQ qqq = (QQQ)0xd454f0;
     //QQQ qqq = (QQQ)0xd42e40;
+#endif
 
     qqq(df::global::world);
     return CR_OK;

@@ -46,7 +46,7 @@ void renderer_cool::update_map_tile(int x, int y)
 
     if (maxlevels)
     {
-        float d = (float)((gscreen[tile * 4 + 3] & 0xf0) >> 4);
+        float d = (float)((gscreen[tile * 4 + 3] & 0xfe) >> 1);
 
         depth[tile] = !gscreen[tile*4] ? 0x7f : d; //TODO: no need for this in fort mode
 

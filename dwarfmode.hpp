@@ -351,7 +351,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                             *(gscreentexpos_cf + tile) = *(mscreentexpos_cf + tile2);
                             *(gscreentexpos_cbr + tile) = *(mscreentexpos_cbr + tile2);
                         }
-                        gscreen[stile+3] = (0x10*d) | (gscreen[stile+3]&0x0f);
+                        gscreen[stile+3] = (d<<1) | (gscreen[stile+3]&1);
                     }
 
                     if (!empty_tiles_left)

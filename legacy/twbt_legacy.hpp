@@ -262,7 +262,7 @@ struct dwarfmode_hook_legacy : public df::viewscreen_dwarfmodest
                         *(screentexpos_cftop+tile) = *(screentexpos_cf2+tile2);
                         *(screentexpos_cbrtop+tile) = *(screentexpos_cbr2+tile2);
                     }
-                    sctop[stile+3] = (0x10*d) | (sctop[stile+3]&0x0f);                                        
+                    sctop[stile+3] = (d<<1) | (sctop[stile+3]&1);
                 }
 
                 if (!empty_tiles_left)

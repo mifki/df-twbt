@@ -43,7 +43,7 @@ static void screen_to_texid_map(renderer_cool *r, int tile, struct texture_fulli
 
     int fg   = s[1];
     int bg   = s[2];
-    int bold = s[3] & 0x0f;
+    int bold = s[3] & 1;
 
     const long texpos = gscreentexpos[tile];
 
