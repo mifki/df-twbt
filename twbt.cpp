@@ -200,6 +200,8 @@ static uint8_t *mscreentexpos_grayscale;
 static uint8_t *mscreentexpos_cf;
 static uint8_t *mscreentexpos_cbr;
 
+static int mapshot_z;
+
 #include "patches.hpp"
 
 #ifdef WIN32

@@ -1,9 +1,12 @@
+#define MIN_Z 10
+
 int find_top_z()
 {
     int z;
     bool ramp = false;
-    for (z = 1; z < df::global::world->map.z_count; z++)
+    for (z = MIN_Z; z < df::global::world->map.z_count; z++)
     {
+		bool foundblock = false;
         for (int bx = 0; bx < df::global::world->map.x_count_block; bx++)
         {
             for (int by = 0; by < df::global::world->map.y_count_block; by++)
@@ -11,6 +14,7 @@ int find_top_z()
                 df::map_block *block = world->map.block_index[bx][by][z];
                 if (block)
                 {
+					foundblock = true;
                     for (int x = 0; x < 16; x++)
                     {
                         for (int y = 0; y < 16; y++)
@@ -37,6 +41,9 @@ int find_top_z()
             }            
         }
 
+		if (!foundblock)
+			continue;
+
         break;
 
         nextz:;
@@ -51,7 +58,7 @@ command_result mapshot_cmd (color_ostream &out, std::vector <std::string> & para
     if (!enabled)
         return CR_FAILURE;
 
-    for (int z = 10; z < df::global::world->map.z_count; z++)
+    for (int z = 1; z < df::global::world->map.z_count; z++)
     {
         for (int bx = 0; bx < df::global::world->map.x_count_block; bx++)
         {
@@ -77,7 +84,7 @@ command_result mapshot_cmd (color_ostream &out, std::vector <std::string> & para
 
     int z = find_top_z();
     *out2 << " z = " << z << std::endl;
-    df::global::world->units.active[0]->pos.z = z;
+    mapshot_z = z;
 
     domapshot = 10;
 
@@ -388,12 +395,17 @@ command_result ttt_cmd (color_ostream &out, std::vector <std::string> & paramete
 
     ttt(df::global::world, rx,ry,ex,ey,   1, 0,   kk);
 
-    df::global::world->units.active[0]->pos.x = 10;
-    df::global::world->units.active[0]->pos.y = 10;
-    df::global::world->world_data->unk_x1 = 0;
-    df::global::world->world_data->unk_x2 = 144;
-    df::global::world->world_data->unk_y1 = 0;
-    df::global::world->world_data->unk_y2 = 144;
+    int z = find_top_z();
+
+    /*if (df::global::world->units.active.size())
+    {
+        df::global::world->units.active[0]->pos.x = 10;
+        df::global::world->units.active[0]->pos.y = 10;
+    }*/
+    df::global::world->world_data->unk_x1 = -32700;
+    df::global::world->world_data->unk_x2 = 32700;
+    df::global::world->world_data->unk_y1 = -32700;
+    df::global::world->world_data->unk_y2 = 32700;
     
     *df::global::window_z = find_top_z();
 
@@ -414,12 +426,80 @@ command_result qqq_cmd (color_ostream &out, std::vector <std::string> & paramete
     return CR_OK;
 }
 
-command_result www_cmd (color_ostream &out, std::vector <std::string> & parameters)
+bool jump_to_region(int x, int y, bool fine)
 {
-    CoreSuspender suspend;
-    qqq_cmd(out, parameters);
+    if (!df::global::world->units.active.size())
+    {
+        *out2 << "NO ACTIVE UNITS" << std::endl;
+        if (df::global::world->units.all.size())
+        {
+            *out2 << "WILL USE ALL[0]" << std::endl;
+            df::global::world->units.active[0] = df::global::world->units.all[0];
+        }
+        else
+            return false;
+    }
+    
+    df::unit *unit = df::global::world->units.active[0];
 
     {
+        int dx = x - df::global::world->map.region_x;
+        *out2 << "dx = " << dx << std::endl;
+        if (dx > 0)
+        {
+            if (fine)
+                unit->pos.x = 103;
+            else
+                unit->pos.x = 103 + 48*(dx-1);
+        }
+        else if (dx < 0)
+        {
+            if (fine)
+                unit->pos.x = 38;
+            else
+                unit->pos.x = 38 - 48*(-dx-1);
+        }
+    }
+
+    {
+        int dy = y - df::global::world->map.region_y;
+        *out2 << "dy = " << dy << std::endl;
+        if (dy > 0)
+        {
+            if (fine)
+                unit->pos.y = 103;
+            else
+                unit->pos.y = 103 + 48*(dy-1);
+        }
+        else if (dy < 0)
+        {
+            if (fine)
+                unit->pos.y = 38;
+            else
+                unit->pos.y = 38 - 48*(-dy-1);
+        }
+    }
+    
+    
+    df::viewscreen *ws = Gui::getCurViewscreen();
+    ws->logic();
+    ws->render();
+    
+    int dx = x - df::global::world->map.region_x;
+    int dy = y - df::global::world->map.region_y;
+    *out2 << "after jump dx dy = " << dx << " " << dy << std::endl;
+    if (dx || dy)
+        return jump_to_region(x, y, true);
+    
+    return true;
+}
+                    
+command_result www_cmd (color_ostream &out, std::vector <std::string> & parameters)
+{
+    //CoreSuspender suspend;
+    //qqq_cmd(out, parameters);
+
+    if(0){
         *df::global::building_next_id = 1;
         *df::global::item_next_id = 1;
         *df::global::unit_next_id = 1;
@@ -455,8 +535,7 @@ command_result www_cmd (color_ostream &out, std::vector <std::string> & paramete
         <global-address name='written_content_next_id' value='0x01bad934'/>*/
     }
 
-    ttt_cmd(out, parameters);
-
+    //ttt_cmd(out, parameters);
 
     {
         renderer_cool *r = (renderer_cool*)enabler->renderer;
@@ -489,15 +568,60 @@ command_result www_cmd (color_ostream &out, std::vector <std::string> & paramete
         *df::global::window_x = 0;
         *df::global::window_y = 0;
         gps->force_full_display_count = 1;
-    }    
+    }
 
     df::viewscreen *ws = Gui::getCurViewscreen();
-    for (int i = 0; i < 3; i++)
+
+    /*for (int i = 0; i < 3; i++)
+    {
+        ws->logic();
+        ws->render();
+    }*/
+
+    for (int z = 1; z < df::global::world->map.z_count; z++)
+    {
+        for (int bx = 0; bx < df::global::world->map.x_count_block; bx++)
+        {
+            for (int by = 0; by < df::global::world->map.y_count_block; by++)
+            {
+                df::map_block *block = world->map.block_index[bx][by][z];
+                if (block)
+                {
+                    memset(block->fog_of_war, 0x00, 16*16);
+
+                    for (int x = 0; x < 16; x++)
+                    {
+                        for (int y = 0; y < 16; y++)
+                        {
+                            block->designation[x][y].bits.hidden = false;
+                            block->designation[x][y].bits.pile = true;
+                        }
+                    }                    
+                }
+            }
+        }
+    }    
+
+    int z = find_top_z();
+    *out2 << " z = " << z << std::endl;
+    mapshot_z = *df::global::window_z = z;
+    int ouz = df::global::world->units.active[0]->pos.z;
+    df::global::world->units.active[0]->pos.z = z+1;
+
+//    for (int i = 0; i < 3; i++)
     {
         ws->logic();
         ws->render();
     }
-    mapshot_cmd(out, parameters);
+    
+    df::global::world->units.active[0]->pos.z = ouz;
+
+    renderer_cool *r = (renderer_cool*)enabler->renderer;
+    r->needs_full_update = true;
+    gps->force_full_display_count = 1;
+
+    domapshot = 10;
+
     return CR_OK;
 }
 
@@ -569,5 +693,36 @@ command_result ppp_cmd (color_ostream &out, std::vector <std::string> & paramete
 
     *out2 << "done" << std::endl;
 }
+    return CR_OK;
+}
+
+command_result ooo_cmd (color_ostream &out, std::vector <std::string> & parameters)
+{
+    std::vector <std::string> q;
+    int x1 = atoi(parameters[0].c_str());
+    int x2 = atoi(parameters[1].c_str());
+    int y1 = atoi(parameters[2].c_str());
+    int y2 = atoi(parameters[3].c_str());
+    
+    /*x1 /= 3;
+     x1 *= 3;
+     y1 /= 3;
+     y1 *= 3;*/
+    
+    for (int y = y1; y <= y2; y+=3)
+    {
+        for (int x = x1; x <= x2; x+=3)
+        {
+            *out2 << x << " " << y << std::endl;
+            {
+                CoreSuspender suspend;
+                if (!jump_to_region(x, y, false))
+                    return CR_OK;
+                www_cmd(out, q);
+            }
+            while(domapshot);
+        }
+    }
+    
     return CR_OK;
 }

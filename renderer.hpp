@@ -227,8 +227,8 @@ void renderer_cool::draw(int vertex_count)
         }*/
     }    
 
-    static int old_dimx, old_dimy, old_winx, old_winy;
-    if (0&&_domapshot)
+/*    static int old_dimx, old_dimy, old_winx, old_winy;
+    if (_domapshot)
     {
         old_dimx = gps->dimx;
         old_dimy = gps->dimy;
@@ -270,7 +270,7 @@ void renderer_cool::draw(int vertex_count)
             ws->logic();
             ws->render();
         }
-    }    
+    }    */
 
     display_new(is_main_scr);
 

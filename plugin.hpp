@@ -120,6 +120,9 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         "www", "www",
         www_cmd));        
     commands.push_back(PluginCommand(
+        "ooo", "ooo",
+        ooo_cmd));        
+    commands.push_back(PluginCommand(
         "ppp", "ppp",
         ppp_cmd));        
     commands.push_back(PluginCommand(

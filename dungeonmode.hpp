@@ -78,7 +78,15 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         // and that will cause flickering of overridden tiles at least, so save them here
         gwindow_x = *df::global::window_x;
         gwindow_y = *df::global::window_y;
-        gwindow_z = *df::global::window_z;                
+        gwindow_z = *df::global::window_z;
+
+        int uz;
+        if (domapshot)
+        {
+            gwindow_z = *df::global::window_z = mapshot_z;
+            //uz = df::global::world->units.active[0]->pos.z;
+            //df::global::world->units.active[0]->pos.z = 0;
+        }                
 
         uint8_t *sctop = enabler->renderer->screen;
         int32_t *screentexpostop = enabler->renderer->screentexpos;
@@ -127,13 +135,6 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
          
         // if (maxlevels && shadowsloaded)
             // (*df::global::window_z)+=1;
-    
-        int uz;
-        if (domapshot)
-        {
-            uz = df::global::world->units.active[0]->pos.z;
-            df::global::world->units.active[0]->pos.z = 0;
-        }
 
        	render_map();
 
@@ -422,8 +423,8 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         gps->screentexpos_cf = enabler->renderer->screentexpos_cf = screentexpos_cftop;
         gps->screentexpos_cbr = enabler->renderer->screentexpos_cbr = screentexpos_cbrtop;
 
-        if (domapshot)
-            df::global::world->units.active[0]->pos.z = uz;
+        //if (domapshot)
+        //    df::global::world->units.active[0]->pos.z = uz;
 
         //clock_t c2 = clock();
         //*out2 << (c2-c1) << std::endl;
