@@ -2,7 +2,7 @@
 
 use POSIX;
 
-my ($dfdir, $outdir) = @ARGV;
+my ($outdir) = @ARGV;
 
 $basex = 0;
 $basey = 0;
@@ -68,7 +68,11 @@ while ($l > 0)
 					$mk = 1;
 				}
 
-				`montage $f1 $f2 $f3 $f4 -geometry 128x128+0+0 $outdir/$l/$j/map_${j}_${i}.jpg 2>/dev/null`
+				`montage $f1 $f2 $f3 $f4 -geometry 128x128+0+0 $outdir/$l/$j/map_${j}_${i}.jpg`
+				if ($nl == $maxl)
+				{
+					unlink $f1, $f2, $f3, $f4;
+				}
 			}
 		}
 

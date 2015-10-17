@@ -7,11 +7,13 @@
 	<link rel="stylesheet" href="minimap/Control.MiniMap.min.css" />
 	<link rel="stylesheet" href="leaflet-fullscreen/leaflet.fullscreen.css" />
 	<link rel="stylesheet" href="leaflet-bookmarks/leaflet.bookmarks.min.css" />
+	<link rel="stylesheet" href="leaflet-label/leaflet.label.css" />
 	<script src="leaflet-0/leaflet.js"></script>
 	<script src="minimap/Control.MiniMap.min.js"></script>
 	<script src="leaflet-hash.js"></script>
 	<script src="leaflet-fullscreen/Leaflet.fullscreen.min.js"></script>
 	<script src="leaflet-bookmarks/Leaflet.Bookmarks.min.js"></script>
+	<script src="leaflet-label/leaflet.label.js"></script>
 	<style>
 		.leaflet-tile {
 		    _outline: 1px solid transparent;
@@ -23,13 +25,15 @@
 </head>
 
 <body style="width:100%;height:100%;margin:0;">
-	<div id="map" style="width:100%;height:100%;_background:transparent;"></div>
+	<div id="map" style="width:100%;height:100%;background:transparent;"></div>
 
 	<script>
 	var ww = 17, wh = 17;
 	var wregw = ww * 16, wregh = wh * 16;
 	var wblockw = wregw * 3, wblockh = wregh * 3;
 	var maxZoom = Math.ceil(Math.log(wblockw)/Math.log(2));
+	var maxNativeZoom = maxZoom - 1;
+	var maxAllowedZoom = maxNativeZoom;
 
 	var crs = L.extend({}, L.CRS, {
 		projection: L.Projection.LonLat,
@@ -40,21 +44,23 @@
 	});
 
 	var map = L.map('map', {
-		center: new L.LatLng(0,0), zoom:9, minZoom:1,
-		maxBounds:[ [50,-50],[-272*3-50,272*3+50] ],
+		center: new L.LatLng(-wblockh/2,wblockw/2), zoom:1, minZoom:1,
+		maxBounds:[ [150,-150],[-wblockh-150,wblockw+150] ],
 		inertia:false, boxZoom:true, scrollWheelZoom:false, crs:crs,
 		fullscreenControl: true,
 	});
 
-	var bg = L.tileLayer('white.png', {
-	    maxZoom: maxZoom,
+	/*var bg = L.tileLayer('white.png', {
+	    maxZoom: maxAllowedZoom,
+		maxNativeZoom:maxNativeZoom,
 	    noWrap: true,
-	}).addTo(map);
+	}).addTo(map);*/
 
-	//var bg = L.imageOverlay('white.png', [[0, 0], [-272*3, 272*3]]).addTo(map);
+	//var bg = L.imageOverlay('white.png', [[0, 0], [-wblockh, wblockw]]).addTo(map);
 
 	var l = L.tileLayer('out0/{key}.jpg', {
-	    maxZoom: maxZoom,
+	    maxZoom: maxAllowedZoom,
+		maxNativeZoom:maxNativeZoom,
 	    noWrap: true,
 	    key: function(obj) {
 	    	return (obj.z) + '/' + (obj.y) + '/map_' + (obj.y) + '_' + (obj.x);
@@ -62,19 +68,48 @@
 	}).addTo(map);
 
 	var minil = L.tileLayer('out0/{key}.jpg', {
-	    maxZoom: maxZoom,
+	    maxZoom: maxAllowedZoom,
+		maxNativeZoom:maxNativeZoom,
 	    noWrap: true,
 	    key: function(obj) {
 	    	return (obj.z) + '/' + (obj.y) + '/map_' + (obj.y) + '_' + (obj.x);
 	    },
 	});
-	var miniMap = new L.Control.MiniMap(minil, {_zoomLevelFixed:2 }).addTo(map);
+	var miniMap = new L.Control.MiniMap(minil, {zoomLevelFixed:2 }).addTo(map);
 
 	var hash = new L.Hash(map);
-	var bm = new L.Control.Bookmarks().addTo(map);
+	
+	//var bm = new L.Control.Bookmarks().addTo(map);
+    //bm._appendItems([{id:'qqq',name:'eweq',latlng:[-100*3,100*3],zoom:5}]);
 
-    bm._appendItems([{id:'qqq',name:'eweq',latlng:[-100*3,100*3],zoom:5}]);
+	var sites = [{"gx1":1,"gx2":1,"gy1":1,"gy2":1,"name":"Webbedgloomy","rx1":1,"rx2":1,"ry1":1,"ry2":1,"type":"cave","year":-1},{"gx1":265,"gx2":265,"gy1":264,"gy2":264,"name":"Wheelnight","rx1":9,"rx2":9,"ry1":8,"ry2":8,"type":"cave","year":-1},{"gx1":251,"gx2":251,"gy1":16,"gy2":16,"name":"Pridenight the Actions of Adoration","rx1":11,"rx2":11,"ry1":0,"ry2":0,"type":"cave","year":-1},{"gx1":71,"gx2":73,"gy1":244,"gy2":246,"name":"Glazedsavage","rx1":7,"rx2":7,"ry1":4,"ry2":4,"type":"fortress","year":1},{"gx1":0,"gx2":16,"gy1":252,"gy2":268,"name":"Faithcarried","rx1":3,"rx2":3,"ry1":1,"ry2":1,"type":"hamlet","year":1},{"gx1":241,"gx2":257,"gy1":126,"gy2":142,"name":"Wondrouscontest","rx1":8,"rx2":8,"ry1":5,"ry2":5,"type":"forest retreat","year":1},{"gx1":133,"gx2":149,"gy1":10,"gy2":26,"name":"Counselledmaligned","rx1":12,"rx2":12,"ry1":1,"ry2":1,"type":"dark fortress","year":1},{"gx1":157,"gx2":159,"gy1":160,"gy2":162,"name":"Hamesearched","rx1":13,"rx2":13,"ry1":0,"ry2":0,"type":"fortress","year":1},{"gx1":33,"gx2":49,"gy1":91,"gy2":107,"name":"Complexcouples","rx1":8,"rx2":8,"ry1":2,"ry2":2,"type":"hamlet","year":1},{"gx1":202,"gx2":218,"gy1":64,"gy2":80,"name":"Stealpaints","rx1":1,"rx2":1,"ry1":7,"ry2":7,"type":"dark fortress","year":1},{"gx1":187,"gx2":203,"gy1":138,"gy2":154,"name":"Droplettattooed","rx1":3,"rx2":3,"ry1":2,"ry2":2,"type":"forest retreat","year":1},{"gx1":204,"gx2":220,"gy1":128,"gy2":144,"name":"Talongorges","rx1":2,"rx2":2,"ry1":10,"ry2":10,"type":"forest retreat","year":1},{"gx1":263,"gx2":265,"gy1":104,"gy2":106,"name":"Dunepaddles","rx1":7,"rx2":7,"ry1":8,"ry2":8,"type":"fortress","year":1},{"gx1":30,"gx2":44,"gy1":248,"gy2":264,"name":"Icemeshes","rx1":4,"rx2":4,"ry1":2,"ry2":2,"type":"hamlet","year":1},{"gx1":144,"gx2":160,"gy1":112,"gy2":128,"name":"Flysmoothness","rx1":1,"rx2":1,"ry1":7,"ry2":7,"type":"dark fortress","year":1},{"gx1":19,"gx2":35,"gy1":265,"gy2":271,"name":"Inkedglistened","rx1":10,"rx2":10,"ry1":12,"ry2":12,"type":"hamlet","year":1},{"gx1":256,"gx2":258,"gy1":16,"gy2":18,"name":"Spreadfloors","rx1":0,"rx2":0,"ry1":0,"ry2":0,"type":"fortress","year":1},{"gx1":173,"gx2":189,"gy1":155,"gy2":171,"name":"Shindimpled","rx1":8,"rx2":8,"ry1":0,"ry2":0,"type":"forest retreat","year":1},{"gx1":170,"gx2":186,"gy1":29,"gy2":45,"name":"Spiderysteals","rx1":1,"rx2":1,"ry1":7,"ry2":7,"type":"dark fortress","year":1},{"gx1":138,"gx2":154,"gy1":48,"gy2":64,"name":"Jackalteeth","rx1":1,"rx2":1,"ry1":7,"ry2":7,"type":"dark fortress","year":1},{"gx1":50,"gx2":66,"gy1":255,"gy2":271,"name":"Joytrails","rx1":12,"rx2":12,"ry1":10,"ry2":10,"type":"hamlet","year":1},{"gx1":224,"gx2":240,"gy1":111,"gy2":127,"name":"Visesquid","rx1":7,"rx2":7,"ry1":12,"ry2":12,"type":"forest retreat","year":1},{"gx1":71,"gx2":73,"gy1":109,"gy2":111,"name":"Goalbolt","rx1":7,"rx2":7,"ry1":13,"ry2":13,"type":"fortress","year":1},{"gx1":223,"gx2":239,"gy1":128,"gy2":144,"name":"Thunderpleat","rx1":6,"rx2":6,"ry1":0,"ry2":0,"type":"forest retreat","year":1},{"gx1":229,"gx2":245,"gy1":32,"gy2":48,"name":"Nightmareplunges","rx1":12,"rx2":12,"ry1":7,"ry2":7,"type":"dark fortress","year":1},{"gx1":67,"gx2":83,"gy1":114,"gy2":130,"name":"Oilpalm","rx1":8,"rx2":8,"ry1":9,"ry2":9,"type":"hamlet","year":1},{"gx1":172,"gx2":174,"gy1":87,"gy2":89,"name":"Masterpillar","rx1":12,"rx2":12,"ry1":7,"ry2":7,"type":"fortress","year":1},{"gx1":114,"gx2":116,"gy1":263,"gy2":265,"name":"Metalpulled","rx1":2,"rx2":2,"ry1":7,"ry2":7,"type":"fortress","year":1},{"gx1":244,"gx2":260,"gy1":108,"gy2":124,"name":"Stylehealed","rx1":11,"rx2":11,"ry1":3,"ry2":3,"type":"forest retreat","year":1},{"gx1":0,"gx2":16,"gy1":235,"gy2":251,"name":"Prisonslop","rx1":5,"rx2":5,"ry1":5,"ry2":5,"type":"hamlet","year":1},{"gx1":197,"gx2":213,"gy1":81,"gy2":97,"name":"Submergedemon","rx1":12,"rx2":12,"ry1":7,"ry2":7,"type":"dark fortress","year":1},{"gx1":165,"gx2":181,"gy1":16,"gy2":28,"name":"Flyrose","rx1":12,"rx2":12,"ry1":1,"ry2":1,"type":"dark fortress","year":1},{"gx1":215,"gx2":217,"gy1":256,"gy2":258,"name":"Smithfinger","rx1":7,"rx2":7,"ry1":0,"ry2":0,"type":"fortress","year":1},{"gx1":67,"gx2":83,"gy1":253,"gy2":269,"name":"Earthenbeauty","rx1":6,"rx2":6,"ry1":4,"ry2":4,"type":"hamlet","year":1},{"gx1":190,"gx2":206,"gy1":161,"gy2":177,"name":"Waneembrace","rx1":1,"rx2":1,"ry1":8,"ry2":8,"type":"forest retreat","year":1},{"gx1":13,"gx2":15,"gy1":205,"gy2":207,"name":"Flagclean","rx1":13,"rx2":13,"ry1":13,"ry2":13,"type":"fortress","year":1},{"gx1":22,"gx2":38,"gy1":108,"gy2":124,"name":"Farmedbalances","rx1":13,"rx2":13,"ry1":2,"ry2":2,"type":"hamlet","year":1},{"gx1":207,"gx2":223,"gy1":108,"gy2":124,"name":"Sunbulb","rx1":6,"rx2":6,"ry1":3,"ry2":3,"type":"forest retreat","year":1},{"gx1":212,"gx2":228,"gy1":145,"gy2":161,"name":"Tonedraptors","rx1":11,"rx2":11,"ry1":5,"ry2":5,"type":"forest retreat","year":1},{"gx1":50,"gx2":66,"gy1":108,"gy2":124,"name":"Datefaints","rx1":11,"rx2":11,"ry1":3,"ry2":3,"type":"hamlet","year":1},{"gx1":85,"gx2":101,"gy1":111,"gy2":127,"name":"Lulltugs","rx1":12,"rx2":12,"ry1":6,"ry2":6,"type":"hamlet","year":1},{"gx1":120,"gx2":120,"gy1":24,"gy2":24,"name":"Castlesculpted","rx1":8,"rx2":8,"ry1":8,"ry2":8,"type":"monument","year":-1},{"gx1":188,"gx2":188,"gy1":99,"gy2":99,"name":"Guardrenown","rx1":12,"rx2":12,"ry1":3,"ry2":3,"type":"monument","year":-1},{"gx1":124,"gx2":124,"gy1":44,"gy2":44,"name":"Shellsvice","rx1":12,"rx2":12,"ry1":12,"ry2":12,"type":"monument","year":-1},{"gx1":60,"gx2":60,"gy1":92,"gy2":92,"name":"Gatesports","rx1":12,"rx2":12,"ry1":12,"ry2":12,"type":"monument","year":-1},{"gx1":120,"gx2":120,"gy1":174,"gy2":174,"name":"Blazesblankets","rx1":8,"rx2":8,"ry1":14,"ry2":14,"type":"monument","year":-1},{"gx1":140,"gx2":140,"gy1":195,"gy2":195,"name":"Wardblazed","rx1":12,"rx2":12,"ry1":3,"ry2":3,"type":"monument","year":-1},{"gx1":104,"gx2":104,"gy1":174,"gy2":174,"name":"Fencedfree","rx1":8,"rx2":8,"ry1":14,"ry2":14,"type":"monument","year":-1},{"gx1":232,"gx2":232,"gy1":222,"gy2":222,"name":"Ghosthealing","rx1":8,"rx2":8,"ry1":14,"ry2":14,"type":"monument","year":-1},{"gx1":255,"gx2":271,"gy1":144,"gy2":160,"name":"Glistenedropes","rx1":9,"rx2":9,"ry1":13,"ry2":13,"type":"forest retreat","year":1},{"gx1":3,"gx2":19,"gy1":129,"gy2":145,"name":"Riddlelashes","rx1":10,"rx2":10,"ry1":8,"ry2":8,"type":"hamlet","year":1},{"gx1":149,"gx2":165,"gy1":143,"gy2":159,"name":"Graniterained","rx1":12,"rx2":12,"ry1":7,"ry2":7,"type":"hillocks","year":1},{"gx1":250,"gx2":266,"gy1":74,"gy2":90,"name":"Helmedgangs","rx1":1,"rx2":1,"ry1":1,"ry2":1,"type":"hillocks","year":1},{"gx1":16,"gx2":32,"gy1":200,"gy2":216,"name":"Fountainworkers","rx1":7,"rx2":7,"ry1":12,"ry2":12,"type":"hillocks","year":1},{"gx1":127,"gx2":143,"gy1":112,"gy2":128,"name":"Plaguewhip","rx1":12,"rx2":12,"ry1":7,"ry2":7,"type":"dark pits","year":1},{"gx1":218,"gx2":234,"gy1":85,"gy2":101,"name":"Wealthyplague","rx1":1,"rx2":1,"ry1":12,"ry2":12,"type":"dark pits","year":1},{"gx1":77,"gx2":93,"gy1":81,"gy2":97,"name":"Scarboot","rx1":7,"rx2":7,"ry1":12,"ry2":12,"type":"hillocks","year":1},{"gx1":176,"gx2":192,"gy1":46,"gy2":62,"name":"Yoretorments","rx1":7,"rx2":7,"ry1":1,"ry2":1,"type":"dark pits","year":1},{"gx1":20,"gx2":36,"gy1":141,"gy2":157,"name":"Umbralmoon","rx1":11,"rx2":11,"ry1":4,"ry2":4,"type":"hamlet","year":3},{"gx1":21,"gx2":37,"gy1":173,"gy2":189,"name":"Drillpaddles","rx1":12,"rx2":12,"ry1":7,"ry2":7,"type":"hillocks","year":3},{"gx1":94,"gx2":106,"gy1":80,"gy2":96,"name":"Channelclosed","rx1":1,"rx2":1,"ry1":7,"ry2":7,"type":"hillocks","year":4},{"gx1":11,"gx2":27,"gy1":47,"gy2":63,"name":"Lashedmurdered","rx1":2,"rx2":2,"ry1":6,"ry2":6,"type":"hamlet","year":5},{"gx1":21,"gx2":37,"gy1":190,"gy2":199,"name":"Planwheel","rx1":1,"rx2":1,"ry1":1,"ry2":1,"type":"hillocks","year":5},{"gx1":107,"gx2":123,"gy1":80,"gy2":96,"name":"Cloisteredletter","rx1":1,"rx2":1,"ry1":7,"ry2":7,"type":"hillocks","year":5},{"gx1":80,"gx2":96,"gy1":9,"gy2":25,"name":"Dangerhells","rx1":7,"rx2":7,"ry1":0,"ry2":0,"type":"dark pits","year":6},{"gx1":58,"gx2":74,"gy1":144,"gy2":160,"name":"Inkybranded","rx1":1,"rx2":1,"ry1":7,"ry2":7,"type":"hillocks","year":6},{"gx1":255,"gx2":271,"gy1":161,"gy2":177,"name":"Pulledseas","rx1":6,"rx2":6,"ry1":2,"ry2":2,"type":"forest retreat","year":6},{"gx1":38,"gx2":54,"gy1":181,"gy2":197,"name":"Dwellflag","rx1":7,"rx2":7,"ry1":12,"ry2":12,"type":"hillocks","year":11},{"gx1":85,"gx2":101,"gy1":31,"gy2":47,"name":"Scorpionblanket","rx1":12,"rx2":12,"ry1":12,"ry2":12,"type":"dark pits","year":13},{"gx1":42,"gx2":58,"gy1":48,"gy2":64,"name":"Shieldnet","rx1":1,"rx2":1,"ry1":7,"ry2":7,"type":"hillocks","year":14},{"gx1":197,"gx2":213,"gy1":0,"gy2":16,"name":"Lanternmonsters","rx1":12,"rx2":12,"ry1":1,"ry2":1,"type":"dark pits","year":17},{"gx1":250,"gx2":266,"gy1":192,"gy2":208,"name":"Mirthshadows","rx1":1,"rx2":1,"ry1":7,"ry2":7,"type":"forest retreat","year":17},{"gx1":48,"gx2":64,"gy1":21,"gy2":37,"name":"Menacerecluse","rx1":7,"rx2":7,"ry1":12,"ry2":12,"type":"dark pits","year":17},{"gx1":177,"gx2":177,"gy1":130,"gy2":130,"name":"Guisedesserts","rx1":1,"rx2":1,"ry1":2,"ry2":2,"type":"tower","year":17},{"gx1":91,"gx2":91,"gy1":98,"gy2":98,"name":"Roomgild","rx1":11,"rx2":11,"ry1":2,"ry2":2,"type":"tower","year":25},{"gx1":255,"gx2":271,"gy1":225,"gy2":241,"name":"Lilacpractice","rx1":8,"rx2":8,"ry1":8,"ry2":8,"type":"forest retreat","year":26},{"gx1":26,"gx2":42,"gy1":0,"gy2":16,"name":"Demonfaces","rx1":1,"rx2":1,"ry1":1,"ry2":1,"type":"dark pits","year":31},{"gx1":180,"gx2":180,"gy1":217,"gy2":217,"name":"Silverrustic","rx1":4,"rx2":4,"ry1":9,"ry2":9,"type":"tower","year":39},{"gx1":45,"gx2":47,"gy1":253,"gy2":255,"name":"Yellowclobbers","rx1":14,"rx2":14,"ry1":14,"ry2":14,"type":"monument","year":44},{"gx1":80,"gx2":96,"gy1":48,"gy2":64,"name":"Weretested","rx1":7,"rx2":7,"ry1":1,"ry2":1,"type":"dark pits","year":49},{"gx1":27,"gx2":29,"gy1":251,"gy2":253,"name":"Armorcruxes","rx1":12,"rx2":12,"ry1":12,"ry2":12,"type":"monument","year":52},{"gx1":45,"gx2":45,"gy1":113,"gy2":113,"name":"Ivygleam","rx1":13,"rx2":13,"ry1":1,"ry2":1,"type":"tower","year":53},{"gx1":82,"gx2":84,"gy1":139,"gy2":141,"name":"Fierysystems","rx1":3,"rx2":3,"ry1":12,"ry2":12,"type":"monument","year":60},{"gx1":59,"gx2":61,"gy1":130,"gy2":132,"name":"Tribebutton","rx1":12,"rx2":12,"ry1":3,"ry2":3,"type":"monument","year":63},{"gx1":39,"gx2":41,"gy1":61,"gy2":63,"name":"Paddedboard","rx1":8,"rx2":8,"ry1":14,"ry2":14,"type":"monument","year":88},{"gx1":18,"gx2":20,"gy1":226,"gy2":228,"name":"Binscobras","rx1":3,"rx2":3,"ry1":3,"ry2":3,"type":"monument","year":89},{"gx1":107,"gx2":107,"gy1":268,"gy2":268,"name":"Booktails","rx1":11,"rx2":11,"ry1":12,"ry2":12,"type":"tower","year":89},{"gx1":169,"gx2":185,"gy1":0,"gy2":15,"name":"Treatylie","rx1":0,"rx2":0,"ry1":13,"ry2":13,"type":"dark pits","year":102},{"gx1":0,"gx2":2,"gy1":119,"gy2":121,"name":"Fatherriddles","rx1":1,"rx2":1,"ry1":8,"ry2":8,"type":"monument","year":136},{"gx1":242,"gx2":242,"gy1":9,"gy2":9,"name":"Soakhearts","rx1":2,"rx2":2,"ry1":9,"ry2":9,"type":"lair","year":184},{"gx1":61,"gx2":61,"gy1":59,"gy2":59,"name":"Takenchanted the Bile of Eels","rx1":13,"rx2":13,"ry1":11,"ry2":11,"type":"lair","year":191},{"gx1":238,"gx2":238,"gy1":49,"gy2":49,"name":"Spurtgloom","rx1":14,"rx2":14,"ry1":1,"ry2":1,"type":"lair","year":186},{"gx1":50,"gx2":50,"gy1":93,"gy2":93,"name":"The Dignified Echoes","rx1":2,"rx2":2,"ry1":13,"ry2":13,"type":"lair","year":187},{"gx1":236,"gx2":236,"gy1":154,"gy2":154,"name":"Tramplescars","rx1":12,"rx2":12,"ry1":10,"ry2":10,"type":"lair","year":187},{"gx1":129,"gx2":129,"gy1":52,"gy2":52,"name":"The Scoured Echoes","rx1":1,"rx2":1,"ry1":4,"ry2":4,"type":"lair","year":182},{"gx1":54,"gx2":54,"gy1":69,"gy2":69,"name":"The Armored Heart","rx1":6,"rx2":6,"ry1":5,"ry2":5,"type":"lair","year":-10000},{"gx1":158,"gx2":158,"gy1":62,"gy2":62,"name":"The Shadow of Symmetry","rx1":14,"rx2":14,"ry1":14,"ry2":14,"type":"lair","year":180},{"gx1":122,"gx2":122,"gy1":100,"gy2":100,"name":"Brushedechoes the Fly of Fortune","rx1":10,"rx2":10,"ry1":4,"ry2":4,"type":"lair","year":-10000},{"gx1":238,"gx2":238,"gy1":59,"gy2":59,"name":"The Truthful Hollows","rx1":14,"rx2":14,"ry1":11,"ry2":11,"type":"lair","year":-10000},{"gx1":190,"gx2":190,"gy1":8,"gy2":8,"name":"Actionpristine","rx1":14,"rx2":14,"ry1":8,"ry2":8,"type":"lair","year":174},{"gx1":241,"gx2":241,"gy1":58,"gy2":58,"name":"Dyescar the Couple of Conjunctions","rx1":1,"rx2":1,"ry1":10,"ry2":10,"type":"lair","year":-10000},{"gx1":231,"gx2":231,"gy1":149,"gy2":149,"name":"Lacyholes","rx1":7,"rx2":7,"ry1":5,"ry2":5,"type":"lair","year":-10000},{"gx1":177,"gx2":177,"gy1":146,"gy2":146,"name":"Arrowscarred the Eternal Deeps","rx1":1,"rx2":1,"ry1":2,"ry2":2,"type":"lair","year":-10000},{"gx1":263,"gx2":263,"gy1":134,"gy2":134,"name":"Jungleshafts","rx1":7,"rx2":7,"ry1":6,"ry2":6,"type":"lair","year":-10000},{"gx1":28,"gx2":28,"gy1":136,"gy2":136,"name":"Baldnesshearts","rx1":12,"rx2":12,"ry1":8,"ry2":8,"type":"lair","year":-10000},{"gx1":269,"gx2":269,"gy1":137,"gy2":137,"name":"Ringechoes","rx1":13,"rx2":13,"ry1":9,"ry2":9,"type":"lair","year":-10000},{"gx1":1,"gx2":1,"gy1":31,"gy2":31,"name":"Frecklesewers the Scar of Organizations","rx1":1,"rx2":1,"ry1":15,"ry2":15,"type":"lair","year":-10000},{"gx1":126,"gx2":126,"gy1":82,"gy2":82,"name":"The Pride of Vigor","rx1":14,"rx2":14,"ry1":2,"ry2":2,"type":"lair","year":103},{"gx1":139,"gx2":139,"gy1":83,"gy2":83,"name":"Manmines the Gloved Pits","rx1":11,"rx2":11,"ry1":3,"ry2":3,"type":"lair","year":-10000},{"gx1":32,"gx2":32,"gy1":74,"gy2":74,"name":"Socketscar","rx1":0,"rx2":0,"ry1":10,"ry2":10,"type":"lair","year":-10000},{"gx1":74,"gx2":74,"gy1":22,"gy2":22,"name":"Rungleam the Past of Caves","rx1":10,"rx2":10,"ry1":6,"ry2":6,"type":"lair","year":7},{"gx1":142,"gx2":142,"gy1":163,"gy2":163,"name":"Gleamesteem","rx1":14,"rx2":14,"ry1":3,"ry2":3,"type":"lair","year":5},{"gx1":192,"gx2":192,"gy1":253,"gy2":253,"name":"Sculptbristles","rx1":0,"rx2":0,"ry1":13,"ry2":13,"type":"lair","year":-10000},{"gx1":96,"gx2":96,"gy1":104,"gy2":104,"name":"The Perfect Sweetness","rx1":0,"rx2":0,"ry1":8,"ry2":8,"type":"lair","year":-10000},{"gx1":2,"gx2":2,"gy1":4,"gy2":4,"name":"Inkstrong the Meteors of Right","rx1":2,"rx2":2,"ry1":4,"ry2":4,"type":"lair","year":-10000},{"gx1":6,"gx2":6,"gy1":167,"gy2":167,"name":"Pagesavant the Strategic Castle","rx1":6,"rx2":6,"ry1":7,"ry2":7,"type":"lair","year":-10000},{"gx1":240,"gx2":240,"gy1":0,"gy2":0,"name":"Apexorange","rx1":0,"rx2":0,"ry1":0,"ry2":0,"type":"lair","year":-10000},{"gx1":65,"gx2":65,"gy1":194,"gy2":194,"name":"The Brilliance of Will","rx1":1,"rx2":1,"ry1":2,"ry2":2,"type":"lair","year":-10000},{"gx1":12,"gx2":12,"gy1":11,"gy2":11,"name":"The Cat of Raining","rx1":12,"rx2":12,"ry1":11,"ry2":11,"type":"lair","year":-10000},{"gx1":76,"gx2":76,"gy1":104,"gy2":104,"name":"The Adventurous Sculpture","rx1":12,"rx2":12,"ry1":8,"ry2":8,"type":"lair","year":-10000},{"gx1":252,"gx2":252,"gy1":102,"gy2":102,"name":"The Right of Adventuring","rx1":12,"rx2":12,"ry1":6,"ry2":6,"type":"lair","year":-10000},{"gx1":205,"gx2":205,"gy1":151,"gy2":151,"name":"The Stench of Persuaders","rx1":13,"rx2":13,"ry1":7,"ry2":7,"type":"lair","year":-10000}];
 
+	var siteMarkers = [];
+	sites.forEach(function(s) {
+		var y = s.year;
+		var t = '<b>' + s.name + '</b> &mdash; ' + s.type;
+		if (y > 0)
+			t += '<br>Est. ' + y;
+		siteMarkers.push(L.polyline([
+			[-s.gy1*3-Math.floor(s.ry1/16)*3, s.gx1*3+Math.floor(s.rx1/16)*3],
+			[-s.gy2*3-Math.ceil(s.ry2/16)*3, s.gx1*3+Math.floor(s.rx1/16)*3],
+			[-s.gy2*3-Math.ceil(s.ry2/16)*3, s.gx2*3+Math.ceil(s.rx2/16)*3],
+			[-s.gy1*3-Math.floor(s.ry1/16)*3, s.gx2*3+Math.ceil(s.rx2/16)*3],
+			[-s.gy1*3-Math.floor(s.ry1/16)*3, s.gx1*3+Math.floor(s.rx1/16)*3],
+		], {
+			color:'white',
+			weight:3,
+		}).bindLabel(t, { closeButton:false }));
+	});
+
+	var sites = L.layerGroup(siteMarkers);
+	sites.addTo(map);
+
+var overlays = {
+    "Site Bounds": sites,
+};
+
+L.control.layers([], overlays).addTo(map);
 	</script>
 </body>
 </html>

@@ -2,7 +2,7 @@ int find_top_z()
 {
     int z;
     bool ramp = false;
-    for (z = 50; z < df::global::world->map.z_count; z++)
+    for (z = 1; z < df::global::world->map.z_count; z++)
     {
         for (int bx = 0; bx < df::global::world->map.x_count_block; bx++)
         {
@@ -51,7 +51,7 @@ command_result mapshot_cmd (color_ostream &out, std::vector <std::string> & para
     if (!enabled)
         return CR_FAILURE;
 
-    for (int z = 50; z < df::global::world->map.z_count; z++)
+    for (int z = 10; z < df::global::world->map.z_count; z++)
     {
         for (int bx = 0; bx < df::global::world->map.x_count_block; bx++)
         {
@@ -418,7 +418,79 @@ command_result www_cmd (color_ostream &out, std::vector <std::string> & paramete
 {
     CoreSuspender suspend;
     qqq_cmd(out, parameters);
+
+    {
+        *df::global::building_next_id = 1;
+        *df::global::item_next_id = 1;
+        *df::global::unit_next_id = 1;
+        /*<global-address name='activity_next_id' value='0x01bad92c'/>
+        <global-address name='agreement_next_id' value='0x01bad958'/>
+        <global-address name='army_controller_next_id' value='0x01bad94c'/>
+        <global-address name='army_next_id' value='0x01bad948'/>
+        <global-address name='army_tracking_info_next_id' value='0x01bad950'/>
+        <global-address name='art_image_chunk_next_id' value='0x01bad91c'/>
+        <global-address name='artifact_next_id' value='0x01bad8f0'/>
+        <global-address name='building_next_id' value='0x01bad900'/>
+        <global-address name='crime_next_id' value='0x01bad940'/>
+        <global-address name='cultural_identity_next_id' value='0x01bad954'/>
+        <global-address name='entity_next_id' value='0x01bad8e8'/>
+        <global-address name='flow_guide_next_id' value='0x01bad908'/>
+        <global-address name='formation_next_id' value='0x01bad928'/>
+        <global-address name='hist_event_collection_next_id' value='0x01bad914'/>
+        <global-address name='hist_event_next_id' value='0x01bad910'/>
+        <global-address name='hist_figure_next_id' value='0x01bad90c'/>
+        <global-address name='identity_next_id' value='0x01bad938'/>
+        <global-address name='incident_next_id' value='0x01bad93c'/>
+        <global-address name='interaction_instance_next_id' value='0x01bad930'/>
+        <global-address name='item_next_id' value='0x01bad8dc'/>
+        <global-address name='job_next_id' value='0x01bad8f4'/>
+        <global-address name='machine_next_id' value='0x01bad904'/>
+        <global-address name='nemesis_next_id' value='0x01bad8ec'/>
+        <global-address name='proj_next_id' value='0x01bad8fc'/>
+        <global-address name='schedule_next_id' value='0x01bad8f8'/>
+        <global-address name='squad_next_id' value='0x01bad924'/>
+        <global-address name='unit_chunk_next_id' value='0x01bad918'/>
+        <global-address name='unit_next_id' value='0x01bad8e0'/>
+        <global-address name='vehicle_next_id' value='0x01bad944'/>
+        <global-address name='written_content_next_id' value='0x01bad934'/>*/
+    }
+
     ttt_cmd(out, parameters);
+
+
+    {
+        renderer_cool *r = (renderer_cool*)enabler->renderer;
+        r->gdimx = r->gdimxfull = world->map.x_count;
+        r->gdimy = r->gdimyfull = world->map.y_count;
+
+        //if (df::viewscreen_dwarfmodest::_identity.is_direct_instance(ws))
+            r->goff_x = r->goff_y_gl = 0;
+
+        int tiles = r->gdimx * r->gdimy;
+
+        // Recreate tile buffers
+        r->allocate_buffers(tiles);
+
+        // Recreate OpenGL buffers
+        r->gvertexes = (GLfloat*)realloc(r->gvertexes, sizeof(GLfloat) * tiles * 2 * 6);
+        r->gfg = (GLfloat*)realloc(r->gfg, sizeof(GLfloat) * tiles * 4 * 6);
+        r->gbg = (GLfloat*)realloc(r->gbg, sizeof(GLfloat) * tiles * 4 * 6);
+        r->gtex = (GLfloat*)realloc(r->gtex, sizeof(GLfloat) * tiles * 2 * 6);
+
+        // Initialise vertex coords
+        int tile = 0;   
+        for (GLfloat x = 0; x < r->gdimx; x++)
+            for (GLfloat y = 0; y < r->gdimy; y++, tile++)
+                write_tile_vertexes(x, y, r->gvertexes + 6 * 2 * tile);
+
+        r->needs_full_update = true;
+
+
+        *df::global::window_x = 0;
+        *df::global::window_y = 0;
+        gps->force_full_display_count = 1;
+    }    
+
     df::viewscreen *ws = Gui::getCurViewscreen();
     for (int i = 0; i < 3; i++)
     {

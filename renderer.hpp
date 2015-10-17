@@ -228,7 +228,7 @@ void renderer_cool::draw(int vertex_count)
     }    
 
     static int old_dimx, old_dimy, old_winx, old_winy;
-    if (_domapshot)
+    if (0&&_domapshot)
     {
         old_dimx = gps->dimx;
         old_dimy = gps->dimy;
@@ -556,9 +556,9 @@ void renderer_cool::draw(int vertex_count)
         glDeleteRenderbuffers(1, &renderbuffer);
         glDeleteFramebuffers(1, &framebuffer);
 
-        grid_resize(old_dimx, old_dimy);
-        *df::global::window_x = old_winx;
-        *df::global::window_y = old_winy;
+        //grid_resize(old_dimx, old_dimy);
+        //*df::global::window_x = old_winx;
+        //*df::global::window_y = old_winy;
         gps->force_full_display_count = 1;
         domapshot = 0;
     }
