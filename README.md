@@ -49,6 +49,9 @@ These commands adjust the size of map tiles or set the exact size.
 **`twbt tilesize reset`**  
 This command resets map tile size back to normal.
 
+**`twbt redraw_all 0|1`**
+This command controls the full redraw mode, in which all tiles are updated each frame - useful for some tilesets in case of graphics issues when scrolling.
+
 ## Overrides ##
 
 Commands described below are to be placed in `data/init/overrides.txt` file and allow to change tile images used for specific buildings, items and tile types.

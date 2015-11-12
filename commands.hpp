@@ -210,6 +210,16 @@ command_result twbt_cmd (color_ostream &out, std::vector <std::string> & paramet
             else
                 return CR_WRONG_USAGE;
         }
+
+        else if (param0 == "redraw_all")
+        {
+            int on;
+            if (!parse_int(parameters[1], on))
+                return CR_WRONG_USAGE;
+
+            always_full_update = (on > 0);
+            *out2 << "Forced redraw mode set to " << always_full_update << std::endl;
+        }
     }
 
     return CR_OK;    

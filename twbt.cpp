@@ -169,6 +169,7 @@ static bool shadowsloaded;
 static int gmenu_w;
 static uint8_t skytile;
 static uint8_t chasmtile;
+static bool always_full_update;
 
 // Buffers for map rendering
 static uint8_t *_gscreen[2];

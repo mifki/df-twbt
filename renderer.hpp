@@ -573,7 +573,7 @@ void renderer_cool::display_new(bool update_graphics)
     // Update map tiles is current screen has a map
     if (update_graphics)
     {
-        if (needs_full_update)
+        if (needs_full_update || always_full_update)
         {
             needs_full_update = false;
 
