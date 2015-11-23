@@ -21,17 +21,18 @@
 #include "TileTypes.h"
 #include "DataFuncs.h"
 
+#include "df/enabler.h"
 #include "df/renderer.h"
 #include "renderer_twbt.h"
 
 DFHACK_PLUGIN("mousequery");
+REQUIRE_GLOBAL(enabler);
+REQUIRE_GLOBAL(gps);
 REQUIRE_GLOBAL(world);
 REQUIRE_GLOBAL(ui);
 REQUIRE_GLOBAL(ui_build_selector);
 
 using namespace df::enums::ui_sidebar_mode;
-using df::global::enabler;
-using df::global::gps;
 
 #define PLUGIN_VERSION 0.18
 
