@@ -227,7 +227,7 @@ static void write_tile_arrays_legacy(df::renderer *r, int x, int y, GLfloat *fg,
         const unsigned char *s = r->screen + tile*4;
         ret.texpos = text_texpos[s[0]];
     }
-    else if (is_map && has_overrides)
+    else if (is_map && has_overrides && world->map.block_index)
     {
         const unsigned char *s = r->screen + tile*4;
         int s0 = s[0];

@@ -97,7 +97,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
     const int tile = x * r->gdimy + y;        
     screen_to_texid_map(r, tile, ret);
     
-    if (has_overrides)
+    if (has_overrides && world->map.block_index)
     {
         const unsigned char *s = gscreen + tile*4;
         int s0 = s[0];
