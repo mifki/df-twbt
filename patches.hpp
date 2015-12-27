@@ -3,8 +3,8 @@
 // because map is not rendered this way now. But we can't completely disable graphics
 // because it's used on status screen to show professions at least.
 // To find this address, look for a function with two SDL_GetTicks calls inside,
-// there will be two calls with the same argument right before an increment between 
-// SDL_SemWait and SDL_SemPost near the end - they are renderer->display() and renderer->render(). 
+// there will be two calls with the same argument right before an increment between
+// SDL_SemWait and SDL_SemPost near the end - they are renderer->display() and renderer->render().
 // (The called function must have conditional `dec` at the end.)
 
 // p_render_lower_levels - Disables standard rendering of lower levels
@@ -47,7 +47,7 @@ and 0x00c61700 will be your address
 On Windows we're patching that function with
     mov eax, dword [ss:esp+0x0c]
     mov byte [ds:eax], 0x00
-    retn 0x1c    
+    retn 0x1c
 
 On other systems with
     mov eax, dword [ss:esp+0x14]
@@ -94,7 +94,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         static patchdef p_display = { 0x00655d71, 5 };
 
         static patchdef p_dwarfmode_render = { 0x0062373f, 6 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x005a2f75, 2+5+5 }, { 0x005a2fc0, 1+5+5 }, { 0x005a300f, 1+5+5 }, { 0x005a3064, 1+5+5 }, { 0x005a34f9, 1+5+5 }
         };
@@ -112,7 +112,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         static patchdef p_display = { 0x00f15ee1, 5 };
 
         static patchdef p_dwarfmode_render = { 0x003e9e6a, 5 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x003a7d70, 5+3+5 }, { 0x003a83cd, 5+3+5 }, { 0x003a87f9, 5+3+5 }, { 0x003a8796, 5+3+5 }, { 0x003a887a, 5+3+5 }
         };
@@ -128,7 +128,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         #define NO_DISPLAY_PATCH
 
         static patchdef p_dwarfmode_render = { 0x0836ac3f, 5 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x083273b1, 5+7+5 }, { 0x083279bc, 5+7+5 }, { 0x08327df1, 5+7+5 }, { 0x083272fd, 5+7+5 }
         };
@@ -149,7 +149,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         static patchdef p_display = { 0x00655d21, 5 };
 
         static patchdef p_dwarfmode_render = { 0x0062365f, 6 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x005a2de5, 2+5+5 }, { 0x005a2e30, 1+5+5 }, { 0x005a2e7f, 1+5+5 }, { 0x005a2ed4, 1+5+5 }, { 0x005a3369, 1+5+5 }
         };
@@ -167,7 +167,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         static patchdef p_display = { 0x00f17ec1, 5 };
 
         static patchdef p_dwarfmode_render = { 0x003ea43a, 5 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x003a8340, 5+3+5 }, { 0x003a899d, 5+3+5 }, { 0x003a8dc9, 5+3+5 }, { 0x003a8d66, 5+3+5 }, { 0x003a8e4a, 5+3+5 }
         };
@@ -183,7 +183,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         #define NO_DISPLAY_PATCH
 
         static patchdef p_dwarfmode_render = { 0x0836aedf, 5 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x08327651, 5+7+5 }, { 0x08327c5c, 5+7+5 }, { 0x08328091, 5+7+5 }, { 0x0832759d, 5+7+5 }
         };
@@ -204,7 +204,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         static patchdef p_display = { 0x00669be1, 5 };
 
         static patchdef p_dwarfmode_render = { 0x0063742f, 6 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x005b5265, 2+5+5 }, { 0x005b52b0, 2+5+5 }, { 0x005b5301, 2+5+5 }, { 0x005b5358, 2+5+5 }, { 0x005b5805, 2+5+5 }
         };
@@ -222,7 +222,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         static patchdef p_display = { 0x00f56b01, 5 };
 
         static patchdef p_dwarfmode_render = { 0x004130ea, 5 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x003d0c70, 5+3+5 }, { 0x003d12cd, 5+3+5 }, { 0x003d1696, 5+3+5 }, { 0x003d16f9, 5+3+5 }, { 0x003d177a, 5+3+5 }
         };
@@ -238,7 +238,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         #define NO_DISPLAY_PATCH
 
         static patchdef p_dwarfmode_render = { 0x08391e3f, 5 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x0834e05d, 5+7+5 }, { 0x0834e111, 5+7+5 }, { 0x0834e71c, 5+7+5 }, { 0x0834eb51, 5+7+5 }
         };
@@ -259,7 +259,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         static patchdef p_display = { 0x00669621, 5 };
 
         static patchdef p_dwarfmode_render = { 0x00636dbf, 6 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x005b4dc5, 2+5+5 }, { 0x005b4e10, 2+5+5 }, { 0x005b4e61, 2+5+5 }, { 0x005b4eb8, 2+5+5 }, { 0x005b5365, 2+5+5 }
         };
@@ -277,7 +277,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         static patchdef p_display = { 0x00f5a841, 5 };
 
         static patchdef p_dwarfmode_render = { 0x00412c2a, 5 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x003d0690, 5+3+5 }, { 0x003d0ced, 5+3+5 }, { 0x003d1119, 5+3+5 }, { 0x003d10b6, 5+3+5 }, { 0x003d119a, 5+3+5 }
         };
@@ -293,7 +293,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         #define NO_DISPLAY_PATCH
 
         static patchdef p_dwarfmode_render = { 0x08391f0f, 5 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x0834e191, 5+7+5 }, { 0x0834e79c, 5+7+5 }, { 0x0834ebd1, 5+7+5 }, { 0x0834e0dd, 5+7+5 }
         };
@@ -302,7 +302,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
             0x08d29380, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
         };
 
-    #endif   
+    #endif
 
 #elif defined(DF_04016)
     #ifdef WIN32
@@ -314,7 +314,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         static patchdef p_display = { 0x0066b941, 5 };
 
         static patchdef p_dwarfmode_render = { 0x0063915f, 6 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x005b6f65, 2+5+5 }, { 0x005b6fb0, 2+5+5 }, { 0x005b7001, 2+5+5 }, { 0x005b7058, 2+5+5 }, { 0x005b7505, 2+5+5 }
         };
@@ -326,13 +326,13 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
     #elif defined(__APPLE__)
         #define A_LOAD_MULTI_PDIM 0x00fca9e0
 
-        #define A_RENDER_MAP      0x009f7ef0 
+        #define A_RENDER_MAP      0x009f7ef0
         #define A_RENDER_UPDOWN   0x0079bbe0
 
         static patchdef p_display = { 0x00f5f641, 5 };
 
         static patchdef p_dwarfmode_render = { 0x0041730a, 5 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x003d4d70, 5+3+5 }, { 0x003d53cd, 5+3+5 }, { 0x003d57f9, 5+3+5 }, { 0x003d5796, 5+3+5 }, { 0x003d587a, 5+3+5 }
         };
@@ -344,7 +344,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
     #else
         #error Wait for 0.40.17 on Linux please
 
-    #endif           
+    #endif
 
 #elif defined(DF_04019)
     #ifdef WIN32
@@ -356,7 +356,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         static patchdef p_display = { 0x006732d1, 5 };
 
         static patchdef p_dwarfmode_render = { 0x0064013f, 6 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x005b8f35, 2+5+5 }, { 0x005b8f80, 2+5+5 }, { 0x005b8fd1, 2+5+5 }, { 0x005b9028, 2+5+5 }, { 0x005b94d5, 2+5+5 }
         };
@@ -374,7 +374,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         static patchdef p_display = { 0x00f24a21, 5 };
 
         static patchdef p_dwarfmode_render = { 0x004102ea, 5 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x003c8860, 5+3+5 }, { 0x003c8ebd, 5+3+5 }, { 0x003c92e9, 5+3+5 }, { 0x003c9286, 5+3+5 }, { 0x003c936a, 5+3+5 }
         };
@@ -390,7 +390,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         #define NO_DISPLAY_PATCH
 
         static patchdef p_dwarfmode_render = { 0x083944ef, 5 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x0834b0f1, 5+7+5 }, { 0x0834b6fc, 5+7+5 }, { 0x0834bb2a, 5+7+5 }, { 0x0834b03d, 5+7+5 }
         };
@@ -399,7 +399,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
             0x08d0ee00, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
         };
 
-    #endif           
+    #endif
 
 #elif defined(DF_04023)
     #ifdef WIN32
@@ -411,7 +411,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         static patchdef p_display = { 0x00675171, 5 };
 
         static patchdef p_dwarfmode_render = { 0x006401ff, 6 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x005b8d25, 2+5+5 }, { 0x005b8d70, 2+5+5 }, { 0x005b8dc1, 2+5+5 }, { 0x005b8e18, 2+5+5 }, { 0x005b92c5, 2+5+5 }
         };
@@ -429,7 +429,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         static patchdef p_display = { 0x00f34661, 5 };
 
         static patchdef p_dwarfmode_render = { 0x0040ff4a, 5 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x003c82c0, 5+3+5 }, { 0x003c891d, 5+3+5 }, { 0x003c8ce6, 5+3+5 }, { 0x003c8d49, 5+3+5 }, { 0x003c8dca, 5+3+5 }
         };
@@ -445,7 +445,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         #define NO_DISPLAY_PATCH
 
         static patchdef p_dwarfmode_render = { 0x083947ff, 5 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x0834b2dd, 5+7+5 }, { 0x0834b391, 5+7+5 }, { 0x0834b99c, 5+7+5 }, { 0x0834bdca, 5+7+5 }
         };
@@ -454,7 +454,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
             0x08d1e310, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
         };
 
-    #endif           
+    #endif
 
 #elif defined(DF_04024)
     #ifdef WIN32
@@ -466,7 +466,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         static patchdef p_display = { 0x00675571, 5 };
 
         static patchdef p_dwarfmode_render = { 0x0064039f, 6 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x005b9005, 2+5+5 }, { 0x005b9050, 2+5+5 }, { 0x005b90a1, 2+5+5 }, { 0x005b90f8, 2+5+5 }, { 0x005b95a5, 2+5+5 }
         };
@@ -484,7 +484,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         static patchdef p_display = { 0x00f35db1, 5 };
 
         static patchdef p_dwarfmode_render = { 0x0041016a, 5 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x003c8550, 5+3+5 }, { 0x003c8bad, 5+3+5 }, { 0x003c8f76, 5+3+5 }, { 0x003c8fd9, 5+3+5 }, { 0x003c905a, 5+3+5 }
         };
@@ -500,7 +500,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         #define NO_DISPLAY_PATCH
 
         static patchdef p_dwarfmode_render = { 0x08394a0f, 5 };
-        
+
         static patchdef p_advmode_render[] = {
             { 0x0834b4dd, 5+7+5 }, { 0x0834b591, 5+7+5 }, { 0x0834bb9c, 5+7+5 }, { 0x0834bfca, 5+7+5 }
         };
@@ -509,7 +509,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
             0x08d1f8f0, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
         };
 
-    #endif           
+    #endif
 
 #else
     #error Unsupported DF version
