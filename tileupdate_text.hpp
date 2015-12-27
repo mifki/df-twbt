@@ -1,4 +1,4 @@
-static bool is_text_tile(int x, int y, bool &is_map)
+/*static bool is_text_tile(int x, int y, bool &is_map)
 {
     const int tile = x * tdimy + y;
     df::viewscreen * ws = Gui::getCurViewscreen();
@@ -114,18 +114,18 @@ static bool is_text_tile(int x, int y, bool &is_map)
         return !s->is_playing;
     }    
 
-    /*if (IS_SCREEN(viewscreen_petst))
-    {
-        if (x == 41 && y >= 7)
-            return false;
+    // if (IS_SCREEN(viewscreen_petst))
+    // {
+    //     if (x == 41 && y >= 7)
+    //         return false;
 
-        return true;
-    }*/
+    //     return true;
+    // }
 
     //*out2 << Core::getInstance().p->readClassName(*(void**)ws) << " " << (int)ws->breakdown_level << std::endl;
 
     return true;
-}
+}*/
 
 static void screen_to_texid_text(renderer_cool *r, int tile, struct texture_fullid &ret)
 {

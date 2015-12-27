@@ -86,7 +86,8 @@ bool is_text_tile_legacy(int x, int y, bool &is_map)
     if (IS_SCREEN(viewscreen_setupadventurest))
     {
         df::viewscreen_setupadventurest *s = static_cast<df::viewscreen_setupadventurest*>(ws);
-        if (s->subscreen != df::viewscreen_setupadventurest::Nemesis)
+        int page = s->page;
+        if (page != df::viewscreen_setupadventurest::ChooseRace && page != df::viewscreen_setupadventurest::ChooseAnimalRace && page != df::viewscreen_setupadventurest::ChooseCiv)
             return true;
         else if (x < 58 || x >= 78 || y == 0 || y >= 21)
             return true;
