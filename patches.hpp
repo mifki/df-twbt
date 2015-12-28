@@ -511,6 +511,66 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
 
     #endif
 
+#elif defined(DF_04203)
+    #ifdef WIN32
+      #error Unsupported DF version
+        /*
+        #define A_LOAD_MULTI_PDIM 0x00bb4190
+
+        #define A_RENDER_MAP      0x009fad60
+        #define A_RENDER_UPDOWN   0x008215c0
+
+        static patchdef p_display = { 0x00675571, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x0064039f, 6 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x005b9005, 2+5+5 }, { 0x005b9050, 2+5+5 }, { 0x005b90a1, 2+5+5 }, { 0x005b90f8, 2+5+5 }, { 0x005b95a5, 2+5+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x00cd72f0, 15, true, { 0x36,0x8b,0x84,0x24,0x0C,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC2,0x1C,0x00 }
+        };
+        */
+
+    #elif defined(__APPLE__)
+        #define A_LOAD_MULTI_PDIM 0x01195030
+
+        #define A_RENDER_MAP      0x00b32d30
+        #define A_RENDER_UPDOWN   0x00891eb0
+
+        static patchdef p_display = { 0x1128401, 5};
+
+        static patchdef p_dwarfmode_render = { 0x004bba3a, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x0046e650, 5+3+5 }, { 0x0046eccd, 5+3+5 }, { 0x0046f096, 5+3+5 }, { 0x0046f0f9, 5+3+5 }, { 0x0046f17a, 5+3+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x00df5a10, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
+        };
+
+    #else #Linux
+      #error Unsupported DF version
+        /*
+        #define A_RENDER_MAP      0x08a43270
+        #define A_RENDER_UPDOWN   0x087e1d30
+
+        #define NO_DISPLAY_PATCH
+
+        static patchdef p_dwarfmode_render = { 0x08394a0f, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x0834b4dd, 5+7+5 }, { 0x0834b591, 5+7+5 }, { 0x0834bb9c, 5+7+5 }, { 0x0834bfca, 5+7+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x08d1f8f0, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
+        };
+        */
+
+    #endif
 #else
     #error Unsupported DF version
 #endif
