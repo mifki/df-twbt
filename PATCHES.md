@@ -12,11 +12,19 @@ The first time you do the patching on a new version it's recommended to first fo
 	**On OS X** find a function that calls `IMG_Load` in its very beginning, and next `SDL_SetAlpha`, `SDL_CreateRGBSurface`, and `SDL_SetAlpha` again.
 	**On Linux** not required.
 
-2. Go to the address of vtable for `viewscreen_dwarfmodest` (from symbols.xml), you need *third* DWORD at that address, it's the address of viewscreen's `render()` method. Go to that function - note that on Windows, you will jump into the middle of a function, not the beginning.
+2. Go to the address of vtable for `viewscreen_dwarfmodest` (from symbols.xml), you need *third* DWORD at that address, it's the address of viewscreen's `render()` method. Go to that function.
+
+ Windows: Be aware that if you're using Hopper, it may appear that you have jumped into the middle of a function, not the end, because you see only a bunch of `dd` instructions. This is because Hopper cannot decode the executable properly at this point. You are in fact at the start of a function. It doesn't matter - just follow the instructions below, relative to the point indicated by the third DWORD. The disassembler IDA should render this part of the code correctly.
 
 	Look for the *first* call instruction from that point (Windows, Linux) or *second* call instruction (OS X), go to that function, rename it to `dwarfmode_render_main` for convenience.
 
-	There will be jump over one or two instructions close to the beginning (easily visible in UI). Shortly after that there will be a call of a function with zero (Windows) or zero and an address (OS X, Linux) as its arguments.  On Windows, the zero-argument call, which follows the pattern explained below, will be found right after a call to a method with several arguments (two as of 40.24, three as of 42.03).
+	There will be jump over one or two instructions close to the beginning (easily visible in UI). Shortly after that there will be a call of a function with the following:
+
+  * Windows: no arguments
+  * OS X: two arguments, zero and an address
+  * Linux: two arguments, a register and an address
+
+  On Windows, the zero-argument call, which follows the pattern explained below, will be found right after a call to a method with several arguments (two as of 40.24, three as of 42.03).
 
 	**On Windows**
   
@@ -35,14 +43,14 @@ The first time you do the patching on a new version it's recommended to first fo
 	**On Linux** it's 
 	
 	    xor edi, edi
-	    ...
-	    mov [esp+4], edi
-	    mov [esp], SOME_ADDRESS
-	    call ...
+      call UNIMPORTANT_ADDRESS
+      mov dword  .., <register>      # argument
+      mov dword .., <address>        # argument
+	    call <address of render_map>  <- p_dwarfmode_render
 
 	    Address of the call instruction is `p_dwarfmode_render`.
 	
-	Rename the called function to `render_map`, it's address is `A_RENDER_MAP`.
+	Rename the called function to `render_map`, its address is `A_RENDER_MAP`.
 
 3. The same way go to the `render()` method of `viewscreen_dungeonmodest`, rename it to `advmode_render`.
 
