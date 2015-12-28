@@ -1,6 +1,10 @@
 I use [Hopper Disassembler](http://www.hopperapp.com), it's available for OS X and Linux. You can use trial version that's is limited to 30 minutes which is enough.
 
+You can use Hopper to find the patches for all versions of DF. So you can run Hopper on OSX or Linux and use it to disassemble all of OSX, Windows and Linux versions.
+
 Note: usually addresses don't change much, and usually they increase. So if some address you found is completely different from the address in previous version, better check again if it's correct.
+
+The first time you do the patching on a new version it's recommended to first follow the instructions for a previous version that is already completed. That means you already have the found addresses which you can use to verify that you are understanding and following the instructions correctly. You can then refer back to the known-good version when searching in the new version, which can be very helpful when the new version has changed enough that it doesn't quite match the patterns described below.
 
 1. To find the address for `A_LOAD_MULTI_PDIM`:
 
@@ -8,19 +12,25 @@ Note: usually addresses don't change much, and usually they increase. So if some
 	**On OS X** find a function that calls `IMG_Load` in its very beginning, and next `SDL_SetAlpha`, `SDL_CreateRGBSurface`, and `SDL_SetAlpha` again.
 	**On Linux** not required.
 
-2. Go to the address of vtable for `viewscreen_dwarfmodest` (from symbols.xml), you need *third* DWORD at that address, it's the address of viewscreen's `render()` method. Go to that function.
+2. Go to the address of vtable for `viewscreen_dwarfmodest` (from symbols.xml), you need *third* DWORD at that address, it's the address of viewscreen's `render()` method. Go to that function - note that on Windows, you will jump into the middle of a function, not the beginning.
 
-	Look for the *first* call instruction (Windows, Linux) or *second* call instruction (OS X), go to that function, rename it to `dwarfmode_render_main` for convenience.
+	Look for the *first* call instruction from that point (Windows, Linux) or *second* call instruction (OS X), go to that function, rename it to `dwarfmode_render_main` for convenience.
 
-	There will be jump over one or two instructions close to the beginning (easily visible in UI). Shortly after that there will be a call of a function with zero (Windows) or zero and an address (OS X, Linux) as its arguments. 
+	There will be jump over one or two instructions close to the beginning (easily visible in UI). Shortly after that there will be a call of a function with zero (Windows) or zero and an address (OS X, Linux) as its arguments.  On Windows, the zero-argument call, which follows the pattern explained below, will be found right after a call to a method with several arguments (two as of 40.24, three as of 42.03).
 
-	**On Windows** it's `xor, push, call`. Address of the push instruction is `p_dwarfmode_render`.
+	**On Windows**
+  
+    Pattern is `add, xor, push, call` or `add, push, call`.
+    
+    Address of the push instruction is `p_dwarfmode_render`.
 
 	**On OS X** it's
 
 	    mov [esp+4], 0
 	    mov [esp], eax
 	    call ...
+
+	    Address of the call instruction is `p_dwarfmode_render`.
 
 	**On Linux** it's 
 	
@@ -30,7 +40,7 @@ Note: usually addresses don't change much, and usually they increase. So if some
 	    mov [esp], SOME_ADDRESS
 	    call ...
 
-	Address of the call instruction is `p_dwarfmode_render`.
+	    Address of the call instruction is `p_dwarfmode_render`.
 	
 	Rename the called function to `render_map`, it's address is `A_RENDER_MAP`.
 
@@ -44,7 +54,7 @@ Note: usually addresses don't change much, and usually they increase. So if some
 	
 	**On OS X** and **Linux** each of them is `mov, call, mov, call`. Addresses of the first call instruction are `p_advmode_render`.
 
-6. Look for `0x30000000` in disassembly, close to the end of the code. 
+6. Look for `0x30000000` in disassembly, close to the end of the code.
 
 	You're looking for the pattern
 	
@@ -57,12 +67,20 @@ Note: usually addresses don't change much, and usually they increase. So if some
 	
 	Go to the address after comparison with `0x30000000`. There will be a call of a function with many arguments (i.e. you're looking for the first call instruction), address of that function is `p_render_lower_levels`.
 
-7. The last one is tricky. First, find references to `SDL_GetTicks`.
+On Windows, after jumping to "THE_SAME_ADDR" you will likely see the call to `p_render_lower_levels` occurring after four `mov <register>, dword..` and several `push` instructions. The instruction immediately before the call will likely be `mov ecx, ebx`. Note that "THE_SAME_ADDR" may not jump to the start of a function on Windows, it might jump to a later point in the same function in which you found `0x30000000`.
+
+7. The last one is `p_display`, which is only needed on Windows and OSX.
+
+It can be tricky. First, find references to `SDL_GetTicks`.
 
 	**On Windows** look for a function that does `mov edi, [SDL_GetTicks]` in its very beginning.
 	
-	Somewhere closer to the end of that function there's a pattern like
-	
+	Somewhere closer to the end of that function there's a pattern like:
+
+      add esp, 0x4
+      ...
+      add esp, 0x4
+      ...
 	    call SOME_ADDRESS
 	    ...
 	    call ANOTHER_ADDRESS	<---- You need this instruction
@@ -95,4 +113,4 @@ Note: usually addresses don't change much, and usually they increase. So if some
 	
 	Address of that call instruction above is `p_display`. To check, go to that function, and one of the last instructions should be `dec`.
 	
-	This one is not required `on Linux`. This may cause problems though, so better would be to build a special version of `libgraphics.so` with a call to `renderer->display()` removed.
+	`p_display` is not required `on Linux`. This may cause problems though, so better would be to build a special version of `libgraphics.so` with a call to `renderer->display()` removed.
