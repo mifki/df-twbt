@@ -549,7 +549,20 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         };
 
     #else #Linux
-      #error Unsupported DF version
+        #define A_RENDER_MAP      0x08b909b0
+        #define A_RENDER_UPDOWN   0x088f80c0
+
+        #define NO_DISPLAY_PATCH
+
+        static patchdef p_dwarfmode_render = { 0x008404392, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x083ac44d 5+7+5 }, { 0x083ac501, 5+7+5 }, { 0x083acb1c, 5+7+5 }, { 0x083acf4a, 5+7+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
+        };
         /*
         #define A_RENDER_MAP      0x08a43270
         #define A_RENDER_UPDOWN   0x087e1d30
