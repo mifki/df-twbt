@@ -1,6 +1,6 @@
 I use [Hopper Disassembler](http://www.hopperapp.com), it's available for OS X and Linux. You can use trial version that's is limited to 30 minutes which is enough.
 
-You can use Hopper to find the patches for all versions of DF. So you can run Hopper on OSX or Linux and use it to dissassemble all of OSX, Windows and Linux versions.
+You can use Hopper to find the patches for all versions of DF. So you can run Hopper on OSX or Linux and use it to disassemble all of OSX, Windows and Linux versions.
 
 Note: usually addresses don't change much, and usually they increase. So if some address you found is completely different from the address in previous version, better check again if it's correct.
 
