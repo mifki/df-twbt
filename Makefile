@@ -11,10 +11,10 @@ SRC = twbt.cpp
 DEP = renderer.hpp config.hpp dungeonmode.hpp dwarfmode.hpp renderer_twbt.h commands.hpp plugin.hpp tileupdate_text.hpp tileupdate_map.hpp patches.hpp zoomfix.hpp Makefile legacy/renderer_legacy.hpp legacy/twbt_legacy.hpp
 
 ifeq ($(shell uname -s), Darwin)
-	ifneq (,$(findstring 0.40,$(DFHACKVER)))
-		EXT = dylib
-	else
+	ifneq (,$(findstring 0.34,$(DFHACKVER)))
 		EXT = so
+	else
+		EXT = dylib
 	endif
 else
 	EXT = so
@@ -30,7 +30,7 @@ LDFLAGS = $(LIB) -shared
 
 ifeq ($(shell uname -s), Darwin)
 	export MACOSX_DEPLOYMENT_TARGET=10.6
-	CXX = g++-4.6
+	CXX = g++-4.5
 	CFLAGS += -std=gnu++0x #-stdlib=libstdc++
 	CFLAGS += -Wno-tautological-compare
 	LDFLAGS += -framework OpenGL -mmacosx-version-min=10.6 -undefined dynamic_lookup
