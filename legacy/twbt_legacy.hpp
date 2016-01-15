@@ -89,7 +89,7 @@ struct dwarfmode_hook_legacy : public df::viewscreen_dwarfmodest
         //clock_t c1 = clock();
         INTERPOSE_NEXT(render)();
 
-        if (shadowsloaded && maxlevels)
+        if (maxlevels)
             render_more_layers();
 
         //clock_t c2 = clock();

@@ -136,12 +136,12 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         gps->clipx[1] = r->gdimx;
         gps->clipy[1] = r->gdimy;
 
-        if (maxlevels && shadowsloaded)
+        if (maxlevels)
             patch_rendering(false);
         
         render_map();
         
-        if (maxlevels && shadowsloaded)
+        if (maxlevels)
         {
             multi_rendered = false;
 

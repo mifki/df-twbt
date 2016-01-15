@@ -341,7 +341,7 @@ void renderer_cool::draw(int vertex_count)
             }
 
             // Prepare and render shadows
-            if (multi_rendered)
+            if (multi_rendered && shadowsloaded)
             {
                 int elemcnt = 0;
                 //TODO: don't do this if view not moved and tiles with shadows not changed

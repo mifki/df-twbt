@@ -122,15 +122,15 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         gps->clipx[1] = r->gdimx-1;
         gps->clipy[1] = r->gdimy;
 
-        if (maxlevels && shadowsloaded)
+        if (maxlevels)
             patch_rendering(false);
          
-        // if (maxlevels && shadowsloaded)
+        // if (maxlevels)
             // (*df::global::window_z)+=1;
 
        	render_map();
 
-        if (maxlevels && shadowsloaded)
+        if (maxlevels)
         {
             multi_rendered = false;
 
