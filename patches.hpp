@@ -511,7 +511,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
 
     #endif
 
-#elif defined(DF_04203)
+#elif defined(DF_04203) // Thanks to TheBloke
     #ifdef WIN32
         #define A_LOAD_MULTI_PDIM 0x00cbaec0
 
@@ -536,7 +536,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         #define A_RENDER_MAP      0x00b32d30
         #define A_RENDER_UPDOWN   0x00891eb0
 
-        static patchdef p_display = { 0x1128401, 5};
+        static patchdef p_display = { 0x01128401, 5 };
 
         static patchdef p_dwarfmode_render = { 0x004bba3a, 5 };
 
@@ -548,7 +548,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
             0x00df5a10, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
         };
 
-    #else #Linux
+    #else 
         #define A_RENDER_MAP      0x08b909b0
         #define A_RENDER_UPDOWN   0x088f80c0
 
@@ -565,6 +565,62 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         };
 
     #endif
+
+#elif defined(DF_04204)
+    #ifdef WIN32 // Thanks to figment
+        #define A_LOAD_MULTI_PDIM (0x00CBD850)
+
+        #define A_RENDER_MAP      (0x00AE5D10)
+        #define A_RENDER_UPDOWN   (0x008C3DE0)
+
+        static patchdef p_display = { 0x006DD8F1, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x006A48FE, 6 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x006072B5, 2+5+5 }, { 0x00607300, 2+5+5 }, { 0x00607351, 2+5+5 }, { 0x006073A8, 2+5+5 }, { 0x0060781B, 1+5+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x00DDEF70, 15, true, { 0x36,0x8b,0x84,0x24,0x0C,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC2,0x1C,0x00 }
+        };
+
+    #elif defined(__APPLE__)
+        #define A_LOAD_MULTI_PDIM 0x011998c0
+
+        #define A_RENDER_MAP      0x00b36130
+        #define A_RENDER_UPDOWN   0x00894690
+
+        static patchdef p_display = { 0x0112cc61, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x004bd0da, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x0046fcf0, 5+3+5 }, { 0x0047036d, 5+3+5 }, { 0x00470736, 5+3+5 }, { 0x00470799, 5+3+5 }, { 0x0047081a, 5+3+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x00dfa060, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
+        };
+
+    #else // Thanks to topis
+        #define A_RENDER_MAP      0x08B93710
+        #define A_RENDER_UPDOWN   0x088FA210
+
+        #define NO_DISPLAY_PATCH
+
+        static patchdef p_dwarfmode_render = { 0x008404622, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x083AC6DD, 5+7+5 }, { 0x083AC791, 5+7+5 }, { 0x083ACDAC, 5+7+5 }, { 0x083AD1DA, 5+7+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x08E89BC0, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
+        };
+
+    #endif
 #else
+
     #error Unsupported DF version
 #endif
