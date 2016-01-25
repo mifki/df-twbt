@@ -620,18 +620,58 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         };
 
     #endif
+
 #elif defined(DF_04205)
-    #ifdef WIN32
-        #error Unsupported DF version
+    #ifdef WIN32 // thanks to figment
+        #define A_LOAD_MULTI_PDIM (0x00CC2580)
+        #define A_RENDER_MAP      (0x00AEABF0)
+        #define A_RENDER_UPDOWN   (0x008C8180)
+
+        static patchdef p_display = { 0x006E1C41, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x006A890E, 6 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x0060B365, 2+5+5 }, { 0x0060B3B0, 2+5+5 }, { 0x0060B401, 2+5+5 }, { 0x0060B458, 2+5+5 }, { 0x0060B8CB, 1+5+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x00DE4DB0, 15, true, { 0x36,0x8b,0x84,0x24,0x0C,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC2,0x1C,0x00 }
+        };
+
     #elif defined(__APPLE__)
-        #error Unsupported DF version
-    #else // Linux
+        #define A_LOAD_MULTI_PDIM 0x011a35f0
+
+        #define A_RENDER_MAP      0x00b3e200
+        #define A_RENDER_UPDOWN   0x0089c540
+
+        static patchdef p_display = { 0x01136991, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x004c475a, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x00476d40, 5+3+5 }, { 0x004773bd, 5+3+5 }, { 0x00477786, 5+3+5 }, { 0x004777e9, 5+3+5 }, { 0x0047786a, 5+3+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x00e02830, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
+        };
+
+    #else // thanks to topis & indivisible
         #define A_RENDER_MAP    0x08b9b720
+
         #define A_RENDER_UPDOWN 0x08901f00
         #define NO_DISPLAY_PATCH
+        
         static patchdef p_dwarfmode_render = { 0x0840b502, 5 };
-        static patchdef p_advmode_render[] = { { 0x083b306d, 5+7+5 }, { 0x083b3121, 5+7+5 }, { 0x083b373c, 5+7+5 }, { 0x083b3b6a, 5+7+5 } };
-        static patchdef p_render_lower_levels = { 0x08e92a20, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 } };
+        
+        static patchdef p_advmode_render[] = {
+            { 0x083b306d, 5+7+5 }, { 0x083b3121, 5+7+5 }, { 0x083b373c, 5+7+5 }, { 0x083b3b6a, 5+7+5 }
+        };
+        
+        static patchdef p_render_lower_levels = {
+            0x08e92a20, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
+        };
     #endif
 #else
 
