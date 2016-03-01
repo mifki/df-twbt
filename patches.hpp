@@ -693,7 +693,23 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         };
 
     #elif defined(__APPLE__)
-        #error Unsupported DF version
+        #define A_LOAD_MULTI_PDIM 0x011C8F40
+
+        #define A_RENDER_MAP      0x00B63CB0
+        #define A_RENDER_UPDOWN   0x008BDC2D
+
+        static patchdef p_display = { 0x0115BF01, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x004C9E3A, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x0047D170, 5+3+5 }, { 0x0047D7ED, 5+3+5 }, { 0x0047DBB6, 5+3+5 }, { 0x0047DC19, 5+3+5 }, { 0x0047DC9A, 5+3+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x00E27EB0, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
+        };
+
     #else
         #define A_RENDER_MAP 0x08bbefb0
         #define A_RENDER_UPDOWN 0x08922960
