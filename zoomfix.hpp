@@ -14,14 +14,14 @@ struct viewscreen_unitlistst_zoomfix : public df::viewscreen_unitlistst
 
     DEFINE_VMETHOD_INTERPOSE(void, feed, (std::set<df::interface_key> *input))
     {
-        int oldwx = *df::global::window_x, oldwy = *df::global::window_y;
+        int oldcx = df::global::cursor->x, oldcy = df::global::cursor->y;
         bool zooming = false;
         if (input->count(interface_key::UNITJOB_ZOOM_CRE) || input->count(interface_key::UNITJOB_ZOOM_BUILD))
             zooming = true;        
 
         INTERPOSE_NEXT(feed)(input);        
 
-        if (zooming && (*df::global::window_x != oldwx || *df::global::window_y != oldwy))
+        if (zooming && (df::global::cursor->x != oldcx || df::global::cursor->y != oldcy))
             fix_zoom();
     }    
 };
@@ -35,14 +35,14 @@ struct viewscreen_buildinglistst_zoomfix : public df::viewscreen_buildinglistst
 
     DEFINE_VMETHOD_INTERPOSE(void, feed, (std::set<df::interface_key> *input))
     {
-        int oldwx = *df::global::window_x, oldwy = *df::global::window_y;
+        int oldcx = df::global::cursor->x, oldcy = df::global::cursor->y;
         bool zooming = false;
         if (input->count(interface_key::BUILDINGLIST_ZOOM_T) || input->count(interface_key::BUILDINGLIST_ZOOM_Q))
             zooming = true;        
 
         INTERPOSE_NEXT(feed)(input);        
 
-        if (zooming && (*df::global::window_x != oldwx || *df::global::window_y != oldwy))
+        if (zooming && (df::global::cursor->x != oldcx || df::global::cursor->y != oldcy))
             fix_zoom();
     }    
 };
@@ -56,14 +56,14 @@ struct viewscreen_layer_unit_relationshipst_zoomfix : public df::viewscreen_laye
 
     DEFINE_VMETHOD_INTERPOSE(void, feed, (std::set<df::interface_key> *input))
     {
-        int oldwx = *df::global::window_x, oldwy = *df::global::window_y;
+        int oldcx = df::global::cursor->x, oldcy = df::global::cursor->y;
         bool zooming = false;
         if (input->count(interface_key::UNITVIEW_RELATIONSHIPS_ZOOM))
             zooming = true;        
 
         INTERPOSE_NEXT(feed)(input);        
 
-        if (zooming && (*df::global::window_x != oldwx || *df::global::window_y != oldwy))
+        if (zooming && (df::global::cursor->x != oldcx || df::global::cursor->y != oldcy))
             fix_zoom();
     }    
 };
