@@ -105,7 +105,7 @@ void renderer_cool::reshape_graphics()
     int cx = *df::global::window_x + gdimx / 2;
     int cy = *df::global::window_y + gdimy / 2;
 
-    df::viewscreen *ws = Gui::getCurViewscreen();
+    df::viewscreen *ws = df::global::gview->view.child;
     if (df::viewscreen_dwarfmodest::_identity.is_direct_instance(ws))
     {
         gsize_x = (size_x - tsx * (gmenu_w + 1 + 1));
