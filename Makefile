@@ -1,6 +1,6 @@
 DFHACKVER ?= 0.40.24-r4
 
-DFVERNUM = `echo $(DFHACKVER) | sed -e s/-r.*// -e s/\\\\.//g`
+DFVERNUM = `echo $(DFHACKVER) | sed -e s/-.*// -e s/\\\\.//g`
 
 TWBT_VER ?= "5.xx"
 
