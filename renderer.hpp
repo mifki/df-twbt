@@ -537,7 +537,6 @@ void renderer_cool::display_new(bool update_graphics)
         // In this case this function replaces original (non-virtual) renderer::display()
         // So update text tiles here
 
-        df::viewscreen *ws = df::global::gview->view.child;
     if (gps->force_full_display_count)
     {
         update_all();
