@@ -10,6 +10,15 @@ renderer_cool::renderer_cool()
     needs_reshape = needs_zoom = 0;
 }
 
+void renderer_cool::update_all()
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+    
+    for (int x = 0; x < tdimx; ++x)
+        for (int y = 0; y < tdimy; ++y)
+            update_tile(x, y);    
+}
+
 void renderer_cool::update_tile(int x, int y)
 {
     if (!enabled)
@@ -115,19 +124,19 @@ void renderer_cool::reshape_graphics()
     }
     else //Adv. mode
     {
-        *out2 << "reshape_graphics" << std::endl;
+        // *out2 << "reshape_graphics" << std::endl;
         gsize_x = size_x;
         gsize_y = size_y;
         goff_x = off_x;
         goff_y = goff_y_gl = off_y;
     }
 
-    float dimx = std::min(gsize_x / gdispx, 256.0f);
-    float dimy = std::min(gsize_y / gdispy, 256.0f);
-    gdimx = ceilf(dimx);
-    gdimy = ceilf(dimy);
-    gdimxfull = floorf(dimx);
-    gdimyfull = floorf(dimy);
+    float _dimx = std::min(gsize_x / gdispx, 256.0f);
+    float _dimy = std::min(gsize_y / gdispy, 256.0f);
+    gdimx = ceilf(_dimx);
+    gdimy = ceilf(_dimy);
+    gdimxfull = floorf(_dimx);
+    gdimyfull = floorf(_dimy);
 
     if (df::viewscreen_dwarfmodest::_identity.is_direct_instance(ws))
         goff_y_gl = goff_y - (gdimy == gdimyfull ? 0 : roundf(gdispy - (gsize_y - gdispy * gdimyfull)));                
@@ -525,46 +534,25 @@ void renderer_cool::draw(int vertex_count)
 void renderer_cool::display_new(bool update_graphics)
 {
 #ifndef NO_DISPLAY_PATCH
-    // In this case this function replaces original (non-virtual) renderer::display()
-    // So update text tiles here
+        // In this case this function replaces original (non-virtual) renderer::display()
+        // So update text tiles here
 
-    const int dimx = tdimx;//init->display.grid_x;
-    const int dimy = tdimy;//init->display.grid_y;
-
-    if (gps->force_full_display_count) {
+        df::viewscreen *ws = df::global::gview->view.child;
+    if (gps->force_full_display_count)
+    {
         update_all();
-    } else {
+    }
+    else
+    {
         uint32_t *screenp = (uint32_t*)screen, *oldp = (uint32_t*)screen_old;
-        /*if (use_graphics) {
-        int off = 0;
-        for (int x2=0; x2 < dimx; x2++) {
-        for (int y2=0; y2 < dimy; y2++, ++off, ++screenp, ++oldp) {
-        // We don't use pointers for the non-screen arrays because we mostly fail at the
-        // *first* comparison, and having pointers for the others would exceed register
-        // count.
-        // Partial printing (and color-conversion): Big-ass if.
-        if (*screenp == *oldp &&
-        screentexpos[off] == screentexpos_old[off] &&
-        screentexpos_addcolor[off] == screentexpos_addcolor_old[off] &&
-        screentexpos_grayscale[off] == screentexpos_grayscale_old[off] &&
-        screentexpos_cf[off] == screentexpos_cf_old[off] &&
-        screentexpos_cbr[off] == screentexpos_cbr_old[off])
+        for (int x2=0; x2 < tdimx; ++x2)
         {
-        // Nothing's changed, this clause deliberately empty
-        } else {
-        update_tile(x2, y2);
-        }
-        }
-        }
-        } else {*/
-        for (int x2=0; x2 < dimx; ++x2) {
-            for (int y2=0; y2 < dimy; ++y2, ++screenp, ++oldp) {
-                if (*screenp != *oldp) {
+            for (int y2=0; y2 < tdimy; ++y2, ++screenp, ++oldp)
+            {
+                if (*screenp != *oldp)
                     update_tile(x2, y2);
-                }
             }
         }
-        //}
     }
 
     if (gps->force_full_display_count > 0) gps->force_full_display_count--;

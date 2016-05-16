@@ -47,6 +47,7 @@ struct renderer_cool : renderer_opengl
     void reshape_zoom_swap();
 
     virtual void update_tile(int x, int y);
+    virtual void update_all();
     virtual void draw(int vertex_count);
     virtual void reshape_gl();
 

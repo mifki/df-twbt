@@ -110,24 +110,24 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
             }
         }        
 
-        uint8_t *sctop                     = enabler->renderer->screen;
-        int32_t *screentexpostop           = enabler->renderer->screentexpos;
-        int8_t *screentexpos_addcolortop   = enabler->renderer->screentexpos_addcolor;
-        uint8_t *screentexpos_grayscaletop = enabler->renderer->screentexpos_grayscale;
-        uint8_t *screentexpos_cftop        = enabler->renderer->screentexpos_cf;
-        uint8_t *screentexpos_cbrtop       = enabler->renderer->screentexpos_cbr;
+        uint8_t *sctop                     = gps->screen;
+        int32_t *screentexpostop           = gps->screentexpos;
+        int8_t *screentexpos_addcolortop   = gps->screentexpos_addcolor;
+        uint8_t *screentexpos_grayscaletop = gps->screentexpos_grayscale;
+        uint8_t *screentexpos_cftop        = gps->screentexpos_cf;
+        uint8_t *screentexpos_cbrtop       = gps->screentexpos_cbr;
 
         // In fort mode render_map() will render starting at (1,1)
         // and will use dimensions from init->display.grid to calculate map region to render
         // but dimensions from gps to calculate offsets into screen buffer.
         // So we adjust all this so that it renders to our gdimx x gdimy buffer starting at (0,0).
-        gps->screen                 = enabler->renderer->screen                 = gscreen - 4*r->gdimy - 4;
-        gps->screen_limit           = gscreen + r->gdimx * r->gdimy * 4;
-        gps->screentexpos           = enabler->renderer->screentexpos           = gscreentexpos           - r->gdimy - 1;
-        gps->screentexpos_addcolor  = enabler->renderer->screentexpos_addcolor  = gscreentexpos_addcolor  - r->gdimy - 1;
-        gps->screentexpos_grayscale = enabler->renderer->screentexpos_grayscale = gscreentexpos_grayscale - r->gdimy - 1;
-        gps->screentexpos_cf        = enabler->renderer->screentexpos_cf        = gscreentexpos_cf        - r->gdimy - 1;
-        gps->screentexpos_cbr       = enabler->renderer->screentexpos_cbr       = gscreentexpos_cbr       - r->gdimy - 1;
+        gps->screen                 = gscreen                 - 4*r->gdimy - 4;
+        gps->screen_limit           = gscreen                 + r->gdimx * r->gdimy * 4;
+        gps->screentexpos           = gscreentexpos           - r->gdimy - 1;
+        gps->screentexpos_addcolor  = gscreentexpos_addcolor  - r->gdimy - 1;
+        gps->screentexpos_grayscale = gscreentexpos_grayscale - r->gdimy - 1;
+        gps->screentexpos_cf        = gscreentexpos_cf        - r->gdimy - 1;
+        gps->screentexpos_cbr       = gscreentexpos_cbr       - r->gdimy - 1;
 
         init->display.grid_x = r->gdimx + gmenu_w + 2;
         init->display.grid_y = r->gdimy + 2;
@@ -145,8 +145,8 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         {
             multi_rendered = false;
 
-            gps->screen                 = mscreen - 4*r->gdimy - 4;
-            gps->screen_limit           = mscreen + r->gdimx * r->gdimy * 4;
+            gps->screen                 = mscreen                 - 4*r->gdimy - 4;
+            gps->screen_limit           = mscreen                 + r->gdimx * r->gdimy * 4;
             gps->screentexpos           = mscreentexpos           - r->gdimy - 1;
             gps->screentexpos_addcolor  = mscreentexpos_addcolor  - r->gdimy - 1;
             gps->screentexpos_grayscale = mscreentexpos_grayscale - r->gdimy - 1;
@@ -370,13 +370,13 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         gps->clipx[1] = gps->dimx - 1;
         gps->clipy[1] = gps->dimy - 1;
 
-        gps->screen = enabler->renderer->screen = sctop;
-        gps->screen_limit = gps->screen + gps->dimx * gps->dimy * 4;
-        gps->screentexpos = enabler->renderer->screentexpos = screentexpostop;
-        gps->screentexpos_addcolor = enabler->renderer->screentexpos_addcolor = screentexpos_addcolortop;
-        gps->screentexpos_grayscale = enabler->renderer->screentexpos_grayscale = screentexpos_grayscaletop;
-        gps->screentexpos_cf = enabler->renderer->screentexpos_cf = screentexpos_cftop;
-        gps->screentexpos_cbr = enabler->renderer->screentexpos_cbr = screentexpos_cbrtop;
+        gps->screen                 = sctop;
+        gps->screen_limit           = gps->screen + gps->dimx * gps->dimy * 4;
+        gps->screentexpos           = screentexpostop;
+        gps->screentexpos_addcolor  = screentexpos_addcolortop;
+        gps->screentexpos_grayscale = screentexpos_grayscaletop;
+        gps->screentexpos_cf        = screentexpos_cftop;
+        gps->screentexpos_cbr       = screentexpos_cbrtop;
 
         //clock_t c2 = clock();
         //*out2 << (c2-c1) << std::endl;
