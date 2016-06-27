@@ -1,6 +1,6 @@
 I use [Hopper Disassembler](http://www.hopperapp.com), it's available for OS X and Linux. You can use trial version that's is limited to 30 minutes which is enough.
 
-You can use Hopper to find the patches for all versions of DF. So you can run Hopper on OSX or Linux and use it to disassemble all of OSX, Windows and Linux versions.
+You can use Hopper to find the patches for all versions of DF. So you can run Hopper on OS X or Linux and use it to disassemble all of OS X, Windows and Linux versions.
 
 Note: usually addresses don't change much, and usually they increase. So if some address you found is completely different from the address in previous version, better check again if it's correct.
 
@@ -62,7 +62,7 @@ The first time you do the patching on a new version it's recommended to first fo
 	
 	**On OS X** and **Linux** each of them is `mov, call, mov, call`. Addresses of the first call instruction are `p_advmode_render`.
 
-6. Look for `0x30000000` in disassembly, close to the end of the code.
+6. Look for `0x30000000` in disassembly in the second half of the code, closes to the end.
 
 	You're looking for the pattern
 	
@@ -77,7 +77,7 @@ The first time you do the patching on a new version it's recommended to first fo
 
 On Windows, after jumping to "THE_SAME_ADDR" you will likely see the call to `p_render_lower_levels` occurring after four `mov <register>, dword..` and several `push` instructions. The instruction immediately before the call will likely be `mov ecx, ebx`. Note that "THE_SAME_ADDR" may not jump to the start of a function on Windows, it might jump to a later point in the same function in which you found `0x30000000`.
 
-7. The last one is `p_display`, which is only needed on Windows and OSX.
+7. The last one is `p_display`, which is only needed on Windows and OS X.
 
 It can be tricky. First, find references to `SDL_GetTicks`.
 
