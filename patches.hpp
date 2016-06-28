@@ -731,7 +731,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
 
         static patchdef p_display = { 0x006f7351, 5 };
 
-        static patchdef p_dwarfmode_render = { 0x006ba48f, 6 };
+        static patchdef p_dwarfmode_render = { 0x006ba48e, 6 };
 
         static patchdef p_advmode_render[] = {
             { 0x00611395, 2+5+5 }, { 0x006113e0, 2+5+5 }, { 0x00611431, 2+5+5 }, { 0x00611488, 2+5+5 }, { 0x006118fd, 1+5+5 }
@@ -742,7 +742,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         };
 
     #elif defined(__APPLE__)
-        #define A_LOAD_MULTI_PDIM 0x0120c910
+        #define A_LOAD_MULTI_PDIM 0x0120cbb0
 
         #define A_RENDER_MAP      0x00b9ea70
         #define A_RENDER_UPDOWN   0x008f3180

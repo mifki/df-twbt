@@ -271,7 +271,7 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
                         // Slow path. Without rendering patch we have to check all symbols that the game
                         // may render for lower levels if a tile is empty on the current level.
 
-                        #warning Adv. mode without rendering patch isn't ready yet
+                        #warning Adv. mode without rendering patch is not ready yet
 
                         if ((gscreen[stile+3]&0xf0))
                             continue;
