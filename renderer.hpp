@@ -147,7 +147,7 @@ void renderer_cool::reshape_graphics()
     int tiles = gdimx * gdimy;
 
     // Recreate tile buffers
-    allocate_buffers(tiles);
+    allocate_buffers(tiles, gdimy + 1);
 
     // Recreate OpenGL buffers
     gvertexes = (GLfloat*)realloc(gvertexes, sizeof(GLfloat) * tiles * 2 * 6);
@@ -616,23 +616,30 @@ void renderer_cool::gswap_arrays()
     gscreentexpos_cbr_old = _gscreentexpos_cbr[j];
 }
 
-void renderer_cool::allocate_buffers(int tiles)
+void renderer_cool::allocate_buffers(int tiles, int extra_tiles)
 {
-#define REALLOC(var,type,count) var = (type*)realloc(var, count * sizeof(type));
+#define REALLOC(var,type,count) var = (type*)realloc(var, (count) * sizeof(type));
 
-    REALLOC(_gscreen[0],                 uint8_t, tiles * 4 * 2)
-    REALLOC(_gscreentexpos[0],           int32_t, tiles * 2);
-    REALLOC(_gscreentexpos_addcolor[0],  int8_t,  tiles * 2);
-    REALLOC(_gscreentexpos_grayscale[0], uint8_t, tiles * 2);
-    REALLOC(_gscreentexpos_cf[0],        uint8_t, tiles * 2);
-    REALLOC(_gscreentexpos_cbr[0],       uint8_t, tiles * 2);
+    REALLOC(gscreen_origin,                 uint8_t, (tiles+extra_tiles) * 4 * 2)
+    REALLOC(gscreentexpos_origin,           int32_t, (tiles+extra_tiles) * 2);
+    REALLOC(gscreentexpos_addcolor_origin,  int8_t,  (tiles+extra_tiles) * 2);
+    REALLOC(gscreentexpos_grayscale_origin, uint8_t, (tiles+extra_tiles) * 2);
+    REALLOC(gscreentexpos_cf_origin,        uint8_t, (tiles+extra_tiles) * 2);
+    REALLOC(gscreentexpos_cbr_origin,       uint8_t, (tiles+extra_tiles) * 2);
 
-    _gscreen[1]                 = _gscreen[0]                 + tiles * 4;
-    _gscreentexpos[1]           = _gscreentexpos[0]           + tiles;
-    _gscreentexpos_addcolor[1]  = _gscreentexpos_addcolor[0]  + tiles;
-    _gscreentexpos_grayscale[1] = _gscreentexpos_grayscale[0] + tiles;
-    _gscreentexpos_cf[1]        = _gscreentexpos_cf[0]        + tiles;
-    _gscreentexpos_cbr[1]       = _gscreentexpos_cbr[0]       + tiles;
+    _gscreen[0]                 = gscreen_origin                 + extra_tiles * 4;
+    _gscreentexpos[0]           = gscreentexpos_origin           + extra_tiles;
+    _gscreentexpos_addcolor[0]  = gscreentexpos_addcolor_origin  + extra_tiles;
+    _gscreentexpos_grayscale[0] = gscreentexpos_grayscale_origin + extra_tiles;
+    _gscreentexpos_cf[0]        = gscreentexpos_cf_origin        + extra_tiles;
+    _gscreentexpos_cbr[0]       = gscreentexpos_cbr_origin       + extra_tiles;
+
+    _gscreen[1]                 = gscreen_origin                 + (extra_tiles * 2 + tiles) * 4;
+    _gscreentexpos[1]           = gscreentexpos_origin           + extra_tiles * 2 + tiles;
+    _gscreentexpos_addcolor[1]  = gscreentexpos_addcolor_origin  + extra_tiles * 2 + tiles;
+    _gscreentexpos_grayscale[1] = gscreentexpos_grayscale_origin + extra_tiles * 2 + tiles;
+    _gscreentexpos_cf[1]        = gscreentexpos_cf_origin        + extra_tiles * 2 + tiles;
+    _gscreentexpos_cbr[1]       = gscreentexpos_cbr_origin       + extra_tiles * 2 + tiles;
 
     gswap_arrays();
 
@@ -643,21 +650,28 @@ void renderer_cool::allocate_buffers(int tiles)
     REALLOC(shadowvert, GLfloat, tiles * 4 * 2 * 6)
     REALLOC(fogcoord,   GLfloat, tiles * 6)
 
-    REALLOC(mscreen,                 uint8_t, tiles * 4)
-    REALLOC(mscreentexpos,           int32_t, tiles);
-    REALLOC(mscreentexpos_addcolor,  int8_t,  tiles);
-    REALLOC(mscreentexpos_grayscale, uint8_t, tiles);
-    REALLOC(mscreentexpos_cf,        uint8_t, tiles);
-    REALLOC(mscreentexpos_cbr,       uint8_t, tiles);
+    REALLOC(mscreen_origin,                 uint8_t, (tiles+extra_tiles) * 4)
+    REALLOC(mscreentexpos_origin,           int32_t, tiles+extra_tiles);
+    REALLOC(mscreentexpos_addcolor_origin,  int8_t,  tiles+extra_tiles);
+    REALLOC(mscreentexpos_grayscale_origin, uint8_t, tiles+extra_tiles);
+    REALLOC(mscreentexpos_cf_origin,        uint8_t, tiles+extra_tiles);
+    REALLOC(mscreentexpos_cbr_origin,       uint8_t, tiles+extra_tiles);
+
+    mscreen                 = mscreen_origin                     + extra_tiles * 4;
+    mscreentexpos           = mscreentexpos_origin               + extra_tiles;
+    mscreentexpos_addcolor  = mscreentexpos_addcolor_origin      + extra_tiles;
+    mscreentexpos_grayscale = mscreentexpos_grayscale_origin     + extra_tiles;
+    mscreentexpos_cf        = mscreentexpos_cf_origin            + extra_tiles;
+    mscreentexpos_cbr       = mscreentexpos_cbr_origin           + extra_tiles;
 
     // We need to zero out these buffers because game doesn't change them for tiles without creatures,
     // so there will be garbage that will cause every tile to be updated each frame and other bad things
-    memset(_gscreen[0],                 0, tiles * 2 * 4);
-    memset(_gscreentexpos[0],           0, tiles * 2 * sizeof(int32_t));
-    memset(_gscreentexpos_addcolor[0],  0, tiles * 2);
-    memset(_gscreentexpos_grayscale[0], 0, tiles * 2);
-    memset(_gscreentexpos_cf[0],        0, tiles * 2);
-    memset(_gscreentexpos_cbr[0],       0, tiles * 2);
+    memset(_gscreen[0],                 0, (tiles * 2 + extra_tiles) * 4);
+    memset(_gscreentexpos[0],           0, (tiles * 2 + extra_tiles) * sizeof(int32_t));
+    memset(_gscreentexpos_addcolor[0],  0, tiles * 2 + extra_tiles);
+    memset(_gscreentexpos_grayscale[0], 0, tiles * 2 + extra_tiles);
+    memset(_gscreentexpos_cf[0],        0, tiles * 2 + extra_tiles);
+    memset(_gscreentexpos_cbr[0],       0, tiles * 2 + extra_tiles);
     memset(mscreentexpos,               0, tiles * sizeof(int32_t));
 }
 

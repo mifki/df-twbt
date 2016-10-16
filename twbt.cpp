@@ -179,6 +179,11 @@ static uint8_t *_gscreentexpos_grayscale[2];
 static uint8_t *_gscreentexpos_cf[2];
 static uint8_t *_gscreentexpos_cbr[2];
 
+static uint8_t *gscreen_origin;
+static int32_t *gscreentexpos_origin;
+static int8_t *gscreentexpos_addcolor_origin;
+static uint8_t *gscreentexpos_grayscale_origin, *gscreentexpos_cf_origin, *gscreentexpos_cbr_origin;
+
 // Current buffers
 static uint8_t *gscreen;
 static int32_t *gscreentexpos;
@@ -193,11 +198,13 @@ static uint8_t *gscreentexpos_grayscale_old, *gscreentexpos_cf_old, *gscreentexp
 
 // Buffers for rendering lower levels before merging    
 static uint8_t *mscreen;
+static uint8_t *mscreen_origin;
 static int32_t *mscreentexpos;
+static int32_t *mscreentexpos_origin;
 static int8_t *mscreentexpos_addcolor;
-static uint8_t *mscreentexpos_grayscale;
-static uint8_t *mscreentexpos_cf;
-static uint8_t *mscreentexpos_cbr;
+static int8_t *mscreentexpos_addcolor_origin;
+static uint8_t *mscreentexpos_grayscale, *mscreentexpos_cf, *mscreentexpos_cbr;
+static uint8_t *mscreentexpos_grayscale_origin, *mscreentexpos_cf_origin, *mscreentexpos_cbr_origin;
 
 #include "patches.hpp"
 
