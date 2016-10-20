@@ -97,7 +97,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
     const int tile = x * r->gdimy + y;        
     screen_to_texid_map(r, tile, ret);
     
-    if (has_overrides && world->map.block_index)
+    if (has_overrides && my_block_index)
     {
         const unsigned char *s = gscreen + tile*4;
         int s0 = s[0];
@@ -127,7 +127,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                     {
                         override_group &og = *it;
 
-                        auto ilist = world->items.other[og.other_id];
+                        auto &ilist = world->items.other[og.other_id];
                         for (auto it2 = ilist.begin(); it2 != ilist.end(); it2++)
                         {
                             df::item *item = *it2;
@@ -156,7 +156,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                     {
                         override_group &og = *it;
 
-                        auto ilist = world->buildings.other[og.other_id];
+                        auto &ilist = world->buildings.other[og.other_id];
                         for (auto it2 = ilist.begin(); it2 != ilist.end(); it2++)
                         {
                             df::building *bld = *it2;
@@ -186,7 +186,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                     }
 
                     // Tile types
-                    df::map_block *block = world->map.block_index[xx>>4][yy>>4][zz];
+                    df::map_block *block = my_block_index[(xx>>4)*world->map.y_count_block*world->map.z_count_block + (yy>>4)*world->map.z_count_block + zz];//[xx>>4][yy>>4][zz];
                     if (block)
                     {
                         int tiletype = block->tiletype[xx&15][yy&15];

@@ -380,6 +380,24 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
         //clock_t c2 = clock();
         //*out2 << (c2-c1) << std::endl;
+
+        if (block_index_size != world->map.x_count_block*world->map.y_count_block*world->map.z_count_block)
+        {
+            free(my_block_index);
+            block_index_size = world->map.x_count_block*world->map.y_count_block*world->map.z_count_block;
+            my_block_index = (df::map_block**)malloc(block_index_size*sizeof(void*));
+
+            for (int x = 0; x < world->map.x_count_block; x++)
+            {
+                for (int y = 0; y < world->map.y_count_block; y++)
+                {
+                    for (int z = 0; z < world->map.z_count_block; z++)
+                    {
+                        my_block_index[x*world->map.y_count_block*world->map.z_count_block + y*world->map.z_count_block + z] = world->map.block_index[x][y][z];
+                    }                    
+                }
+            }
+        }
     }
 };
 

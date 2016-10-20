@@ -163,6 +163,7 @@ DFhackCExport command_result plugin_onstatechange(color_ostream &out, state_chan
     {
         update_custom_building_overrides();
         gmenu_w = -1;
+        block_index_size = 0;
     }
 
     return CR_OK;

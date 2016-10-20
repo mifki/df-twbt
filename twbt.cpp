@@ -206,6 +206,9 @@ static int8_t *mscreentexpos_addcolor_origin;
 static uint8_t *mscreentexpos_grayscale, *mscreentexpos_cf, *mscreentexpos_cbr;
 static uint8_t *mscreentexpos_grayscale_origin, *mscreentexpos_cf_origin, *mscreentexpos_cbr_origin;
 
+static df::map_block **my_block_index;
+static int block_index_size;
+
 #include "patches.hpp"
 
 #ifdef WIN32

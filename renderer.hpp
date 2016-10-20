@@ -235,7 +235,7 @@ void renderer_cool::draw(int vertex_count)
         }*/
     }    
 
-    display_new(is_main_scr);
+    display_new(df::viewscreen_dwarfmodest::_identity.is_direct_instance(ws));
 
 #ifdef WIN32
     // We can't do this in plugin_init() because OpenGL context isn't initialized by that time
@@ -559,41 +559,44 @@ void renderer_cool::display_new(bool update_graphics)
 
     // Update map tiles is current screen has a map
     if (update_graphics)
-    {
-        if (needs_full_update || always_full_update)
-        {
-            needs_full_update = false;
+        display_map();
+} 
 
-            //clock_t c1 = clock();
-            for (int x2 = 0; x2 < gdimx; x2++)
-                for (int y2 = 0; y2 < gdimy; y2++)
+void renderer_cool::display_map()
+{
+    if (needs_full_update || always_full_update)
+    {
+        needs_full_update = false;
+
+        //clock_t c1 = clock();
+        for (int x2 = 0; x2 < gdimx; x2++)
+            for (int y2 = 0; y2 < gdimy; y2++)
+                update_map_tile(x2, y2);
+        //clock_t c2 = clock();
+        //*out2 << (c2-c1) << std::endl;
+    }
+    else
+    {
+        uint32_t *gscreenp = (uint32_t*)gscreen, *goldp = (uint32_t*)gscreen_old;
+        int off = 0;
+        for (int x2=0; x2 < gdimx; x2++) {
+            for (int y2=0; y2 < gdimy; y2++, ++off, ++gscreenp, ++goldp) {
+                // We don't use pointers for the non-screen arrays because we mostly fail at the
+                // *first* comparison, and having pointers for the others would exceed register
+                // count.
+                if (*gscreenp == *goldp &&
+                gscreentexpos[off] == gscreentexpos_old[off] &&
+                gscreentexpos_addcolor[off] == gscreentexpos_addcolor_old[off] &&
+                gscreentexpos_grayscale[off] == gscreentexpos_grayscale_old[off] &&
+                gscreentexpos_cf[off] == gscreentexpos_cf_old[off] &&
+                gscreentexpos_cbr[off] == gscreentexpos_cbr_old[off])
+                    ;
+                else
                     update_map_tile(x2, y2);
-            //clock_t c2 = clock();
-            //*out2 << (c2-c1) << std::endl;
-        }
-        else
-        {
-            uint32_t *gscreenp = (uint32_t*)gscreen, *goldp = (uint32_t*)gscreen_old;
-            int off = 0;
-            for (int x2=0; x2 < gdimx; x2++) {
-                for (int y2=0; y2 < gdimy; y2++, ++off, ++gscreenp, ++goldp) {
-                    // We don't use pointers for the non-screen arrays because we mostly fail at the
-                    // *first* comparison, and having pointers for the others would exceed register
-                    // count.
-                    if (*gscreenp == *goldp &&
-                    gscreentexpos[off] == gscreentexpos_old[off] &&
-                    gscreentexpos_addcolor[off] == gscreentexpos_addcolor_old[off] &&
-                    gscreentexpos_grayscale[off] == gscreentexpos_grayscale_old[off] &&
-                    gscreentexpos_cf[off] == gscreentexpos_cf_old[off] &&
-                    gscreentexpos_cbr[off] == gscreentexpos_cbr_old[off])
-                        ;
-                    else
-                        update_map_tile(x2, y2);
-                }
             }
         }
     }
-} 
+}
 
 void renderer_cool::gswap_arrays()
 {
