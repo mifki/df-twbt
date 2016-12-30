@@ -70,6 +70,7 @@
 #include "df/item_type.h"
 #include "df/items_other_id.h"
 #include "df/unit.h"
+#include "df/world.h"
 #include "df/viewscreen_dwarfmodest.h"
 #include "df/viewscreen_setupadventurest.h"
 #include "df/viewscreen_dungeonmodest.h"
@@ -89,6 +90,7 @@
 
 #include "renderer_twbt.h"
 
+using namespace DFHack;
 using df::global::world;
 using std::string;
 using std::vector;
@@ -173,34 +175,34 @@ static bool always_full_update;
 
 // Buffers for map rendering
 static uint8_t *_gscreen[2];
-static int32_t *_gscreentexpos[2];
+static long *_gscreentexpos[2];
 static int8_t *_gscreentexpos_addcolor[2];
 static uint8_t *_gscreentexpos_grayscale[2];
 static uint8_t *_gscreentexpos_cf[2];
 static uint8_t *_gscreentexpos_cbr[2];
 
 static uint8_t *gscreen_origin;
-static int32_t *gscreentexpos_origin;
+static long *gscreentexpos_origin;
 static int8_t *gscreentexpos_addcolor_origin;
 static uint8_t *gscreentexpos_grayscale_origin, *gscreentexpos_cf_origin, *gscreentexpos_cbr_origin;
 
 // Current buffers
 static uint8_t *gscreen;
-static int32_t *gscreentexpos;
+static long *gscreentexpos;
 static int8_t *gscreentexpos_addcolor;
 static uint8_t *gscreentexpos_grayscale, *gscreentexpos_cf, *gscreentexpos_cbr;
 
 // Previous buffers to determine changed tiles
 static uint8_t *gscreen_old;
-static int32_t *gscreentexpos_old;
+static long *gscreentexpos_old;
 static int8_t *gscreentexpos_addcolor_old;
 static uint8_t *gscreentexpos_grayscale_old, *gscreentexpos_cf_old, *gscreentexpos_cbr_old;
 
 // Buffers for rendering lower levels before merging    
 static uint8_t *mscreen;
 static uint8_t *mscreen_origin;
-static int32_t *mscreentexpos;
-static int32_t *mscreentexpos_origin;
+static long *mscreentexpos;
+static long *mscreentexpos_origin;
 static int8_t *mscreentexpos_addcolor;
 static int8_t *mscreentexpos_addcolor_origin;
 static uint8_t *mscreentexpos_grayscale, *mscreentexpos_cf, *mscreentexpos_cbr;
@@ -211,7 +213,7 @@ static int block_index_size;
 
 #include "patches.hpp"
 
-#ifdef WIN32
+#ifdef WIN32aaa
     // On Windows there's no convert_magenta parameter. Arguments are pushed onto stack,
     // except for tex_pos and filename, which go into ecx and edx. Simulating this with __fastcall.
     typedef void (__fastcall *LOAD_MULTI_PDIM)(long *tex_pos, const string &filename, void *tex, long dimx, long dimy, long *disp_x, long *disp_y);
@@ -231,7 +233,7 @@ LOAD_MULTI_PDIM _load_multi_pdim;
 RENDER_MAP _render_map;
 RENDER_UPDOWN _render_updown;
 
-#ifdef WIN32
+#ifdef WIN32aaa
     #define render_map() _render_map(0)
     #define render_updown() _render_updown()
     #define load_tileset(filename,tex_pos,dimx,dimy,disp_x,disp_y) _load_multi_pdim(tex_pos, filename, &enabler->textures, dimx, dimy, disp_x, disp_y)
@@ -247,7 +249,7 @@ static void patch_rendering(bool enable_lower_levels)
     static bool ready = false;
     static unsigned char orig[MAX_PATCH_LEN];
 
-    long addr = p_render_lower_levels.addr;
+    intptr_t addr = p_render_lower_levels.addr;
     #ifdef WIN32
         addr += Core::getInstance().vinfo->getRebaseDelta();
     #endif
@@ -278,7 +280,7 @@ static void replace_renderer()
     //original vtable anyway, so any value will go.
     unsigned char zz[] = { 0xff, 0xff, 0xff, 0xff };
 #ifdef WIN32
-    p.write((char*)&df::renderer::_identity + 72, zz, 4);
+    //p.write((char*)&df::renderer::_identity + 72, zz, 4);
 #else
     p.write((char*)&df::renderer::_identity + 64, zz, 4);
 #endif

@@ -68,7 +68,7 @@ static void unhook_legacy()
 }
 
 static unsigned char screen2[256*256*4];
-static int32_t screentexpos2[256*256];
+static long screentexpos2[256*256];
 static int8_t screentexpos_addcolor2[256*256];
 static uint8_t screentexpos_grayscale2[256*256];
 static uint8_t screentexpos_cf2[256*256];
@@ -119,12 +119,12 @@ struct dwarfmode_hook_legacy : public df::viewscreen_dwarfmodest
             menu_left = w - 32; 
 
 
-        uint8_t *sctop = enabler->renderer->screen;
-        int32_t *screentexpostop = enabler->renderer->screentexpos;
-        int8_t *screentexpos_addcolortop = enabler->renderer->screentexpos_addcolor;
-        uint8_t *screentexpos_grayscaletop = enabler->renderer->screentexpos_grayscale;
-        uint8_t *screentexpos_cftop = enabler->renderer->screentexpos_cf;
-        uint8_t *screentexpos_cbrtop = enabler->renderer->screentexpos_cbr;
+        uint8_t *sctop = gps->screen;
+        long *screentexpostop = gps->screentexpos;
+        int8_t *screentexpos_addcolortop = gps->screentexpos_addcolor;
+        uint8_t *screentexpos_grayscaletop = gps->screentexpos_grayscale;
+        uint8_t *screentexpos_cftop = gps->screentexpos_cf;
+        uint8_t *screentexpos_cbrtop = gps->screentexpos_cbr;
 
         gps->screen = screen2;
         gps->screen_limit = gps->screen + gps->dimx * gps->dimy * 4;

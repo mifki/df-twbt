@@ -73,6 +73,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
             MemoryPatcher p(Core::getInstance().p);
             apply_patch(&p, p_dwarfmode_render);
             patched = true;
+            //*out2 << *(int*)p_dwarfmode_render.addr << std::endl;
         }
 #endif
 
@@ -111,7 +112,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         }        
 
         uint8_t *sctop                     = gps->screen;
-        int32_t *screentexpostop           = gps->screentexpos;
+        long *screentexpostop           = gps->screentexpos;
         int8_t *screentexpos_addcolortop   = gps->screentexpos_addcolor;
         uint8_t *screentexpos_grayscaletop = gps->screentexpos_grayscale;
         uint8_t *screentexpos_cftop        = gps->screentexpos_cf;

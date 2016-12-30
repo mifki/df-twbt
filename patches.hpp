@@ -20,7 +20,8 @@ To find this address, find a block like (on OS X)
     00c5c159 F744246000000030                test       dword [ss:esp+0x60], 0x30000000
     00c5c161 0F8509030000                    jne        0xc5c470
 
-then go to 0xc5c470, there will be a block like (call of a function with enormous number of arguments)
+then go to 0xc5c470, there will be a block like (call of a function with large number of arguments)
+(on Windows it's jmp instead of call)
 
     00c5c470 0FBF842484000000                movsx      eax, word [ss:esp+0x84]               ; XREF=0xc5c153, 0xc5c161
     00c5c478 8B9424DC000000                  mov        edx, dword [ss:esp+0xdc]
@@ -45,9 +46,9 @@ then go to 0xc5c470, there will be a block like (call of a function with enormou
 and 0x00c61700 will be your address
 
 On Windows we're patching that function with
-    mov eax, dword [ss:esp+0x0c]
-    mov byte [ds:eax], 0x00
-    retn 0x1c
+    mov rax, qword [rsp+0x28]
+    mov byte [ds:rax], 0x0
+    ret      
 
 On other systems with
     mov eax, dword [ss:esp+0x14]
@@ -58,7 +59,7 @@ On other systems with
 #define MAX_PATCH_LEN 32
 
 struct patchdef {
-    unsigned long addr;
+    intptr_t addr;
     int len;
     bool hasdata;
     unsigned char data[MAX_PATCH_LEN];
@@ -70,7 +71,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
     if (!nops[0])
         memset(nops, 0x90, sizeof(nops));
 
-    long addr = p.addr;
+    intptr_t addr = p.addr;
     #ifdef WIN32
         addr += Core::getInstance().vinfo->getRebaseDelta();
     #endif
@@ -739,6 +740,59 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
 
         static patchdef p_render_lower_levels = {
             0x00e1cea0, 15, true, { 0x36,0x8b,0x84,0x24,0x0C,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC2,0x1C,0x00 }
+        };
+
+    #elif defined(__APPLE__)
+        #define A_LOAD_MULTI_PDIM 0x0120cbb0
+
+        #define A_RENDER_MAP      0x00b9ea70
+        #define A_RENDER_UPDOWN   0x008f3180
+
+        static patchdef p_display = { 0x0119e101, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x004e442a, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x004832b2, 5+3+5 }, { 0x0048396d, 5+3+5 }, { 0x00483d48, 5+3+5 }, { 0x00483dab, 5+3+5 }, { 0x00483e2c, 5+3+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x00e65740, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
+        };
+
+    #else
+        #define A_RENDER_MAP 0x08bf9b00
+        #define A_RENDER_UPDOWN 0x08955b40
+
+        #define NO_DISPLAY_PATCH
+
+        static patchdef p_dwarfmode_render = { 0x08429f12, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x083c167d, 5+7+5 }, { 0x083c1731, 5+7+5 }, { 0x083c1d5c, 5+7+5 }, { 0x083c218a, 5+7+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x08ef43c0, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
+        };
+    #endif
+
+#elif defined(DF_04305)
+    #ifdef WIN32
+        #define A_LOAD_MULTI_PDIM 0x140a36ad0
+        #define A_RENDER_MAP      0x1408170b0
+        #define A_RENDER_UPDOWN   0x140593f30
+
+        static patchdef p_display = { 0x14035c4cb, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x14031266a, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x0140265a6b, 5+5 }, { 0x140265abc, 5+5 }, { 0x140265b06, 5+5 }, { 0x140265ff4, 5+5 },
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x140b7f500, 9, true, { 0x48, 0x8B, 0x44, 0x24, 0x28,  0xC6, 0x00, 0x00,  0xC3 }
         };
 
     #elif defined(__APPLE__)

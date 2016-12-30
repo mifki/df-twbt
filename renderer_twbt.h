@@ -34,7 +34,7 @@ struct renderer_cool : renderer_opengl
     int needs_zoom;
     bool needs_full_update;
     unsigned char *gscreen;
-    int32_t *gscreentexpos;
+    long *gscreentexpos;
     float goff_y_gl;
 
     renderer_cool();

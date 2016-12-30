@@ -80,12 +80,12 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         gwindow_y = *df::global::window_y;
         gwindow_z = *df::global::window_z;                
 
-        uint8_t *sctop = enabler->renderer->screen;
-        int32_t *screentexpostop = enabler->renderer->screentexpos;
-        int8_t *screentexpos_addcolortop = enabler->renderer->screentexpos_addcolor;
-        uint8_t *screentexpos_grayscaletop = enabler->renderer->screentexpos_grayscale;
-        uint8_t *screentexpos_cftop = enabler->renderer->screentexpos_cf;
-        uint8_t *screentexpos_cbrtop = enabler->renderer->screentexpos_cbr;
+        uint8_t *sctop = gps->screen;
+        long *screentexpostop = gps->screentexpos;
+        int8_t *screentexpos_addcolortop = gps->screentexpos_addcolor;
+        uint8_t *screentexpos_grayscaletop = gps->screentexpos_grayscale;
+        uint8_t *screentexpos_cftop = gps->screentexpos_cf;
+        uint8_t *screentexpos_cbrtop = gps->screentexpos_cbr;
 
         /*long *z = (long*)gscreen;
         for (int y = 0; y < r->gdimy; y++)
@@ -105,13 +105,13 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
             }
         }*/
 
-        gps->screen = enabler->renderer->screen = gscreen;
+        gps->screen = gscreen;
         gps->screen_limit = gscreen + r->gdimx * r->gdimy * 4;
-        gps->screentexpos = enabler->renderer->screentexpos = gscreentexpos;
-        gps->screentexpos_addcolor = enabler->renderer->screentexpos_addcolor = gscreentexpos_addcolor;
-        gps->screentexpos_grayscale = enabler->renderer->screentexpos_grayscale = gscreentexpos_grayscale;
-        gps->screentexpos_cf = enabler->renderer->screentexpos_cf = gscreentexpos_cf;
-        gps->screentexpos_cbr = enabler->renderer->screentexpos_cbr = gscreentexpos_cbr;
+        gps->screentexpos = gscreentexpos;
+        gps->screentexpos_addcolor = gscreentexpos_addcolor;
+        gps->screentexpos_grayscale = gscreentexpos_grayscale;
+        gps->screentexpos_cf = gscreentexpos_cf;
+        gps->screentexpos_cbr = gscreentexpos_cbr;
 
         int oldgridx = init->display.grid_x;
         int oldgridy = init->display.grid_y;
@@ -271,7 +271,7 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
                         // Slow path. Without rendering patch we have to check all symbols that the game
                         // may render for lower levels if a tile is empty on the current level.
 
-                        #warning Adv. mode without rendering patch is not ready yet
+//                        #warning Adv. mode without rendering patch is not ready yet
 
                         if ((gscreen[stile+3]&0xf0))
                             continue;
@@ -382,13 +382,13 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         }
         //else
         {
-            gps->screen = enabler->renderer->screen = gscreen;
+            gps->screen = gscreen;
             gps->screen_limit = gscreen + r->gdimx * r->gdimy * 4;
-            gps->screentexpos = enabler->renderer->screentexpos = gscreentexpos;
-            gps->screentexpos_addcolor = enabler->renderer->screentexpos_addcolor = gscreentexpos_addcolor;
-            gps->screentexpos_grayscale = enabler->renderer->screentexpos_grayscale = gscreentexpos_grayscale;
-            gps->screentexpos_cf = enabler->renderer->screentexpos_cf = gscreentexpos_cf;
-            gps->screentexpos_cbr = enabler->renderer->screentexpos_cbr = gscreentexpos_cbr;
+            gps->screentexpos = gscreentexpos;
+            gps->screentexpos_addcolor = gscreentexpos_addcolor;
+            gps->screentexpos_grayscale = gscreentexpos_grayscale;
+            gps->screentexpos_cf = gscreentexpos_cf;
+            gps->screentexpos_cbr = gscreentexpos_cbr;
 
             render_updown();
         }
@@ -398,13 +398,13 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         gps->clipx[1] = tdimx - 1;
         gps->clipy[1] = tdimy - 1;
 
-        gps->screen = enabler->renderer->screen = sctop;
+        gps->screen = sctop;
         gps->screen_limit = gps->screen + tdimx*tdimy * 4;
-        gps->screentexpos = enabler->renderer->screentexpos = screentexpostop;
-        gps->screentexpos_addcolor = enabler->renderer->screentexpos_addcolor = screentexpos_addcolortop;
-        gps->screentexpos_grayscale = enabler->renderer->screentexpos_grayscale = screentexpos_grayscaletop;
-        gps->screentexpos_cf = enabler->renderer->screentexpos_cf = screentexpos_cftop;
-        gps->screentexpos_cbr = enabler->renderer->screentexpos_cbr = screentexpos_cbrtop;
+        gps->screentexpos = screentexpostop;
+        gps->screentexpos_addcolor = screentexpos_addcolortop;
+        gps->screentexpos_grayscale = screentexpos_grayscaletop;
+        gps->screentexpos_cf = screentexpos_cftop;
+        gps->screentexpos_cbr = screentexpos_cbrtop;
 
         //clock_t c2 = clock();
         //*out2 << (c2-c1) << std::endl;

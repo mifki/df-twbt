@@ -624,7 +624,7 @@ void renderer_cool::allocate_buffers(int tiles, int extra_tiles)
 #define REALLOC(var,type,count) var = (type*)realloc(var, (count) * sizeof(type));
 
     REALLOC(gscreen_origin,                 uint8_t, (tiles+extra_tiles) * 4 * 2)
-    REALLOC(gscreentexpos_origin,           int32_t, (tiles+extra_tiles) * 2);
+    REALLOC(gscreentexpos_origin,           long, (tiles+extra_tiles) * 2);
     REALLOC(gscreentexpos_addcolor_origin,  int8_t,  (tiles+extra_tiles) * 2);
     REALLOC(gscreentexpos_grayscale_origin, uint8_t, (tiles+extra_tiles) * 2);
     REALLOC(gscreentexpos_cf_origin,        uint8_t, (tiles+extra_tiles) * 2);
@@ -654,7 +654,7 @@ void renderer_cool::allocate_buffers(int tiles, int extra_tiles)
     REALLOC(fogcoord,   GLfloat, tiles * 6)
 
     REALLOC(mscreen_origin,                 uint8_t, (tiles+extra_tiles) * 4)
-    REALLOC(mscreentexpos_origin,           int32_t, tiles+extra_tiles);
+    REALLOC(mscreentexpos_origin,           long, tiles+extra_tiles);
     REALLOC(mscreentexpos_addcolor_origin,  int8_t,  tiles+extra_tiles);
     REALLOC(mscreentexpos_grayscale_origin, uint8_t, tiles+extra_tiles);
     REALLOC(mscreentexpos_cf_origin,        uint8_t, tiles+extra_tiles);
@@ -670,12 +670,12 @@ void renderer_cool::allocate_buffers(int tiles, int extra_tiles)
     // We need to zero out these buffers because game doesn't change them for tiles without creatures,
     // so there will be garbage that will cause every tile to be updated each frame and other bad things
     memset(_gscreen[0],                 0, (tiles * 2 + extra_tiles) * 4);
-    memset(_gscreentexpos[0],           0, (tiles * 2 + extra_tiles) * sizeof(int32_t));
+    memset(_gscreentexpos[0],           0, (tiles * 2 + extra_tiles) * sizeof(long));
     memset(_gscreentexpos_addcolor[0],  0, tiles * 2 + extra_tiles);
     memset(_gscreentexpos_grayscale[0], 0, tiles * 2 + extra_tiles);
     memset(_gscreentexpos_cf[0],        0, tiles * 2 + extra_tiles);
     memset(_gscreentexpos_cbr[0],       0, tiles * 2 + extra_tiles);
-    memset(mscreentexpos,               0, tiles * sizeof(int32_t));
+    memset(mscreentexpos,               0, tiles * sizeof(long));
 }
 
 void renderer_cool::reshape_zoom_swap()
