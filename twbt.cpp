@@ -282,7 +282,7 @@ static void replace_renderer()
 #ifdef WIN32
     //p.write((char*)&df::renderer::_identity + 72, zz, 4);
 #else
-    p.write((char*)&df::renderer::_identity + 64, zz, 4);
+    p.write((char*)&df::renderer::_identity + 128, zz, 4);
 #endif
 
     renderer_opengl *oldr = (renderer_opengl*)enabler->renderer;

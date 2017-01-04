@@ -1,4 +1,4 @@
-DFHACKVER ?= 0.40.24-r4
+DFHACKVER ?= 0.43.05-alpha3
 
 DFVERNUM = `echo $(DFHACKVER) | sed -e s/-.*// -e s/\\\\.//g`
 
@@ -25,12 +25,12 @@ INC = -I"$(DH)/library/include" -I"$(DH)/library/proto" -I"$(DH)/depends/protobu
 LIB = -L"$(DH)/build/library" -ldfhack -ldfhack-version
 
 CXX ?= c++
-CFLAGS = $(INC) -m32 -DLINUX_BUILD -O3
+CFLAGS = $(INC) -m64 -DLINUX_BUILD -O3
 LDFLAGS = $(LIB) -shared 
 
 ifeq ($(shell uname -s), Darwin)
 	export MACOSX_DEPLOYMENT_TARGET=10.6
-	CXX = g++-4.5
+	CXX = g++-4.8
 	CFLAGS += -std=gnu++0x #-stdlib=libstdc++
 	CFLAGS += -Wno-tautological-compare
 	LDFLAGS += -framework OpenGL -mmacosx-version-min=10.6 -undefined dynamic_lookup
