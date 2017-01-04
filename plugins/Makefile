@@ -1,9 +1,9 @@
-DFHACKVER ?= 0.40.24-r4
+DFHACKVER ?= 0.43.05-alpha4
 
 DFVERNUM = `echo $(DFHACKVER) | sed -e s/-r.*// -e s/\\\\.//g`
 
-DF ?= /Users/vit/Downloads/df_40_24_osx
-DH ?= /Users/vit/Downloads/buildagent-2/workspace/root/dfhack/master
+DF ?= /Users/vit/Downloads/df_43_05_osx
+DH ?= /Users/vit/Downloads/buildagent-2/workspace/root/dfhack/0.43.05
 
 SRC = $(PLUGIN).cpp
 DEP = ../renderer_twbt.h Makefile
@@ -23,12 +23,12 @@ INC = -I"$(DH)/library/include" -I"$(DH)/library/proto" -I"$(DH)/depends/protobu
 LIB = -L"$(DH)/build/library" -ldfhack -ldfhack-version
 
 CXX ?= c++
-CFLAGS = $(INC) -m32 -DLINUX_BUILD -O3
+CFLAGS = $(INC) -m64 -DLINUX_BUILD -O3
 LDFLAGS = $(LIB) -shared 
 
 ifeq ($(shell uname -s), Darwin)
 	export MACOSX_DEPLOYMENT_TARGET=10.6
-	CXX = g++-4.5
+	CXX = g++-4.8
 	CFLAGS += -std=gnu++0x #-stdlib=libstdc++
 	CFLAGS += -Wno-tautological-compare
 	LDFLAGS += -framework OpenGL -mmacosx-version-min=10.6 -undefined dynamic_lookup

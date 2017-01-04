@@ -50,9 +50,8 @@ On Windows we're patching that function with
     mov byte [ds:rax], 0x0
     ret      
 
-On other systems with
-    mov eax, dword [ss:esp+0x14]
-    mov byte [ds:eax], 0x00
+On OS X with
+    mov byte [r8], 0
     ret
 */
 
@@ -810,10 +809,11 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         };
 
         static patchdef p_render_lower_levels = {
-            0x100d075c0, 9, true, { 0x48, 0x8B, 0x44, 0x24, 0x08,  0xC6, 0x00, 0x00,  0xC3 }
+            0x100d075c0, 5, true, { 0x41, 0xc6, 0x00, 0x00, 0xC3 }
         };
 
     #else
+        #error not supported yet
         #define A_RENDER_MAP 0x08bf9b00
         #define A_RENDER_UPDOWN 0x08955b40
 
