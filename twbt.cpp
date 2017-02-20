@@ -373,7 +373,7 @@ static bool advmode_needs_map(int m)
             m == 14 ||
             m == df::ui_advmode_menu::Fire ||
             m == df::ui_advmode_menu::Jump ||   // (j)
-            m == df::ui_advmode_menu::Unk30 ||
+            m == df::ui_advmode_menu::SelectInteractionTarget ||
             m == 21 ||                          // (S)
             m == 3  || m == 4 ||                // (k)
             m == 20 ||                          // (m)
