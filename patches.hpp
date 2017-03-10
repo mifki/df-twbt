@@ -821,7 +821,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         static patchdef p_dwarfmode_render = { 0x00720ae5, 5 };
 
         static patchdef p_advmode_render[] = {
-            { 0x006aa202, 5+7+5 }, { 0x006aa802, 5+7+5 }, { 0x006aa841, 5+7+5 }, { 0x006aa89d, 5+7+5 }
+            { 0x006aa202, 5+5+5 }, { 0x006aa802, 5+5+5 }, { 0x006aa841, 5+5+5 }, { 0x006aa89d, 5+5+5 }
         };
 
         static patchdef p_render_lower_levels = {
