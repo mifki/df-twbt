@@ -5,7 +5,7 @@ SET( TWBT_VER "5.xx" )
 
 STRING( REGEX REPLACE "\\." "" DV_VS "${DF_VERSION}" )
 
-SET( CMAKE_CXX_FLAGS "-m32 -O3 -DDFHACK_VERSION=\"${DFHACK_VERSION}\" -DDF_${DV_VS} -DTWBT_VER=\"\\\"${TWBT_VER}\\\"\"" )
+SET( CMAKE_CXX_FLAGS "-m64 -O3 -DDFHACK_VERSION=\"${DFHACK_VERSION}\" -DDF_${DV_VS} -DTWBT_VER=\"\\\"${TWBT_VER}\\\"\"" )
 
 IF( APPLE )
   SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x -stdlib=libstdc++ -Wno-tautological-compare -framework OpenGL -mmacosx-version-min=10.6 -undefined dynamic_lookup" )

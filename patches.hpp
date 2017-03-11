@@ -813,20 +813,19 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         };
 
     #else
-        #error not supported yet
-        #define A_RENDER_MAP 0x08bf9b00
-        #define A_RENDER_UPDOWN 0x08955b40
+        #define A_RENDER_MAP 0x00d537c0
+        #define A_RENDER_UPDOWN 0x00b345f0
 
         #define NO_DISPLAY_PATCH
 
-        static patchdef p_dwarfmode_render = { 0x08429f12, 5 };
+        static patchdef p_dwarfmode_render = { 0x00720ae5, 5 };
 
         static patchdef p_advmode_render[] = {
-            { 0x083c167d, 5+7+5 }, { 0x083c1731, 5+7+5 }, { 0x083c1d5c, 5+7+5 }, { 0x083c218a, 5+7+5 }
+            { 0x006aa202, 5+5+5 }, { 0x006aa802, 5+5+5 }, { 0x006aa841, 5+5+5 }, { 0x006aa89d, 5+5+5 }
         };
 
         static patchdef p_render_lower_levels = {
-            0x08ef43c0, 13, true, { 0x36,0x8b,0x84,0x24,0x14,0x00,0x00,0x00, 0x3e,0xc6,0x00,0x00, 0xC3 }
+            0x00fc8fa0, 5, true, { 0x41, 0xc6, 0x00, 0x00, 0xC3 }
         };
     #endif
 
