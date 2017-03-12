@@ -83,17 +83,17 @@ void renderer_cool::update_map_tile(int x, int y)
 static void write_tile_vertexes(GLfloat x, GLfloat y, GLfloat *vertex)
 {
     vertex[0]  = x;   // Upper left
-    vertex[1]  = y;
+    vertex[1]  = y/2;
     vertex[2]  = x + 1; // Upper right
-    vertex[3]  = y;
+    vertex[3]  = y/2;
     vertex[4]  = x;   // Lower left
-    vertex[5]  = y + 1;
+    vertex[5]  = y/2 + 1;
     vertex[6]  = x;   // Lower left again (triangle 2)
-    vertex[7]  = y + 1;
+    vertex[7]  = y/2 + 1;
     vertex[8]  = x + 1; // Upper right
-    vertex[9]  = y;
+    vertex[9]  = y/2;
     vertex[10] = x + 1; // Lower right
-    vertex[11] = y + 1;
+    vertex[11] = y/2 + 1;
 }
 
 void renderer_cool::reshape_graphics()
@@ -123,7 +123,7 @@ void renderer_cool::reshape_graphics()
     }
 
     float dimx = std::min(gsize_x / gdispx, 256.0f);
-    float dimy = std::min(gsize_y / gdispy, 256.0f);
+    float dimy = std::min(gsize_y / gdispy*2, 256.0f);
     gdimx = ceilf(dimx);
     gdimy = ceilf(dimy);
     gdimxfull = floorf(dimx);
