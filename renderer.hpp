@@ -624,7 +624,7 @@ void renderer_cool::allocate_buffers(int tiles, int extra_tiles)
 #define REALLOC(var,type,count) var = (type*)realloc(var, (count) * sizeof(type));
 
     REALLOC(gscreen_origin,                 uint8_t, (tiles+extra_tiles) * 4 * 2)
-    REALLOC(gscreentexpos_origin,           long, (tiles+extra_tiles) * 2);
+    REALLOC(gscreentexpos_origin,           long,    (tiles+extra_tiles) * 2);
     REALLOC(gscreentexpos_addcolor_origin,  int8_t,  (tiles+extra_tiles) * 2);
     REALLOC(gscreentexpos_grayscale_origin, uint8_t, (tiles+extra_tiles) * 2);
     REALLOC(gscreentexpos_cf_origin,        uint8_t, (tiles+extra_tiles) * 2);
@@ -654,7 +654,7 @@ void renderer_cool::allocate_buffers(int tiles, int extra_tiles)
     REALLOC(fogcoord,   GLfloat, tiles * 6)
 
     REALLOC(mscreen_origin,                 uint8_t, (tiles+extra_tiles) * 4)
-    REALLOC(mscreentexpos_origin,           long, tiles+extra_tiles);
+    REALLOC(mscreentexpos_origin,           long,    tiles+extra_tiles);
     REALLOC(mscreentexpos_addcolor_origin,  int8_t,  tiles+extra_tiles);
     REALLOC(mscreentexpos_grayscale_origin, uint8_t, tiles+extra_tiles);
     REALLOC(mscreentexpos_cf_origin,        uint8_t, tiles+extra_tiles);

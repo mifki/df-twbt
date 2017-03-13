@@ -93,7 +93,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         gwindow_y = *df::global::window_y;
         gwindow_z = *df::global::window_z;        
 
-        long *z = (long*)gscreen;
+        uint32_t *z = (uint32_t*)gscreen;
         for (int y = 0; y < r->gdimy; y++)
         {
             for (int x = world->map.x_count-*df::global::window_x; x < r->gdimx; x++)
@@ -112,7 +112,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         }        
 
         uint8_t *sctop                     = gps->screen;
-        long *screentexpostop           = gps->screentexpos;
+        long *screentexpostop              = gps->screentexpos;
         int8_t *screentexpos_addcolortop   = gps->screentexpos_addcolor;
         uint8_t *screentexpos_grayscaletop = gps->screentexpos_grayscale;
         uint8_t *screentexpos_cftop        = gps->screentexpos_cf;

@@ -87,7 +87,7 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         uint8_t *screentexpos_cftop = gps->screentexpos_cf;
         uint8_t *screentexpos_cbrtop = gps->screentexpos_cbr;
 
-        /*long *z = (long*)gscreen;
+        /*uint32_t *z = (uint32_t*)gscreen;
         for (int y = 0; y < r->gdimy; y++)
         {
             for (int x = world->map.x_count-*df::global::window_x; x < r->gdimx; x++)
