@@ -242,7 +242,7 @@ static void write_tile_arrays_legacy(df::renderer *r, int x, int y, GLfloat *fg,
             {
                 if (s0 == 88 && df::global::cursor->x == xx && df::global::cursor->y == yy)
                 {
-                    long texpos = enabler->fullscreen ? cursor_large_texpos : cursor_small_texpos;
+                    long texpos = cursor_small_texpos;
                     if (texpos)
                         ret.texpos = texpos;
                 }
@@ -275,7 +275,7 @@ static void write_tile_arrays_legacy(df::renderer *r, int x, int y, GLfloat *fg,
                                 if (o.subtype != -1 && item->getSubtype() != o.subtype)
                                     continue;
 
-                                ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
+                                ret.texpos = o.small_texpos;
                                 goto matched;
                             }
                         }
@@ -309,7 +309,7 @@ static void write_tile_arrays_legacy(df::renderer *r, int x, int y, GLfloat *fg,
                                         continue;
                                 }
 
-                                ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
+                                ret.texpos = o.small_texpos;
                                 goto matched;
                             }
                         }
@@ -327,7 +327,7 @@ static void write_tile_arrays_legacy(df::renderer *r, int x, int y, GLfloat *fg,
 
                             if (tiletype == o.type)
                             {
-                                ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
+                                ret.texpos = o.small_texpos;
                                 goto matched;
                             }
                         }
@@ -394,16 +394,8 @@ void renderer_legacy::reshape_gl()
     if (last_fullscreen != enabler->fullscreen)
     {
         last_fullscreen = enabler->fullscreen;
-        if (last_fullscreen)
-        {
-            map_texpos = tilesets[0].large_texpos;
-            text_texpos = tilesets[1].large_texpos;
-        }
-        else
-        {
-            map_texpos = tilesets[0].small_texpos;
-            text_texpos = tilesets[1].small_texpos;
-        }
+        map_texpos = tilesets[0].small_texpos;
+        text_texpos = tilesets[1].small_texpos;
     }
 
     //glShadeModel(GL_FLAT);    

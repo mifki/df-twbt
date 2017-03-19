@@ -87,6 +87,8 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
         r->reshape_zoom_swap();
 
+        memset(gscreen_under, 0, r->gdimx*r->gdimy*sizeof(uint32_t));
+
         // These values may change from the main thread while being accessed from the rendering thread,
         // and that will cause flickering of overridden tiles at least, so save them here
         gwindow_x = *df::global::window_x;

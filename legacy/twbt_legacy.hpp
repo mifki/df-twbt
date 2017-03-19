@@ -13,9 +13,9 @@ static void hook_legacy()
     //original vtable anyway, so any value will go.
     unsigned char zz[] = { 0xff, 0xff, 0xff, 0xff };
 #ifdef WIN32
-    p.write((char*)&df::renderer::_identity + 72, zz, 4);
+    //p.write((char*)&df::renderer::_identity + 72, zz, 4);
 #else
-    p.write((char*)&df::renderer::_identity + 64, zz, 4);
+    p.write((char*)&df::renderer::_identity + 128, zz, 4);
 #endif
 
     oldr_legacy = (renderer_opengl*)enabler->renderer;

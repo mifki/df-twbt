@@ -9,7 +9,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     int mode = get_mode();
     if (!mode)
     {
-        *out2 << COLOR_RED << "TWBT: set PRINT_MODE to TWBT or TWBT_LEGACY in data/init/init.txt to activate the plugin" << std::endl;
+        *out2 << COLOR_RED << "TWBT: set PRINT_MODE to TWBT in data/init/init.txt to activate the plugin" << std::endl;
         *out2 << COLOR_RESET;
         return CR_OK;        
     }
@@ -74,12 +74,10 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     // Graphics tileset - accessible at index 0
     struct tileset ts;
     memcpy(ts.small_texpos, init->font.small_font_texpos, sizeof(ts.small_texpos));
-    memcpy(ts.large_texpos, init->font.large_font_texpos, sizeof(ts.large_texpos));
     tilesets.push_back(ts);
 
     // We will replace init->font with text font, so let's save graphics tile size
     small_map_dispx = init->font.small_font_dispx, small_map_dispy = init->font.small_font_dispy;
-    large_map_dispx = init->font.large_font_dispx, large_map_dispy = init->font.large_font_dispy;
 
     has_textfont = load_text_font();
     has_overrides = load_overrides();
@@ -104,8 +102,18 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         *out2 << COLOR_RESET;
     }
 
-    map_texpos = enabler->fullscreen ? tilesets[0].large_texpos : tilesets[0].small_texpos;
-    text_texpos = enabler->fullscreen ? tilesets[1].large_texpos : tilesets[1].small_texpos;
+    {
+        long dx, dy;        
+        load_tileset("data/art/white1px.png", &white_texpos, 1, 1, &dx, &dy);
+    }
+
+    {
+        long dx, dy;        
+        load_tileset("data/art/transparent1px.png", &transparent_texpos, 1, 1, &dx, &dy);    
+    }
+
+    map_texpos = tilesets[0].small_texpos;
+    text_texpos = tilesets[1].small_texpos;
 
     commands.push_back(PluginCommand(
         "mapshot", "Mapshot!",
@@ -142,17 +150,16 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 
         INTERPOSE_HOOK(dungeonmode_hook, render).apply(true);
         INTERPOSE_HOOK(dungeonmode_hook, logic).apply(true);
-        INTERPOSE_HOOK(dungeonmode_hook, feed).apply(true);        
+        INTERPOSE_HOOK(dungeonmode_hook, feed).apply(true); 
+
+        enable_building_hooks();       
+        enable_item_hooks();
     }
     else
     {
         hook_legacy();
         INTERPOSE_HOOK(dwarfmode_hook_legacy, render).apply(true);
     }
-
-#if defined(__APPLE__) && defined(DF_03411)
-    INTERPOSE_HOOK(traderesize_hook, render).apply(true);
-#endif    
 
     return CR_OK;
 }
@@ -181,10 +188,6 @@ DFhackCExport command_result plugin_shutdown ( color_ostream &out )
 
     /*if (enabled)
         restore_renderer();
-
-#if defined(__APPLE__) && defined(DF_03411)
-    INTERPOSE_HOOK(traderesize_hook, render).apply(false);
-#endif            
 
     return CR_OK;*/
 }

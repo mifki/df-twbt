@@ -102,7 +102,7 @@ using df::global::d_init;
 using df::global::gview;
 
 struct texture_fullid {
-    unsigned int texpos;
+    unsigned int texpos, bg_texpos, top_texpos;
     float r, g, b;
     float br, bg, bb;
 };
@@ -112,13 +112,15 @@ struct gl_texpos {
 };
 
 struct tileset {
-    long small_texpos[16*16], large_texpos[16*16];
+    long small_texpos[16*16];
+    long bg_texpos[16*16];
+    long top_texpos[16*16];
 };
 static vector< struct tileset > tilesets;
 
 struct override {
     int type, subtype;
-    long small_texpos, large_texpos;
+    long small_texpos, bg_texpos, top_texpos;
     char bg, fg;
     std::string subtypename;
 };
@@ -138,8 +140,9 @@ struct tile_overrides {
 static struct tile_overrides *overrides[256];
 
 long *text_texpos, *map_texpos;
+long white_texpos, transparent_texpos;
 
-long cursor_small_texpos, cursor_large_texpos;
+long cursor_small_texpos;
 
 static bool enabled;
 static bool has_textfont, has_overrides;
@@ -172,6 +175,9 @@ static int gmenu_w;
 static uint8_t skytile;
 static uint8_t chasmtile;
 static bool always_full_update;
+
+//TODO: need two buffers?
+static uint8_t *gscreen_under;
 
 // Buffers for map rendering
 static uint8_t *_gscreen[2];
@@ -399,4 +405,6 @@ static bool advmode_needs_map(int m)
 #include "legacy/twbt_legacy.hpp"
 #include "config.hpp"
 #include "commands.hpp"
+#include "buildings.hpp"
+#include "items.hpp"
 #include "plugin.hpp"

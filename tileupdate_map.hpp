@@ -41,6 +41,7 @@ static void screen_to_texid_map(renderer_cool *r, int tile, struct texture_fulli
 {
     const unsigned char *s = gscreen + tile*4;
 
+    int ch   = s[0];
     int fg   = s[1];
     int bg   = s[2];
     int bold = s[3] & 0x0f;
@@ -49,13 +50,17 @@ static void screen_to_texid_map(renderer_cool *r, int tile, struct texture_fulli
 
     if (!texpos)
     {
-        ret.texpos = map_texpos[s[0]];
+        ret.texpos = map_texpos[ch];
+        ret.bg_texpos = tilesets[0].bg_texpos[ch];
+        ret.top_texpos = tilesets[0].top_texpos[ch];
 
         resolve_color(fg, bg, bold, ret);
         return;
     }        
 
     ret.texpos = texpos;
+    ret.bg_texpos = white_texpos;
+    ret.top_texpos = transparent_texpos;
 
     if (gscreentexpos_grayscale[tile])
     {
@@ -73,16 +78,38 @@ static void screen_to_texid_map(renderer_cool *r, int tile, struct texture_fulli
     }
 }
 
+static void screen_to_texid_over(renderer_cool *r, int tile, struct texture_fullid &ret)
+{
+    const unsigned char *s = gscreen_under + tile*4;
+
+    int ch   = s[0];
+    int fg   = s[1];
+    int bg   = s[2];
+    int bold = s[3] & 0x0f;
+
+    ret.texpos = map_texpos[ch];
+    ret.bg_texpos = tilesets[0].bg_texpos[ch];
+    ret.top_texpos = tilesets[0].top_texpos[ch];
+
+    resolve_color(fg, bg, bold, ret);
+}
+
 static void apply_override (texture_fullid &ret, override &o)
 {
-    if (o.large_texpos)
-        ret.texpos = enabler->fullscreen ? o.large_texpos : o.small_texpos;
+    if (o.small_texpos)
+    {
+        ret.texpos = o.small_texpos;
+        ret.bg_texpos = o.bg_texpos;
+        ret.top_texpos = o.top_texpos;
+    }
+
     if (o.bg != -1)
     {
         ret.br = enabler->ccolor[o.bg][0];
         ret.bg = enabler->ccolor[o.bg][1];
         ret.bb = enabler->ccolor[o.bg][2];        
     }
+
     if (o.fg != -1)
     {
         ret.r = enabler->ccolor[o.fg][0];
@@ -91,7 +118,7 @@ static void apply_override (texture_fullid &ret, override &o)
     }
 }
 
-static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, GLfloat *bg, GLfloat *tex)
+static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, GLfloat *bg, GLfloat *tex, GLfloat *tex_bg, GLfloat *fg_top, GLfloat *tex_top)
 {
     struct texture_fullid ret;
     const int tile = x * r->gdimy + y;        
@@ -112,7 +139,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
 
                 if (s0 == 88 && df::global::cursor->x == xx && df::global::cursor->y == yy)
                 {
-                    long texpos = enabler->fullscreen ? cursor_large_texpos : cursor_small_texpos;
+                    long texpos = cursor_small_texpos;
                     if (texpos)
                         ret.texpos = texpos;
                 }
@@ -221,21 +248,153 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
         *(bg++) = ret.bg;
         *(bg++) = ret.bb;
         *(bg++) = 1;
+
+        fg_top += 8;
+        *(fg_top++) = 1;
+        *(fg_top++) = 1;
+        *(fg_top++) = 1;
+        *(fg_top++) = 1;
     }    
     
     // Set texture coordinates
-    gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
-    *(tex++) = txt[ret.texpos].left;   // Upper left
-    *(tex++) = txt[ret.texpos].bottom;
-    *(tex++) = txt[ret.texpos].right;  // Upper right
-    *(tex++) = txt[ret.texpos].bottom;
-    *(tex++) = txt[ret.texpos].left;   // Lower left
-    *(tex++) = txt[ret.texpos].top;
+    {
+        long texpos = ret.texpos;
+        gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
+        *(tex++) = txt[texpos].left;   // Upper left
+        *(tex++) = txt[texpos].bottom;
+        *(tex++) = txt[texpos].right;  // Upper right
+        *(tex++) = txt[texpos].bottom;
+        *(tex++) = txt[texpos].left;   // Lower left
+        *(tex++) = txt[texpos].top;
+        
+        *(tex++) = txt[texpos].left;   // Lower left
+        *(tex++) = txt[texpos].top;
+        *(tex++) = txt[texpos].right;  // Upper right
+        *(tex++) = txt[texpos].bottom;
+        *(tex++) = txt[texpos].right;  // Lower right
+        *(tex++) = txt[texpos].top;
+    }
+
+    // Set bg texture coordinates
+    {
+        long texpos = ret.bg_texpos;
+        gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
+        *(tex_bg++) = txt[texpos].left;   // Upper left
+        *(tex_bg++) = txt[texpos].bottom;
+        *(tex_bg++) = txt[texpos].right;  // Upper right
+        *(tex_bg++) = txt[texpos].bottom;
+        *(tex_bg++) = txt[texpos].left;   // Lower left
+        *(tex_bg++) = txt[texpos].top;
+        
+        *(tex_bg++) = txt[texpos].left;   // Lower left
+        *(tex_bg++) = txt[texpos].top;
+        *(tex_bg++) = txt[texpos].right;  // Upper right
+        *(tex_bg++) = txt[texpos].bottom;
+        *(tex_bg++) = txt[texpos].right;  // Lower right
+        *(tex_bg++) = txt[texpos].top;
+    }
+
+    // Set top texture coordinates
+    {
+        long texpos = ret.top_texpos;
+        gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
+        *(tex_top++) = txt[texpos].left;   // Upper left
+        *(tex_top++) = txt[texpos].bottom;
+        *(tex_top++) = txt[texpos].right;  // Upper right
+        *(tex_top++) = txt[texpos].bottom;
+        *(tex_top++) = txt[texpos].left;   // Lower left
+        *(tex_top++) = txt[texpos].top;
+        
+        *(tex_top++) = txt[texpos].left;   // Lower left
+        *(tex_top++) = txt[texpos].top;
+        *(tex_top++) = txt[texpos].right;  // Upper right
+        *(tex_top++) = txt[texpos].bottom;
+        *(tex_top++) = txt[texpos].right;  // Lower right
+        *(tex_top++) = txt[texpos].top;
+    }    
+}
+
+static void write_tile_arrays_over(renderer_cool *r, int x, int y, GLfloat *fg, GLfloat *bg, GLfloat *tex, GLfloat *tex_bg, GLfloat *fg_top, GLfloat *tex_top)
+{
+    struct texture_fullid ret;
+    const int tile = x * r->gdimy + y;        
+    screen_to_texid_over(r, tile, ret);
     
-    *(tex++) = txt[ret.texpos].left;   // Lower left
-    *(tex++) = txt[ret.texpos].top;
-    *(tex++) = txt[ret.texpos].right;  // Upper right
-    *(tex++) = txt[ret.texpos].bottom;
-    *(tex++) = txt[ret.texpos].right;  // Lower right
-    *(tex++) = txt[ret.texpos].top;
+    // Set colour
+    for (int i = 0; i < 2; i++) {
+        fg += 8;
+        *(fg++) = ret.r;
+        *(fg++) = ret.g;
+        *(fg++) = ret.b;
+        *(fg++) = 1;
+        
+        bg += 8;
+        *(bg++) = ret.br;
+        *(bg++) = ret.bg;
+        *(bg++) = ret.bb;
+        *(bg++) = 1;
+
+        fg_top += 8;
+        *(fg_top++) = 1;
+        *(fg_top++) = 1;
+        *(fg_top++) = 1;
+        *(fg_top++) = 1;
+    }    
+    
+    // Set texture coordinates
+    {
+        long texpos = ret.texpos;
+        gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
+        *(tex++) = txt[texpos].left;   // Upper left
+        *(tex++) = txt[texpos].bottom;
+        *(tex++) = txt[texpos].right;  // Upper right
+        *(tex++) = txt[texpos].bottom;
+        *(tex++) = txt[texpos].left;   // Lower left
+        *(tex++) = txt[texpos].top;
+        
+        *(tex++) = txt[texpos].left;   // Lower left
+        *(tex++) = txt[texpos].top;
+        *(tex++) = txt[texpos].right;  // Upper right
+        *(tex++) = txt[texpos].bottom;
+        *(tex++) = txt[texpos].right;  // Lower right
+        *(tex++) = txt[texpos].top;
+    }
+
+    // Set bg texture coordinates
+    {
+        long texpos = ret.bg_texpos;
+        gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
+        *(tex_bg++) = txt[texpos].left;   // Upper left
+        *(tex_bg++) = txt[texpos].bottom;
+        *(tex_bg++) = txt[texpos].right;  // Upper right
+        *(tex_bg++) = txt[texpos].bottom;
+        *(tex_bg++) = txt[texpos].left;   // Lower left
+        *(tex_bg++) = txt[texpos].top;
+        
+        *(tex_bg++) = txt[texpos].left;   // Lower left
+        *(tex_bg++) = txt[texpos].top;
+        *(tex_bg++) = txt[texpos].right;  // Upper right
+        *(tex_bg++) = txt[texpos].bottom;
+        *(tex_bg++) = txt[texpos].right;  // Lower right
+        *(tex_bg++) = txt[texpos].top;
+    }
+
+    // Set top texture coordinates
+    {
+        long texpos = ret.top_texpos;
+        gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
+        *(tex_top++) = txt[texpos].left;   // Upper left
+        *(tex_top++) = txt[texpos].bottom;
+        *(tex_top++) = txt[texpos].right;  // Upper right
+        *(tex_top++) = txt[texpos].bottom;
+        *(tex_top++) = txt[texpos].left;   // Lower left
+        *(tex_top++) = txt[texpos].top;
+        
+        *(tex_top++) = txt[texpos].left;   // Lower left
+        *(tex_top++) = txt[texpos].top;
+        *(tex_top++) = txt[texpos].right;  // Upper right
+        *(tex_top++) = txt[texpos].bottom;
+        *(tex_top++) = txt[texpos].right;  // Lower right
+        *(tex_top++) = txt[texpos].top;
+    }    
 }

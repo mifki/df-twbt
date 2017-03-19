@@ -1,9 +1,56 @@
 static volatile int domapshot = 0;
 
+#define SETTEX(tt) \
+    *(tex++) = txt[tt].left; \
+    *(tex++) = txt[tt].bottom; \
+    *(tex++) = txt[tt].right; \
+    *(tex++) = txt[tt].bottom; \
+    *(tex++) = txt[tt].left; \
+    *(tex++) = txt[tt].top; \
+    \
+    *(tex++) = txt[tt].left; \
+    *(tex++) = txt[tt].top; \
+    *(tex++) = txt[tt].right; \
+    *(tex++) = txt[tt].bottom; \
+    *(tex++) = txt[tt].right; \
+    *(tex++) = txt[tt].top;
+
+static void write_tile_vertexes_oblique(GLfloat x, GLfloat y, GLfloat *vertex, float d)
+{
+    vertex[0]  = x;   // Upper left
+    vertex[1]  = y/2.5 + d*0.1;
+    vertex[2]  = x + 1; // Upper right
+    vertex[3]  = y/2.5 + d*0.1;
+    vertex[4]  = x;   // Lower left
+    vertex[5]  = y/2.5 + d*0.1 + 1;
+    vertex[6]  = x;   // Lower left again (triangle 2)
+    vertex[7]  = y/2.5 + d*0.1 + 1;
+    vertex[8]  = x + 1; // Upper right
+    vertex[9]  = y/2.5 + d*0.1;
+    vertex[10] = x + 1; // Lower right
+    vertex[11] = y/2.5 + d*0.1 + 1;
+}
+
+static void write_tile_vertexes(GLfloat x, GLfloat y, GLfloat *vertex, float d)
+{
+    vertex[0]  = x;   // Upper left
+    vertex[1]  = y;
+    vertex[2]  = x + 1; // Upper right
+    vertex[3]  = y;
+    vertex[4]  = x;   // Lower left
+    vertex[5]  = y + 1;
+    vertex[6]  = x;   // Lower left again (triangle 2)
+    vertex[7]  = y + 1;
+    vertex[8]  = x + 1; // Upper right
+    vertex[9]  = y;
+    vertex[10] = x + 1; // Lower right
+    vertex[11] = y + 1;
+}
+
 renderer_cool::renderer_cool()
 {
     dummy = 'TWBT';
-    gvertexes = 0, gfg = 0, gbg = 0, gtex = 0;
+    gvertexes = 0, gfg = 0, gtex = 0;
     gdimx = 0, gdimy = 0, gdimxfull = 0, gdimyfull = 0;
     gdispx = 0, gdispy = 0;
     goff_x = 0, goff_y = 0, gsize_x = 0, gsize_y = 0;
@@ -47,15 +94,30 @@ void renderer_cool::update_map_tile(int x, int y)
 {
     const int tile = x * gdimy + y;
 
-    GLfloat *_fg  = gfg + tile * 4 * 6;
-    GLfloat *_bg  = gbg + tile * 4 * 6;
-    GLfloat *_tex = gtex + tile * 2 * 6;
+    GLfloat *_bg  = gfg + (tile*6+3) * 4 * 6;
+    GLfloat *_tex_bg = gtex + (tile*6+3) * 2 * 6;
+    GLfloat *_fg  = gfg + (tile*6+4) * 4 * 6;
+    GLfloat *_tex = gtex + (tile*6+4) * 2 * 6;
+    GLfloat *_fg_top  = gfg + (tile*6+5) * 4 * 6;
+    GLfloat *_tex_top = gtex + (tile*6+5) * 2 * 6;
 
-    write_tile_arrays_map(this, x, y, _fg, _bg, _tex);
+    write_tile_arrays_map(this, x, y, _fg, _bg, _tex, _tex_bg, _fg_top, _tex_top);
+
+    GLfloat *_bg_over  = gfg + (tile*6+0) * 4 * 6;
+    GLfloat *_tex_bg_over = gtex + (tile*6+0) * 2 * 6;
+    GLfloat *_fg_over  = gfg + (tile*6+1) * 4 * 6;
+    GLfloat *_tex_over = gtex + (tile*6+1) * 2 * 6;
+    GLfloat *_fg_top_over  = gfg + (tile*6+2) * 4 * 6;
+    GLfloat *_tex_top_over = gtex + (tile*6+2) * 2 * 6;
+
+    write_tile_arrays_over(this, x, y, _fg_over, _bg_over, _tex_over, _tex_bg_over, _fg_top_over, _tex_top_over);
 
     if (maxlevels)
     {
         float d = (float)((gscreen[tile * 4 + 3] & 0xf0) >> 4);
+
+        // for oblique
+        //write_tile_vertexes(x, y, gvertexes + 6 * 2 * tile, d);
 
         depth[tile] = !gscreen[tile*4] ? 0x7f : d; //TODO: no need for this in fort mode
 
@@ -64,45 +126,10 @@ void renderer_cool::update_map_tile(int x, int y)
             if (d > 0)
                 d = d*fogstep + fogstart;
 
-            fogcoord[tile * 6 + 0] = d;
-            fogcoord[tile * 6 + 1] = d;
-            fogcoord[tile * 6 + 2] = d;
-            fogcoord[tile * 6 + 3] = d;
-            fogcoord[tile * 6 + 4] = d;
-            fogcoord[tile * 6 + 5] = d;
+            for (int j = 0; j < 6*6; j++)
+                fogcoord[tile * 6 * 6 + j] = d;
         }
     }
-}
-
-#define SETTEX(tt) \
-    *(tex++) = txt[tt].left; \
-    *(tex++) = txt[tt].bottom; \
-    *(tex++) = txt[tt].right; \
-    *(tex++) = txt[tt].bottom; \
-    *(tex++) = txt[tt].left; \
-    *(tex++) = txt[tt].top; \
-    \
-    *(tex++) = txt[tt].left; \
-    *(tex++) = txt[tt].top; \
-    *(tex++) = txt[tt].right; \
-    *(tex++) = txt[tt].bottom; \
-    *(tex++) = txt[tt].right; \
-    *(tex++) = txt[tt].top;
-
-static void write_tile_vertexes(GLfloat x, GLfloat y, GLfloat *vertex)
-{
-    vertex[0]  = x;   // Upper left
-    vertex[1]  = y;
-    vertex[2]  = x + 1; // Upper right
-    vertex[3]  = y;
-    vertex[4]  = x;   // Lower left
-    vertex[5]  = y + 1;
-    vertex[6]  = x;   // Lower left again (triangle 2)
-    vertex[7]  = y + 1;
-    vertex[8]  = x + 1; // Upper right
-    vertex[9]  = y;
-    vertex[10] = x + 1; // Lower right
-    vertex[11] = y + 1;
 }
 
 void renderer_cool::reshape_graphics()
@@ -132,7 +159,7 @@ void renderer_cool::reshape_graphics()
     }
 
     float _dimx = std::min(gsize_x / gdispx, 256.0f);
-    float _dimy = std::min(gsize_y / gdispy, 256.0f);
+    float _dimy = std::min(gsize_y / gdispy, 256.0f); //*3 for oblique
     gdimx = ceilf(_dimx);
     gdimy = ceilf(_dimy);
     gdimxfull = floorf(_dimx);
@@ -150,16 +177,24 @@ void renderer_cool::reshape_graphics()
     allocate_buffers(tiles, gdimy + 1);
 
     // Recreate OpenGL buffers
-    gvertexes = (GLfloat*)realloc(gvertexes, sizeof(GLfloat) * tiles * 2 * 6);
-    gfg = (GLfloat*)realloc(gfg, sizeof(GLfloat) * tiles * 4 * 6);
-    gbg = (GLfloat*)realloc(gbg, sizeof(GLfloat) * tiles * 4 * 6);
-    gtex = (GLfloat*)realloc(gtex, sizeof(GLfloat) * tiles * 2 * 6);
+    gvertexes = (GLfloat*)realloc(gvertexes, sizeof(GLfloat) * tiles * 2 * 6 * 6);
+    gfg = (GLfloat*)realloc(gfg, sizeof(GLfloat) * tiles * 4 * 6 * 6);
+    gtex = (GLfloat*)realloc(gtex, sizeof(GLfloat) * tiles * 2 * 6 * 6);
 
     // Initialise vertex coords
     int tile = 0;   
     for (GLfloat x = 0; x < gdimx; x++)
+    {
         for (GLfloat y = 0; y < gdimy; y++, tile++)
-            write_tile_vertexes(x, y, gvertexes + 6 * 2 * tile);
+        {
+            write_tile_vertexes(x, y, gvertexes + 6 * 2 * (tile*6+0), 0);
+            write_tile_vertexes(x, y, gvertexes + 6 * 2 * (tile*6+1), 0);
+            write_tile_vertexes(x, y, gvertexes + 6 * 2 * (tile*6+2), 0);
+            write_tile_vertexes(x, y, gvertexes + 6 * 2 * (tile*6+3), 0);
+            write_tile_vertexes(x, y, gvertexes + 6 * 2 * (tile*6+4), 0);
+            write_tile_vertexes(x, y, gvertexes + 6 * 2 * (tile*6+5), 0);
+        }
+    }
 
     needs_full_update = true;
 }
@@ -175,22 +210,11 @@ void renderer_cool::reshape_gl()
     if (last_fullscreen != enabler->fullscreen)
     {
         last_fullscreen = enabler->fullscreen;
-        if (last_fullscreen)
-        {
-            map_texpos = tilesets[0].large_texpos;
-            text_texpos = tilesets[1].large_texpos;
+        map_texpos = tilesets[0].small_texpos;
+        text_texpos = tilesets[1].small_texpos;
 
-            if (!gdispx || (gdispx == small_map_dispx && gdispy == small_map_dispy))
-                gdispx = large_map_dispx, gdispy = large_map_dispy;
-        }
-        else
-        {
-            map_texpos = tilesets[0].small_texpos;
-            text_texpos = tilesets[1].small_texpos;
-
-            if (!gdispx || (gdispx == large_map_dispx && gdispy == large_map_dispy))
-                gdispx = small_map_dispx, gdispy = small_map_dispy;
-        }
+        if (!gdispx)
+            gdispx = small_map_dispx, gdispy = small_map_dispy;
     }
 
     reshape_graphics();
@@ -315,6 +339,9 @@ void renderer_cool::draw(int vertex_count)
             //glClearColor(1,0,0,1);
             //glClear(GL_COLOR_BUFFER_BIT);
 
+            glClearColor(enabler->ccolor[0][0], enabler->ccolor[0][1], enabler->ccolor[0][2], 1);
+            glClear(GL_COLOR_BUFFER_BIT);            
+
             if (multi_rendered && fogdensity > 0)
             {
                 glEnable(GL_FOG);
@@ -327,21 +354,14 @@ void renderer_cool::draw(int vertex_count)
 
             glVertexPointer(2, GL_FLOAT, 0, gvertexes);
 
-            // Render background colors
-            glDisable(GL_TEXTURE_2D);
-            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-            glDisable(GL_BLEND);
-            glColorPointer(4, GL_FLOAT, 0, gbg);
-            glDrawArrays(GL_TRIANGLES, 0, gdimx * gdimy * 6);
-
-            // Render foreground
+            // Render map tiles
             glEnable(GL_TEXTURE_2D);
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glTexCoordPointer(2, GL_FLOAT, 0, gtex);
             glColorPointer(4, GL_FLOAT, 0, gfg);
-            glDrawArrays(GL_TRIANGLES, 0, gdimx * gdimy * 6);
+            glDrawArrays(GL_TRIANGLES, 0, gdimx * gdimy * 6 * 6);
 
             if (multi_rendered)
             {
@@ -372,28 +392,28 @@ void renderer_cool::draw(int vertex_count)
                             bool top = false, left = false, btm = false, right = false;
                             if (xx > 0 && (depth[((xx - 1)*gdimy + yy)]) < d)
                             {
-                                memcpy(shadowvert + elemcnt * 2, gvertexes + tile * 6 * 2, 6 * 2 * sizeof(float));
+                                memcpy(shadowvert + elemcnt * 2, gvertexes + tile*6 * 6 * 2, 6 * 2 * sizeof(float));
                                 SETTEX(shadow_texpos[0]);
                                 elemcnt += 6;
                                 left = true;
                             }
                             if (yy < y1 - 1 && (depth[((xx)*gdimy + yy + 1)]) < d)
                             {
-                                memcpy(shadowvert + elemcnt * 2, gvertexes + tile * 6 * 2, 6 * 2 * sizeof(float));
+                                memcpy(shadowvert + elemcnt * 2, gvertexes + tile*6 * 6 * 2, 6 * 2 * sizeof(float));
                                 SETTEX(shadow_texpos[1]);
                                 elemcnt += 6;
                                 btm = true;
                             }
                             if (yy > 0 && (depth[((xx)*gdimy + yy - 1)]) < d)
                             {
-                                memcpy(shadowvert + elemcnt * 2, gvertexes + tile * 6 * 2, 6 * 2 * sizeof(float));
+                                memcpy(shadowvert + elemcnt * 2, gvertexes + tile*6 * 6 * 2, 6 * 2 * sizeof(float));
                                 SETTEX(shadow_texpos[2]);
                                 elemcnt += 6;
                                 top = true;
                             }
                             if (xx < x1-1 && (depth[((xx + 1)*gdimy + yy)]) < d)
                             {
-                                memcpy(shadowvert + elemcnt * 2, gvertexes + tile * 6 * 2, 6 * 2 * sizeof(float));
+                                memcpy(shadowvert + elemcnt * 2, gvertexes + tile*6 * 6 * 2, 6 * 2 * sizeof(float));
                                 SETTEX(shadow_texpos[3]);
                                 elemcnt += 6;
                                 right = true;
@@ -401,25 +421,25 @@ void renderer_cool::draw(int vertex_count)
 
                             if (!right && !btm && xx < x1 - 1 && yy < y1 - 1 && (depth[((xx + 1)*gdimy + yy + 1)]) < d)
                             {
-                                memcpy(shadowvert + elemcnt * 2, gvertexes + tile * 6 * 2, 6 * 2 * sizeof(float));
+                                memcpy(shadowvert + elemcnt * 2, gvertexes + tile*6 * 6 * 2, 6 * 2 * sizeof(float));
                                 SETTEX(shadow_texpos[4]);
                                 elemcnt += 6;
                             }
                             if (!left && !btm && xx > 0 && yy < y1 - 1 && (depth[((xx - 1)*gdimy + yy + 1)]) < d)
                             {
-                                memcpy(shadowvert + elemcnt * 2, gvertexes + tile * 6 * 2, 6 * 2 * sizeof(float));
+                                memcpy(shadowvert + elemcnt * 2, gvertexes + tile*6 * 6 * 2, 6 * 2 * sizeof(float));
                                 SETTEX(shadow_texpos[5]);
                                 elemcnt += 6;
                             }
                             if (!left && !top && xx > 0 && yy > 0 && (depth[((xx - 1)*gdimy + yy - 1)]) < d)
                             {
-                                memcpy(shadowvert + elemcnt * 2, gvertexes + tile * 6 * 2, 6 * 2 * sizeof(float));
+                                memcpy(shadowvert + elemcnt * 2, gvertexes + tile*6 * 6 * 2, 6 * 2 * sizeof(float));
                                 SETTEX(shadow_texpos[6]);
                                 elemcnt += 6;
                             }
                             if (!top && !right && xx < x1 - 1 && yy > 0 && (depth[((xx + 1)*gdimy + yy - 1)]) < d)
                             {
-                                memcpy(shadowvert + elemcnt * 2, gvertexes + tile * 6 * 2, 6 * 2 * sizeof(float));
+                                memcpy(shadowvert + elemcnt * 2, gvertexes + tile*6 * 6 * 2, 6 * 2 * sizeof(float));
                                 SETTEX(shadow_texpos[7]);
                                 elemcnt += 6;
                             }
@@ -630,6 +650,8 @@ void renderer_cool::allocate_buffers(int tiles, int extra_tiles)
     REALLOC(gscreentexpos_cf_origin,        uint8_t, (tiles+extra_tiles) * 2);
     REALLOC(gscreentexpos_cbr_origin,       uint8_t, (tiles+extra_tiles) * 2);
 
+    REALLOC(gscreen_under,                  uint8_t, tiles * 4);
+
     _gscreen[0]                 = gscreen_origin                 + extra_tiles * 4;
     _gscreentexpos[0]           = gscreentexpos_origin           + extra_tiles;
     _gscreentexpos_addcolor[0]  = gscreentexpos_addcolor_origin  + extra_tiles;
@@ -651,7 +673,7 @@ void renderer_cool::allocate_buffers(int tiles, int extra_tiles)
     REALLOC(depth,      int8_t,  tiles)
     REALLOC(shadowtex,  GLfloat, tiles * 4 * 2 * 6)
     REALLOC(shadowvert, GLfloat, tiles * 4 * 2 * 6)
-    REALLOC(fogcoord,   GLfloat, tiles * 6)
+    REALLOC(fogcoord,   GLfloat, tiles * 6 * 6)
 
     REALLOC(mscreen_origin,                 uint8_t, (tiles+extra_tiles) * 4)
     REALLOC(mscreentexpos_origin,           long,    tiles+extra_tiles);
@@ -695,11 +717,13 @@ void renderer_cool::reshape_zoom_swap()
             {
                 gdispx += needs_zoom;
                 gdispy += needs_zoom;
+                //gdispy = gdispx*2.5; // for oblique
             }
             else if (gdispx > 1 && gdispy > 1 && (gdimxfull < world->map.x_count || gdimyfull < world->map.y_count))
             {
                 gdispx += needs_zoom;
                 gdispy += needs_zoom;
+                //gdispy = gdispx*2.5; // for oblique
             }
         
             needs_zoom = 0;
@@ -725,6 +749,7 @@ void renderer_cool::zoom(df::zoom_commands cmd)
     {
         gdispx++;
         gdispy++;
+        //gdispy = gdispx*2.5; // for oblique
     }
     else if (cmd == df::zoom_commands::zoom_out)
     {
@@ -732,12 +757,13 @@ void renderer_cool::zoom(df::zoom_commands cmd)
         {
             gdispx--;
             gdispy--;
+            //gdispy = gdispx*2.5; // for oblique
         }
     }
     else if (cmd == df::zoom_commands::zoom_reset)
     {
-        gdispx = enabler->fullscreen ? small_map_dispx : large_map_dispx;
-        gdispy = enabler->fullscreen ? small_map_dispy : large_map_dispy;
+        gdispx = small_map_dispx;
+        gdispy = small_map_dispy;
     }
     else
     {

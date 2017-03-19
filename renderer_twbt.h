@@ -26,7 +26,7 @@ struct renderer_cool : renderer_opengl
 {
     uint32_t dummy;
 
-    float *gvertexes, *gfg, *gbg, *gtex;
+    float *gvertexes, *gfg, *gtex;
     int gdimx, gdimy, gdimxfull, gdimyfull;
     int gdispx, gdispy;
     float goff_x, goff_y, gsize_x, gsize_y;
