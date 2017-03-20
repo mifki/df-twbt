@@ -34,8 +34,8 @@ struct cls##_hook : public df::cls \
         renderer_cool *r = (renderer_cool*)enabler->renderer; \
 \
         df::coord _pos = Items::getPosition(this); \
-        if (!gscreen_under[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y]) \
-            ((uint32_t*)gscreen_under)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y] = ((uint32_t*)gscreen)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y]; \
+        if (!screen_under_ptr[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y]) \
+            ((uint32_t*)screen_under_ptr)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y] = ((uint32_t*)screen_ptr)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y]; \
 \
         return INTERPOSE_NEXT(drawSelf)(); \
 \

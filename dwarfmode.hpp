@@ -88,6 +88,8 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         r->reshape_zoom_swap();
 
         memset(gscreen_under, 0, r->gdimx*r->gdimy*sizeof(uint32_t));
+        screen_under_ptr = gscreen_under;
+        screen_ptr = gscreen;
 
         // These values may change from the main thread while being accessed from the rendering thread,
         // and that will cause flickering of overridden tiles at least, so save them here
@@ -155,6 +157,10 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
             gps->screentexpos_grayscale = mscreentexpos_grayscale - r->gdimy - 1;
             gps->screentexpos_cf        = mscreentexpos_cf        - r->gdimy - 1;
             gps->screentexpos_cbr       = mscreentexpos_cbr       - r->gdimy - 1;
+
+            memset(mscreen_under, 0, r->gdimx*r->gdimy*sizeof(uint32_t));
+            screen_under_ptr = mscreen_under;
+            screen_ptr = mscreen;
 
             bool empty_tiles_left, rendered1st = false;
             int p = 1;
@@ -345,7 +351,8 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                         }
     #endif
 
-                        *((int*)gscreen + tile) = *((int*)mscreen + tile2);
+                        *((uint32_t*)gscreen + tile) = *((uint32_t*)mscreen + tile2);
+                        *((uint32_t*)gscreen_under + tile) = *((uint32_t*)mscreen_under + tile2);
                         if (*(mscreentexpos+tile2))
                         {
                             *(gscreentexpos + tile) = *(mscreentexpos + tile2);

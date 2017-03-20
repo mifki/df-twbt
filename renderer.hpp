@@ -651,6 +651,7 @@ void renderer_cool::allocate_buffers(int tiles, int extra_tiles)
     REALLOC(gscreentexpos_cbr_origin,       uint8_t, (tiles+extra_tiles) * 2);
 
     REALLOC(gscreen_under,                  uint8_t, tiles * 4);
+    REALLOC(mscreen_under,                  uint8_t, tiles * 4);
 
     _gscreen[0]                 = gscreen_origin                 + extra_tiles * 4;
     _gscreentexpos[0]           = gscreentexpos_origin           + extra_tiles;

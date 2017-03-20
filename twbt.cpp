@@ -176,8 +176,10 @@ static uint8_t skytile;
 static uint8_t chasmtile;
 static bool always_full_update;
 
-//TODO: need two buffers?
-static uint8_t *gscreen_under;
+//TODO: need double buffers?
+static uint8_t *gscreen_under, *mscreen_under;
+
+static uint8_t *screen_under_ptr, *screen_ptr;
 
 // Buffers for map rendering
 static uint8_t *_gscreen[2];

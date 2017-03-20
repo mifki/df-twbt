@@ -27,7 +27,7 @@ struct cls##_hook : public df::cls \
 \
         for (int x = dbuf->x1-gwindow_x; x <= dbuf->x2-gwindow_x; x++) \
             for (int y = dbuf->y1-gwindow_y; y <= dbuf->y2-gwindow_y; y++) \
-                ((uint32_t*)gscreen_under)[x*r->gdimy + y] = ((uint32_t*)gscreen)[x*r->gdimy + y]; \
+                ((uint32_t*)screen_under_ptr)[x*r->gdimy + y] = ((uint32_t*)screen_ptr)[x*r->gdimy + y]; \
     } \
 }; \
 IMPLEMENT_VMETHOD_INTERPOSE(cls##_hook, drawBuilding);
