@@ -13,6 +13,17 @@
 #include "df/building_traction_benchst.h"
 #include "df/building_workshopst.h"
 #include "df/building_furnacest.h"
+#include "df/building_cagest.h"
+#include "df/building_chainst.h"
+#include "df/building_bookcasest.h"
+#include "df/building_hivest.h"
+#include "df/building_rollersst.h"
+#include "df/building_animaltrapst.h"
+#include "df/building_archerytargetst.h"
+#include "df/building_wellst.h"
+#include "df/building_siegeenginest.h"
+#include "df/building_bars_floorst.h"
+#include "df/building_bars_verticalst.h"
 
 #define OVER1(cls) \
 struct cls##_hook : public df::cls \
@@ -47,6 +58,17 @@ OVER1(building_weaponrackst);
 OVER1(building_traction_benchst);
 OVER1(building_workshopst);
 OVER1(building_furnacest);
+OVER1(building_cagest);
+OVER1(building_chainst);
+OVER1(building_bookcasest);
+OVER1(building_hivest);
+OVER1(building_rollersst);
+OVER1(building_animaltrapst);
+OVER1(building_archerytargetst);
+OVER1(building_wellst);
+OVER1(building_siegeenginest);
+OVER1(building_bars_floorst);
+OVER1(building_bars_verticalst);
 
 void enable_building_hooks()
 {
@@ -63,4 +85,15 @@ void enable_building_hooks()
     OVER1_ENABLE(building_traction_benchst);
     OVER1_ENABLE(building_workshopst);
     OVER1_ENABLE(building_furnacest);
+    OVER1_ENABLE(building_cagest);
+    OVER1_ENABLE(building_chainst);
+    OVER1_ENABLE(building_bookcasest);
+    OVER1_ENABLE(building_hivest);
+    OVER1_ENABLE(building_rollersst);
+    OVER1_ENABLE(building_animaltrapst);
+    OVER1_ENABLE(building_archerytargetst);
+    OVER1_ENABLE(building_wellst);
+    OVER1_ENABLE(building_siegeenginest);
+    OVER1_ENABLE(building_bars_floorst);
+    OVER1_ENABLE(building_bars_verticalst);
 }
