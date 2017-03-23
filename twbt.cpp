@@ -364,28 +364,33 @@ static void restore_renderer()
 
 static bool advmode_needs_map(int m)
 {
-    //XXX: these are mostly numerical becuase enumeration seems to be incorrect in dfhack for 0.40.xx
-
     return (m == df::ui_advmode_menu::Default ||
             m == df::ui_advmode_menu::Look ||
             m == df::ui_advmode_menu::ThrowAim ||
+
             m == df::ui_advmode_menu::ConversationAddress ||
-            m == 14 ||
+            m == df::ui_advmode_menu::ConversationSpeak ||
+            m == df::ui_advmode_menu::ConversationSelect ||
+
             m == df::ui_advmode_menu::Fire ||
-            m == df::ui_advmode_menu::Jump ||   // (j)
+            m == df::ui_advmode_menu::Jump ||
             m == df::ui_advmode_menu::SelectInteractionTarget ||
-            m == 21 ||                          // (S)
-            m == 3  || m == 4 ||                // (k)
-            m == 20 ||                          // (m)
-            m == 16 ||                          // (g)
-            m == 37 || m == 38 ||               // (A)
-            m == 19 ||                          // companions
-            m == 29 ||                          // sleep/wait
-            m == 23 ||                          // move carefully/climbing
-            m == 33 ||                          // falling/grab screen (?)
-            m == 43 ||                          // dodge direction choice
-            m == 39 ||                          // target for striking choice
-            m == 18                             // combat preferences
+
+            m == df::ui_advmode_menu::SpeedPrefs ||
+            m == df::ui_advmode_menu::MovementPrefs ||
+            m == df::ui_advmode_menu::CombatPrefs ||
+
+            m == df::ui_advmode_menu::AttackConfirm ||
+            m == df::ui_advmode_menu::AttackType ||
+            m == df::ui_advmode_menu::AttackBodypart ||
+
+            m == df::ui_advmode_menu::DodgeDirection ||
+            m == df::ui_advmode_menu::FallAction ||
+            m == df::ui_advmode_menu::MoveCarefully ||
+            m == df::ui_advmode_menu::SleepConfirm ||
+            m == df::ui_advmode_menu::Companions ||
+            m == df::ui_advmode_menu::Get ||
+            m == 46                                                 // build
             );
 }
 
