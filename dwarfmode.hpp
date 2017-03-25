@@ -64,18 +64,6 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
     DEFINE_VMETHOD_INTERPOSE(void, render, ())
     {
         //clock_t c1 = clock();
-        INTERPOSE_NEXT(render)();
-
-#ifdef WIN32
-        static bool patched = false;
-        if (!patched)
-        {
-            MemoryPatcher p(Core::getInstance().p);
-            apply_patch(&p, p_dwarfmode_render);
-            patched = true;
-            //*out2 << *(int*)p_dwarfmode_render.addr << std::endl;
-        }
-#endif
 
         renderer_cool *r = (renderer_cool*)enabler->renderer;        
 
@@ -90,6 +78,19 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         memset(gscreen_under, 0, r->gdimx*r->gdimy*sizeof(uint32_t));
         screen_under_ptr = gscreen_under;
         screen_ptr = gscreen;
+
+        INTERPOSE_NEXT(render)();
+
+#ifdef WIN32
+        static bool patched = false;
+        if (!patched)
+        {
+            MemoryPatcher p(Core::getInstance().p);
+            apply_patch(&p, p_dwarfmode_render);
+            patched = true;
+            //*out2 << *(int*)p_dwarfmode_render.addr << std::endl;
+        }
+#endif
 
         // These values may change from the main thread while being accessed from the rendering thread,
         // and that will cause flickering of overridden tiles at least, so save them here
