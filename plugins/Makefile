@@ -33,7 +33,7 @@ ifeq ($(shell uname -s), Darwin)
 	CFLAGS += -Wno-tautological-compare
 	LDFLAGS += -framework OpenGL -mmacosx-version-min=10.6 -undefined dynamic_lookup
 else
-	CFLAGS += -std=c++0x
+	CFLAGS += -std=c++0x -fPIC
 endif
 
 
