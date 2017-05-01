@@ -79,6 +79,16 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     // We will replace init->font with text font, so let's save graphics tile size
     small_map_dispx = init->font.small_font_dispx, small_map_dispy = init->font.small_font_dispy;
 
+    {
+        long dx, dy;        
+        load_tileset("data/art/white1px.png", &white_texpos, 1, 1, &dx, &dy);
+    }
+
+    {
+        long dx, dy;        
+        load_tileset("data/art/transparent1px.png", &transparent_texpos, 1, 1, &dx, &dy);    
+    }
+
     has_textfont = load_text_font();
     has_overrides = load_overrides();
 
@@ -100,16 +110,6 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     {
         *out2 << COLOR_RED << "TWBT: shadows.png not found in data/art folder" << std::endl;
         *out2 << COLOR_RESET;
-    }
-
-    {
-        long dx, dy;        
-        load_tileset("data/art/white1px.png", &white_texpos, 1, 1, &dx, &dy);
-    }
-
-    {
-        long dx, dy;        
-        load_tileset("data/art/transparent1px.png", &transparent_texpos, 1, 1, &dx, &dy);    
     }
 
     map_texpos = tilesets[0].small_texpos;
