@@ -64,6 +64,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
     DEFINE_VMETHOD_INTERPOSE(void, render, ())
     {
         //clock_t c1 = clock();
+        screen_map_type = 1;
 
         renderer_cool *r = (renderer_cool*)enabler->renderer;        
 
@@ -146,7 +147,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
             patch_rendering(false);
         
         render_map();
-        
+
         if (maxlevels)
         {
             multi_rendered = false;

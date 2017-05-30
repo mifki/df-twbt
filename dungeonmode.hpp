@@ -38,6 +38,8 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
 
     DEFINE_VMETHOD_INTERPOSE(void, render, ())
     {   
+        screen_map_type = 2;
+
         float wx = *df::global::window_x;
         float wy = *df::global::window_y;
 

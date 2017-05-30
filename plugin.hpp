@@ -172,6 +172,11 @@ DFhackCExport command_result plugin_onstatechange(color_ostream &out, state_chan
         gmenu_w = -1;
         block_index_size = 0;
     }
+    else if (event == SC_VIEWSCREEN_CHANGED)
+    {
+        gps->force_full_display_count = 1;
+        screen_map_type = 0;
+    }
 
     return CR_OK;
 }

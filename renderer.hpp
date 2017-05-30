@@ -222,7 +222,6 @@ void renderer_cool::reshape_gl()
     glShadeModel(GL_FLAT);    
 }
 
-static bool is_main_scr;
 void renderer_cool::draw(int vertex_count)
 {
     static bool initial_resize = false;
@@ -238,28 +237,7 @@ void renderer_cool::draw(int vertex_count)
         initial_resize = true;
     }
 
-    static df::viewscreen *prevws = NULL;
-    df::viewscreen *ws = Gui::getCurViewscreen();
-    is_main_scr = df::viewscreen_dwarfmodest::_identity.is_direct_instance(ws) || df::viewscreen_dungeonmodest::_identity.is_direct_instance(ws);
-    if (ws != prevws)
-    {
-        gps->force_full_display_count = 1;
-        prevws = ws;
-        /*if (is_main_scr)
-        {
-            for (int x = 1; x < gps->dimx-gmenu_w-1; x++)
-            {
-                for (int y = 1; y < gps->dimy-1; y++)
-                {
-                    const int tile1 = x * gps->dimy + y;
-                    for (int i = 0; i < 6; i++)
-                        *(fg + tile * 4 * i + 3) = 0;
-                }
-            }
-        }*/
-    }    
-
-    display_new(df::viewscreen_dwarfmodest::_identity.is_direct_instance(ws));
+    display_new(screen_map_type);
 
 #ifdef WIN32
     // We can't do this in plugin_init() because OpenGL context isn't initialized by that time
@@ -314,10 +292,10 @@ void renderer_cool::draw(int vertex_count)
         glOrtho(0,gps->dimx,gps->dimy,0,-1,1);*/
     }
 
-    if (is_main_scr)
+    if (screen_map_type)
     {
         bool skip = false;
-        if (df::viewscreen_dungeonmodest::_identity.is_direct_instance(ws))
+        if (df::viewscreen_dungeonmodest::_identity.is_direct_instance(Gui::getCurViewscreen()))
         {
             int m = df::global::ui_advmode->menu;
             bool tmode = advmode_needs_map(m);
@@ -527,7 +505,6 @@ void renderer_cool::draw(int vertex_count)
         hdr.Height = h;
         hdr.PixelDepth = 24;
 
-
         *out2 << w << " " << h << std::endl;
         std::ofstream img("mapshot.tga", std::ofstream::binary);
         img.write((const char *)&hdr, sizeof(hdr));
@@ -577,7 +554,7 @@ void renderer_cool::display_new(bool update_graphics)
     if (gps->force_full_display_count > 0) gps->force_full_display_count--;
 #endif
 
-    // Update map tiles is current screen has a map
+    // Update map tiles if current screen has a map
     if (update_graphics)
         display_map();
 } 
@@ -740,7 +717,7 @@ void renderer_cool::reshape_zoom_swap()
 
 void renderer_cool::zoom(df::zoom_commands cmd)
 {
-    if (!is_main_scr)
+    if (!screen_map_type)
     {
         zoom_old(cmd);
         return;
@@ -781,8 +758,7 @@ extern "C" {
 
 bool renderer_cool::get_mouse_coords(int32_t *x, int32_t *y)
 {
-    //TODO: FIXME: this is causing crash when switching to map screen but last rendered screen is text and mouse is outside of map area
-    if (!is_main_scr)
+    if (!screen_map_type)
         return get_mouse_coords_old(x, y);
 
     int mouse_x, mouse_y;

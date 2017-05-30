@@ -57,8 +57,7 @@ static void write_tile_arrays_text(renderer_cool *r, int x, int y, GLfloat *fg, 
     const int tile = x * tdimy + y;
 
     // Fast path for transparent area where we render the map
-    df::viewscreen *ws = Gui::getCurViewscreen();
-    if (df::viewscreen_dwarfmodest::_identity.is_direct_instance(ws) && x > 0 && y > 0 && y < tdimy-1 && x < tdimx-gmenu_w-1)
+    if (screen_map_type == 1 && x > 0 && y > 0 && y < tdimy-1 && x < tdimx-gmenu_w-1)
     {
         const unsigned char *s = r->screen + tile*4;
         if (s[0] == 0)
@@ -68,7 +67,7 @@ static void write_tile_arrays_text(renderer_cool *r, int x, int y, GLfloat *fg, 
             return;
         }
     }
-    else if (df::viewscreen_dungeonmodest::_identity.is_direct_instance(ws))
+    else if (screen_map_type == 2)
     {
         int m = df::global::ui_advmode->menu;
         bool tmode = advmode_needs_map(m);

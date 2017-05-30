@@ -2,7 +2,7 @@ DFHACKVER ?= 0.43.05-beta2
 
 DFVERNUM = `echo $(DFHACKVER) | sed -e s/-.*// -e s/\\\\.//g`
 
-TWBT_VER ?= "5.xx"
+TWBT_VER ?= "6.xx"
 
 DF ?= /Users/vit/Downloads/df_43_05_osx
 DH ?= /Users/vit/Downloads/buildagent-2/workspace/root/dfhack/0.43.05
