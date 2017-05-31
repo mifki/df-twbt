@@ -406,13 +406,13 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                     for (int z = 0; z < world->map.z_count_block; z++)
                     {
                         my_block_index[x*world->map.y_count_block*world->map.z_count_block + y*world->map.z_count_block + z] = world->map.block_index[x][y][z];
-                    }                    
+                    }
                 }
             }
         }
     }
 };
 
-IMPLEMENT_VMETHOD_INTERPOSE_PRIO(dwarfmode_hook, render, 200);
+IMPLEMENT_VMETHOD_INTERPOSE_PRIO(dwarfmode_hook, render, -200);
 IMPLEMENT_VMETHOD_INTERPOSE(dwarfmode_hook, feed);
 IMPLEMENT_VMETHOD_INTERPOSE(dwarfmode_hook, logic);
