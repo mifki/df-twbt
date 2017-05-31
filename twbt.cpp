@@ -144,7 +144,7 @@ long white_texpos, transparent_texpos;
 
 long cursor_small_texpos;
 
-static bool enabled;
+DFHACK_PLUGIN_IS_ENABLED(enabled);
 static bool has_textfont, has_overrides;
 static color_ostream *out2;
 static df::item_flags bad_item_flags;
