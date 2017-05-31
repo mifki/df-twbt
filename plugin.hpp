@@ -30,19 +30,6 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     }
     legacy_mode = (mode == -1);
 
-    /*auto dflags = init->display.flag;
-    if (dflags.is_set(init_display_flags::RENDER_2D) ||
-        dflags.is_set(init_display_flags::ACCUM_BUFFER) ||
-        dflags.is_set(init_display_flags::FRAME_BUFFER) ||
-        dflags.is_set(init_display_flags::TEXT) ||
-        dflags.is_set(init_display_flags::VBO) ||
-        dflags.is_set(init_display_flags::PARTIAL_PRINT))
-    {
-        *out2 << COLOR_RED << "TWBT: PRINT_MODE must be set to STANDARD in data/init/init.txt" << std::endl;
-        *out2 << COLOR_RESET;
-        return CR_OK;        
-    }*/
-
     #ifdef WIN32
         _load_multi_pdim = (LOAD_MULTI_PDIM) (A_LOAD_MULTI_PDIM + Core::getInstance().vinfo->getRebaseDelta());
         _render_map = (RENDER_MAP) (A_RENDER_MAP + Core::getInstance().vinfo->getRebaseDelta());
@@ -69,15 +56,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 
     // Used only if rendering patch is not available
     skytile = d_init->sky_tile;
-    chasmtile = d_init->chasm_tile;    
-
-    // Graphics tileset - accessible at index 0
-    struct tileset ts;
-    memcpy(ts.small_texpos, init->font.small_font_texpos, sizeof(ts.small_texpos));
-    tilesets.push_back(ts);
-
-    // We will replace init->font with text font, so let's save graphics tile size
-    small_map_dispx = init->font.small_font_dispx, small_map_dispy = init->font.small_font_dispy;
+    chasmtile = d_init->chasm_tile;
 
     {
         long dx, dy;        
@@ -89,14 +68,41 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         load_tileset("data/art/transparent1px.png", &transparent_texpos, 1, 1, &dx, &dy);    
     }
 
-    has_textfont = load_text_font();
-    has_overrides = load_overrides();
+    if (init->display.flag.is_set(init_display_flags::USE_GRAPHICS))
+    {
+        // Graphics is enabled. Map tileset is already loaded, so use it. Then load text tileset.
+
+        // Existing map tileset - accessible at index 0
+        struct tileset ts;
+        memcpy(ts.small_texpos, init->font.small_font_texpos, sizeof(ts.small_texpos));
+        tilesets.push_back(ts);
+
+        // We will replace init->font with text font, so let's save graphics tile size
+        small_map_dispx = init->font.small_font_dispx, small_map_dispy = init->font.small_font_dispy;
+
+        has_textfont = load_text_font();
+    }
+    else
+    {
+        // Graphics is disabled. Text tileset is already loaded. Load map tileset.
+
+        has_textfont = load_map_font();
+
+        // Existing text tileset - accessible at index 1
+        struct tileset ts;
+        memcpy(ts.small_texpos, init->font.small_font_texpos, sizeof(ts.small_texpos));
+        tilesets.push_back(ts);
+    }        
 
     if (!has_textfont)
     {
+        tilesets.push_back(tilesets[0]);
+
         *out2 << COLOR_YELLOW << "TWBT: FONT and GRAPHICS_FONT are the same" << std::endl;
         *out2 << COLOR_RESET;
     }
+
+    has_overrides = load_overrides();    
 
     // Load shadows
     struct stat buf;

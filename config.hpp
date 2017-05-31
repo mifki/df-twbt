@@ -81,6 +81,77 @@ static void load_tileset_layers(tileset &ts, string &path)
     }
 }
 
+static bool load_map_font()
+{
+    string small_font_path, gsmall_font_path;
+    string large_font_path, glarge_font_path;
+
+    std::ifstream fseed("data/init/init.txt");
+    if(fseed.is_open())
+    {
+        string str;
+
+        while(std::getline(fseed,str))
+        {
+            size_t b = str.find("[");
+            size_t e = str.rfind("]");
+
+            if (b == string::npos || e == string::npos || str.find_first_not_of(" ") < b)
+                continue;
+
+            str = str.substr(b+1, e-1);
+            vector<string> tokens = split(str.c_str(), ':');
+
+            if (tokens.size() != 2)
+                continue;
+                                
+            if(tokens[0] == "FONT")
+            {
+                small_font_path = "data/art/" + tokens[1];
+                continue;
+            }
+
+            if(tokens[0] == "FULLFONT")
+            {
+                large_font_path = "data/art/" + tokens[1];
+                continue;
+            }
+
+            if(tokens[0] == "GRAPHICS_FONT")
+            {
+                gsmall_font_path = "data/art/" + tokens[1];
+                continue;
+            }
+
+            if(tokens[0] == "GRAPHICS_FULLFONT")
+            {
+                glarge_font_path = "data/art/" + tokens[1];
+                continue;
+            }                    
+        }
+
+        fseed.close();
+    }
+    
+    //Map tileset - accessible at index 0
+    if (!(small_font_path == gsmall_font_path && large_font_path == glarge_font_path))
+    {
+        struct tileset ts;
+
+        long dx, dy;
+        load_tileset(gsmall_font_path, (long*)ts.small_texpos, 16, 16, &dx, &dy);
+        load_tileset_layers(ts, gsmall_font_path);
+
+        small_map_dispx = dx;
+        small_map_dispy = dy;
+
+        tilesets.push_back(ts);        
+        return true;
+    }
+
+    return false;
+}
+
 static bool load_text_font()
 {
     string small_font_path, gsmall_font_path;
@@ -133,6 +204,7 @@ static bool load_text_font()
         fseed.close();
     }
 
+    // Also load layers for map tileset, since we read its filename
     load_tileset_layers(tilesets[0], gsmall_font_path);
     
     //Text tileset - accessible at index 1
@@ -161,11 +233,8 @@ static bool load_text_font()
         tilesets.push_back(ts);        
         return true;
     }
-    else
-    {
-        tilesets.push_back(tilesets[0]);
-        return false;
-    }
+
+    return false;
 }
 
 // Either of

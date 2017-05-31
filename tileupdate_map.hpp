@@ -48,7 +48,7 @@ static void screen_to_texid_map(renderer_cool *r, int tile, struct texture_fulli
 
     const long texpos = gscreentexpos[tile];
 
-    if (!texpos)
+    if (!(texpos && init->display.flag.is_set(init_display_flags::USE_GRAPHICS)))
     {
         ret.texpos = map_texpos[ch];
         ret.bg_texpos = tilesets[0].bg_texpos[ch];
