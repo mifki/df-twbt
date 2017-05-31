@@ -19,7 +19,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         else if (menu_width == 1) // Wide menu
             menu_w = 55;
         else if (menuforced || (menu_width == 2 && area_map_width == 3)) // Menu only
-            menu_w = 31; 
+            menu_w = 31;
 
         return menu_w;
     }
@@ -48,7 +48,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
     {
         INTERPOSE_NEXT(logic)();
 
-        renderer_cool *r = (renderer_cool*)enabler->renderer;        
+        renderer_cool *r = (renderer_cool*)enabler->renderer;
 
         if (df::global::ui->follow_unit != -1)
         {
@@ -58,15 +58,15 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                 *df::global::window_x = std::max(0, std::min(world->map.x_count - r->gdimxfull, u->pos.x - r->gdimx / 2));
                 *df::global::window_y = std::max(0, std::min(world->map.y_count - r->gdimyfull, u->pos.y - r->gdimy / 2));
             }
-        }                
-    }      
+        }
+    }
 
     DEFINE_VMETHOD_INTERPOSE(void, render, ())
     {
         //clock_t c1 = clock();
         screen_map_type = 1;
 
-        renderer_cool *r = (renderer_cool*)enabler->renderer;        
+        renderer_cool *r = (renderer_cool*)enabler->renderer;
 
         if (gmenu_w < 0)
         {
@@ -97,7 +97,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         // and that will cause flickering of overridden tiles at least, so save them here
         gwindow_x = *df::global::window_x;
         gwindow_y = *df::global::window_y;
-        gwindow_z = *df::global::window_z;        
+        gwindow_z = *df::global::window_z;
 
         uint32_t *z = (uint32_t*)gscreen;
         for (int y = 0; y < r->gdimy; y++)
@@ -115,7 +115,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                 z[x*r->gdimy+y] = 0;
                 gscreentexpos[x*r->gdimy+y] = 0;
             }
-        }        
+        }
 
         uint8_t *sctop                     = gps->screen;
         long *screentexpostop              = gps->screentexpos;
@@ -145,7 +145,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
         if (maxlevels)
             patch_rendering(false);
-        
+
         render_map();
 
         if (maxlevels)
@@ -167,8 +167,8 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
             bool empty_tiles_left, rendered1st = false;
             int p = 1;
             int x0 = 0;
-            int zz0 = *df::global::window_z; 
-            int maxp = std::min(maxlevels, zz0);   
+            int zz0 = *df::global::window_z;
+            int maxp = std::min(maxlevels, zz0);
 
             do
             {
@@ -217,7 +217,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                             continue;
 
                         int xxquot = xx >> 4, xxrem = xx & 15;
-                        int yyquot = yy >> 4, yyrem = yy & 15;                    
+                        int yyquot = yy >> 4, yyrem = yy & 15;
 
                         if (ch == 31)
                         {
@@ -241,10 +241,10 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
                             x00 = x0;
 
-                            rendered1st = true;                        
-                        }                    
+                            rendered1st = true;
+                        }
 
-                        const int tile2 = (x-(x00)) * r->gdimy + y, stile2 = tile2 * 4;                    
+                        const int tile2 = (x-(x00)) * r->gdimy + y, stile2 = tile2 * 4;
 
                         int d = p;
                         ch = mscreen[stile2+0];
@@ -284,7 +284,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                             continue;
 
                         int xxquot = xx >> 4, xxrem = xx & 15;
-                        int yyquot = yy >> 4, yyrem = yy & 15;                    
+                        int yyquot = yy >> 4, yyrem = yy & 15;
 
                         //TODO: check for z=0 (?)
                         bool e0,h,h0;
@@ -311,10 +311,10 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
                             x00 = x0;
 
-                            rendered1st = true;                        
-                        }                    
+                            rendered1st = true;
+                        }
 
-                        const int tile2 = (x-(x00)) * r->gdimy + y, stile2 = tile2 * 4;                    
+                        const int tile2 = (x-(x00)) * r->gdimy + y, stile2 = tile2 * 4;
 
                         int d = p;
                         ch = mscreen[stile2+0];
