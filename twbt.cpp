@@ -89,6 +89,7 @@
 #include "df/ui_advmode.h"
 
 #include "renderer_twbt.h"
+#include "gui_hooks.hpp"
 
 using namespace DFHack;
 using df::global::world;
@@ -359,7 +360,10 @@ static void replace_renderer()
             apply_patch(&p, p_advmode_render[j]);
     #endif
 
-    enabled = true;   
+    twbt_gui_hooks::get_tile_hook.enable();
+    twbt_gui_hooks::set_tile_hook.enable();
+
+    enabled = true;
 }
 
 static void restore_renderer()
