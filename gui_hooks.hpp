@@ -82,4 +82,17 @@ namespace twbt_gui_hooks {
         return dims;
     }
 
+    int get_depth_at(int32_t x, int32_t y);
+    GUI_HOOK_CALLBACK(Gui::Hooks::depth_at, get_depth_at_hook, get_depth_at);
+    int get_depth_at(int32_t x, int32_t y)
+    {
+        auto r = (renderer_cool*)enabler->renderer;
+        if (r->is_twbt() && x >= 1 && x <= r->gdimx && y >= 1 && y <= r->gdimy)
+        {
+            const int tile = (x-1) * r->gdimy + (y-1);
+            unsigned char *s = r->gscreen + tile*4;
+            return ((s[3]&0xf0)>>4);
+        }
+        return get_depth_at_hook.next()(x, y);
+    }
 }

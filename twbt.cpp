@@ -363,6 +363,7 @@ static void replace_renderer()
     twbt_gui_hooks::get_tile_hook.enable();
     twbt_gui_hooks::set_tile_hook.enable();
     twbt_gui_hooks::get_dwarfmode_dims_hook.enable();
+    twbt_gui_hooks::get_depth_at_hook.enable();
 
     enabled = true;
 }
