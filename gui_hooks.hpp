@@ -9,7 +9,11 @@ namespace twbt_gui_hooks {
             return false;
 
         if (x < 1 || x > r->gdimx || y < 1 || y > r->gdimy)
-            return false;
+        {
+            // invalidate
+            pen.tile = -1;
+            return true;
+        }
 
         const int tile = (x-1) * r->gdimy + (y-1);
         unsigned char *s = r->gscreen + tile*4;
@@ -54,14 +58,28 @@ namespace twbt_gui_hooks {
         return get_tile_hook.next()(x, y, map);
     }
 
-    void set_tile(const Screen::Pen &pen, int x, int y, bool map);
+    bool set_tile(const Screen::Pen &pen, int x, int y, bool map);
     GUI_HOOK_CALLBACK(Screen::Hooks::set_tile, set_tile_hook, set_tile);
-    void set_tile(const Screen::Pen &pen, int x, int y, bool map)
+    bool set_tile(const Screen::Pen &pen, int x, int y, bool map)
     {
         if (map && write_map_tile(pen, x, y))
-            return;
+            return true;
 
         return set_tile_hook.next()(pen, x, y, map);
+    }
+
+    Gui::DwarfmodeDims get_dwarfmode_dims();
+    GUI_HOOK_CALLBACK(Gui::Hooks::dwarfmode_view_dims, get_dwarfmode_dims_hook, get_dwarfmode_dims);
+    Gui::DwarfmodeDims get_dwarfmode_dims()
+    {
+        auto dims = get_dwarfmode_dims_hook.next()();
+        auto r = (renderer_cool*)enabler->renderer;
+        if (r->is_twbt())
+        {
+            dims.map_x2 = r->gdimx;
+            dims.map_y2 = r->gdimy;
+        }
+        return dims;
     }
 
 }
