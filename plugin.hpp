@@ -180,7 +180,7 @@ DFhackCExport command_result plugin_onstatechange(color_ostream &out, state_chan
     }
     else if (event == SC_VIEWSCREEN_CHANGED)
     {
-        gps->force_full_display_count = 1;
+        gps->force_full_display_count = 2;
         screen_map_type = 0;
     }
 
