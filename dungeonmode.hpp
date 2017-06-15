@@ -40,6 +40,13 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
     {   
         screen_map_type = 2;
 
+        renderer_cool *r = (renderer_cool*)enabler->renderer;
+        r->reshape_zoom_swap();
+
+        memset(gscreen_under, 0, r->gdimx*r->gdimy*sizeof(uint32_t));
+        screen_under_ptr = gscreen_under;
+        screen_ptr = gscreen;
+
         float wx = *df::global::window_x;
         float wy = *df::global::window_y;
 
@@ -72,13 +79,6 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         }
         if (!tmode)
         	return;
-
-    	renderer_cool *r = (renderer_cool*)enabler->renderer;
-        r->reshape_zoom_swap();
-
-        memset(gscreen_under, 0, r->gdimx*r->gdimy*sizeof(uint32_t));
-        screen_under_ptr = gscreen_under;
-        screen_ptr = gscreen;
 
         // These values may change from the main thread while being accessed from the rendering thread,
         // and that will cause flickering of overridden tiles at least, so save them here
