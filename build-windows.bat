@@ -8,8 +8,6 @@ set TWBT_VER=6.xx
 msbuild /p:Platform=x64 /p:Configuration=Release /p:dfhack=%DFHACKDIR% /p:dfhackver=%DFHACKVER% /p:twbt_ver=%TWBT_VER% /p:dfvernum=%DFVERNUM% twbt.vcxproj
 
 rem cd plugins
-rem msbuild /p:Platform=Win32 /p:Configuration=Release /p:dfhack=%DFHACKDIR% /p:dfhackver=%DFHACKVER% /p:twbt_ver=%TWBT_VER% /p:dfvernum=%DFVERNUM% /p:plugin=automaterial plugins.vcxproj
-rem msbuild /p:Platform=Win32 /p:Configuration=Release /p:dfhack=%DFHACKDIR% /p:dfhackver=%DFHACKVER% /p:twbt_ver=%TWBT_VER% /p:dfvernum=%DFVERNUM% /p:plugin=resume plugins.vcxproj
 rem msbuild /p:Platform=Win32 /p:Configuration=Release /p:dfhack=%DFHACKDIR% /p:dfhackver=%DFHACKVER% /p:twbt_ver=%TWBT_VER% /p:dfvernum=%DFVERNUM% /p:plugin=mousequery plugins.vcxproj
 
 rem cd ..
