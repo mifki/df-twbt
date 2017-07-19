@@ -17,7 +17,7 @@
     #define WIN32_LEAN_AND_MEAN
     #define NOMINMAX
     #include <windows.h>
-  
+
     #define GLEW_STATIC
     #include "glew/glew.h"
     #include "glew/wglew.h"
@@ -89,6 +89,7 @@
 #include "df/ui_advmode.h"
 
 #include "renderer_twbt.h"
+#include "gui_hooks.hpp"
 
 using namespace DFHack;
 using df::global::world;
@@ -144,7 +145,7 @@ long white_texpos, transparent_texpos;
 
 long cursor_small_texpos;
 
-static bool enabled;
+DFHACK_PLUGIN_IS_ENABLED(enabled);
 static bool has_textfont, has_overrides;
 static color_ostream *out2;
 static df::item_flags bad_item_flags;
@@ -206,7 +207,7 @@ static long *gscreentexpos_old;
 static int8_t *gscreentexpos_addcolor_old;
 static uint8_t *gscreentexpos_grayscale_old, *gscreentexpos_cf_old, *gscreentexpos_cbr_old;
 
-// Buffers for rendering lower levels before merging    
+// Buffers for rendering lower levels before merging
 static uint8_t *mscreen;
 static uint8_t *mscreen_origin;
 static long *mscreentexpos;
@@ -236,7 +237,7 @@ static int block_index_size;
     typedef void (*LOAD_MULTI_PDIM)(void *tex, const string &filename, long *tex_pos, long dimx, long dimy, bool convert_magenta, long *disp_x, long *disp_y);
 
     typedef void (*RENDER_MAP)(void*, int);
-    typedef void (*RENDER_UPDOWN)(void*);    
+    typedef void (*RENDER_UPDOWN)(void*);
 #endif
 
 LOAD_MULTI_PDIM _load_multi_pdim;
@@ -318,7 +319,7 @@ static void replace_renderer()
     void *get_mouse_coords_new = vtable_new[IDX_get_mouse_coords];
     void *draw_new             = vtable_new[IDX_draw];
     void *reshape_gl_new       = vtable_new[IDX_reshape_gl];
-    void *update_tile_new      = vtable_new[IDX_update_tile];    
+    void *update_tile_new      = vtable_new[IDX_update_tile];
     void *zoom_new             = vtable_new[IDX_zoom];
 
     p.verifyAccess(vtable_new, sizeof(void*)*IDX__last_vmethod, true);
@@ -337,7 +338,7 @@ static void replace_renderer()
 
     vtable_new[IDX_zoom] = zoom_new;
     vtable_new[IDX_zoom_old] = vtable_old[IDX_zoom];
-    
+
     memcpy(&newr->screen, &oldr->screen, (char*)&newr->dummy-(char*)&newr->screen);
 
     newr->reshape_graphics();
@@ -346,7 +347,7 @@ static void replace_renderer()
 
     // Disable original renderer::display
     #ifndef NO_DISPLAY_PATCH
-        apply_patch(&p, p_display);    
+        apply_patch(&p, p_display);
     #endif
 
     // On Windows original map rendering function must be called at least once to initialize something (?)
@@ -359,7 +360,12 @@ static void replace_renderer()
             apply_patch(&p, p_advmode_render[j]);
     #endif
 
-    enabled = true;   
+    twbt_gui_hooks::get_tile_hook.enable();
+    twbt_gui_hooks::set_tile_hook.enable();
+    twbt_gui_hooks::get_dwarfmode_dims_hook.enable();
+    twbt_gui_hooks::get_depth_at_hook.enable();
+
+    enabled = true;
 }
 
 static void restore_renderer()

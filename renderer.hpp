@@ -710,6 +710,7 @@ void renderer_cool::reshape_zoom_swap()
         needs_reshape = false;
         reshape_graphics();
         gps->force_full_display_count = 1;
+        DFHack::Gui::getCurViewscreen()->resize(gps->dimx, gps->dimy);
     }
     else
         gswap_arrays();
