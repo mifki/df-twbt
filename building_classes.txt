@@ -7,7 +7,7 @@
 +building_bars_verticalst.h
 +building_bedst.h
 +building_bookcasest.h
-building_boxst.h
++building_boxst.h
 building_bridgest.h
 +building_cabinetst.h
 +building_cagest.h

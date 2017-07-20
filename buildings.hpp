@@ -70,9 +70,9 @@ struct cls##_hook : public df::cls \
         int ymax = std::min(dbuf->y2-gwindow_y, r->gdimy-1); \
 \
         for (int x = dbuf->x1-gwindow_x; x <= xmax; x++) \
-            for (int y = dbuf->y1-gwindow_y; y <= ymax; y++) { \
-                if (x < 0 || y < 0 || x >= r->gdimx || y >= r->gdimy) *out2 << "!!" << std::endl; \
-                ((uint32_t*)screen_under_ptr)[x*r->gdimy + y] = ((uint32_t*)screen_ptr)[x*r->gdimy + y]; }\
+            for (int y = dbuf->y1-gwindow_y; y <= ymax; y++) \
+                if (x >= 0 && y >= 0 && x < r->gdimx && y < r->gdimy) \
+                    ((uint32_t*)screen_under_ptr)[x*r->gdimy + y] = ((uint32_t*)screen_ptr)[x*r->gdimy + y]; \
     } \
 }; \
 IMPLEMENT_VMETHOD_INTERPOSE(cls##_hook, drawBuilding);
