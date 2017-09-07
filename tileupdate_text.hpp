@@ -6,7 +6,7 @@ static void screen_to_texid_text(renderer_cool *r, int tile, struct texture_full
     int fg   = (s[1] + bold) % 16;
     int bg   = s[2] % 16;
 
-    const long texpos = r->screentexpos[tile];
+    const long texpos = ((long*)r->screentexpos)[tile];
 
     if (!texpos)
     {
