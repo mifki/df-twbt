@@ -26,7 +26,7 @@ struct renderer_cool : renderer_opengl
 {
     uint32_t dummy;
 
-    float *gvertexes, *gfg, *gbg, *gtex;
+    float *gvertexes, *gfg, *gtex;
     int gdimx, gdimy, gdimxfull, gdimyfull;
     int gdispx, gdispy;
     float goff_x, goff_y, gsize_x, gsize_y;
@@ -52,7 +52,7 @@ struct renderer_cool : renderer_opengl
     virtual void draw(int vertex_count);
     virtual void reshape_gl();
 
-    virtual void zoom(df::zoom_commands cmd); 
+    virtual void zoom(df::zoom_commands cmd);
     virtual bool get_mouse_coords(int32_t *x, int32_t *y);
 
     virtual void update_tile_old(int x, int y) {}; //17

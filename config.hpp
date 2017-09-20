@@ -50,6 +50,107 @@ static vector<string> split(const char *str, char c = ' ')
     return result;
 }
 
+static void load_tileset_layers(tileset &ts, string &path)
+{
+    string ext = path.substr(path.length()-4);
+    string base = path.substr(0, path.length()-4);
+    
+    long dx, dy;        
+    struct stat buf;
+ 
+    string bg = base+"-bg"+ext;
+    if (stat(bg.c_str(), &buf) == 0)
+    {
+        load_tileset(bg, ts.bg_texpos, 16, 16, &dx, &dy);
+    }
+    else
+    {
+        for (int i = 0; i < 256; i++)
+            ts.bg_texpos[i] = white_texpos;
+    }
+
+    string top = base+"-top"+ext;
+    if (stat(top.c_str(), &buf) == 0)
+    {
+        load_tileset(top, ts.top_texpos, 16, 16, &dx, &dy);
+    }
+    else
+    {        
+        for (int i = 0; i < 256; i++)
+            ts.top_texpos[i] = transparent_texpos;
+    }
+}
+
+static bool load_map_font()
+{
+    string small_font_path, gsmall_font_path;
+    string large_font_path, glarge_font_path;
+
+    std::ifstream fseed("data/init/init.txt");
+    if(fseed.is_open())
+    {
+        string str;
+
+        while(std::getline(fseed,str))
+        {
+            size_t b = str.find("[");
+            size_t e = str.rfind("]");
+
+            if (b == string::npos || e == string::npos || str.find_first_not_of(" ") < b)
+                continue;
+
+            str = str.substr(b+1, e-1);
+            vector<string> tokens = split(str.c_str(), ':');
+
+            if (tokens.size() != 2)
+                continue;
+                                
+            if(tokens[0] == "FONT")
+            {
+                small_font_path = "data/art/" + tokens[1];
+                continue;
+            }
+
+            if(tokens[0] == "FULLFONT")
+            {
+                large_font_path = "data/art/" + tokens[1];
+                continue;
+            }
+
+            if(tokens[0] == "GRAPHICS_FONT")
+            {
+                gsmall_font_path = "data/art/" + tokens[1];
+                continue;
+            }
+
+            if(tokens[0] == "GRAPHICS_FULLFONT")
+            {
+                glarge_font_path = "data/art/" + tokens[1];
+                continue;
+            }                    
+        }
+
+        fseed.close();
+    }
+    
+    //Map tileset - accessible at index 0
+    if (!(small_font_path == gsmall_font_path && large_font_path == glarge_font_path))
+    {
+        struct tileset ts;
+
+        long dx, dy;
+        load_tileset(gsmall_font_path, (long*)ts.small_texpos, 16, 16, &dx, &dy);
+        load_tileset_layers(ts, gsmall_font_path);
+
+        small_map_dispx = dx;
+        small_map_dispy = dy;
+
+        tilesets.push_back(ts);        
+        return true;
+    }
+
+    return false;
+}
 
 static bool load_text_font()
 {
@@ -102,6 +203,9 @@ static bool load_text_font()
 
         fseed.close();
     }
+
+    // Also load layers for map tileset, since we read its filename
+    load_tileset_layers(tilesets[0], gsmall_font_path);
     
     //Text tileset - accessible at index 1
     if (!(small_font_path == gsmall_font_path && large_font_path == glarge_font_path))
@@ -113,36 +217,24 @@ static bool load_text_font()
             long dx, dy;
 
             load_tileset(small_font_path, (long*)ts.small_texpos, 16, 16, &dx, &dy);
-            if (large_font_path != small_font_path)
-                load_tileset(large_font_path, (long*)ts.large_texpos, 16, 16, &dx, &dy);
-            else
-                memcpy(ts.large_texpos, ts.small_texpos, sizeof(ts.large_texpos));
         }
         else
         {
             // Load text font and set it as the main (and only) font in `init` structure
             load_tileset(small_font_path, (long*)init->font.small_font_texpos, 16, 16, (long*)&init->font.small_font_dispx, (long*)&init->font.small_font_dispy);
-            if (large_font_path != small_font_path)
-                load_tileset(large_font_path, (long*)init->font.large_font_texpos, 16, 16, (long*)&init->font.large_font_dispx, (long*)&init->font.large_font_dispy);
-            else
-            {
-                memcpy(init->font.large_font_texpos, init->font.small_font_texpos, sizeof(init->font.large_font_texpos));
-                init->font.large_font_dispx = init->font.small_font_dispx;
-                init->font.large_font_dispy = init->font.small_font_dispy;
-            }
-
             memcpy(ts.small_texpos, init->font.small_font_texpos, sizeof(ts.small_texpos));
-            memcpy(ts.large_texpos, init->font.large_font_texpos, sizeof(ts.large_texpos));        
+
+            // Use small font for large too
+            memcpy(init->font.large_font_texpos, init->font.small_font_texpos, sizeof(init->font.large_font_texpos));
+            init->font.large_font_dispx = init->font.small_font_dispx;
+            init->font.large_font_dispy = init->font.small_font_dispy;
         }
 
         tilesets.push_back(ts);        
         return true;
     }
-    else
-    {
-        tilesets.push_back(tilesets[0]);
-        return false;
-    }
+
+    return false;
 }
 
 // Either of
@@ -232,7 +324,6 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     /*else if (tokens.size() == 3)
     {
         tilesets[0].small_texpos[tile] = tilesets[tsidx].small_texpos[newtile];
-        tilesets[0].large_texpos[tile] = tilesets[tsidx].large_texpos[newtile];
         return true;
     }*/
     else
@@ -260,10 +351,11 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
         int tsidx = tilesetnames[tsname];
 
         o.small_texpos = tilesets[tsidx].small_texpos[newtile];
-        o.large_texpos = tilesets[tsidx].large_texpos[newtile];
+        o.bg_texpos = tilesets[tsidx].bg_texpos[newtile];
+        o.top_texpos = tilesets[tsidx].top_texpos[newtile];
     }
     else
-        o.large_texpos = o.small_texpos = 0;
+        o.small_texpos = 0;
 
     // New foreground colour
     if (tokens.size() > basetoken+2 && tokens[basetoken+2].length())
@@ -297,7 +389,7 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     else
         o.bg = -1;
 
-    if (!(o.large_texpos != -1 || o.fg != -1 || o.bg != -1))
+    if (!(o.small_texpos != -1 || o.fg != -1 || o.bg != -1))
         return false;
 
     if (!overrides[tile])
@@ -369,7 +461,8 @@ static bool load_overrides()
 
                 struct tileset ts;
                 string small_font_path = "data/art/" + tokens[1];
-                string large_font_path = "data/art/" + tokens[2];
+                //string large_font_path = "data/art/" + tokens[2];
+                //TODO: show warning that large font is no longer loaded
 
                 struct stat buf;
                 if (stat(small_font_path.c_str(), &buf) != 0)
@@ -381,19 +474,7 @@ static bool load_overrides()
 
                 long dx, dy;        
                 load_tileset(small_font_path, ts.small_texpos, 16, 16, &dx, &dy);
-
-                if (stat(large_font_path.c_str(), &buf) != 0)
-                {
-                    *out2 << COLOR_YELLOW << "TWBT: " << small_font_path << " not found" << std::endl;
-                    *out2 << COLOR_RESET;
-
-                    large_font_path = small_font_path;
-                }
-
-                if (large_font_path != small_font_path)
-                    load_tileset(large_font_path, ts.large_texpos, 16, 16, &dx, &dy);
-                else
-                    memcpy(ts.large_texpos, ts.small_texpos, sizeof(ts.large_texpos));
+                load_tileset_layers(ts, small_font_path);
 
                 tilesets.push_back(ts);
 
@@ -437,7 +518,6 @@ static bool load_overrides()
             int newtile = atoi(tokens[2].c_str());
 
             cursor_small_texpos = tilesets[tsidx].small_texpos[newtile];
-            cursor_large_texpos = tilesets[tsidx].large_texpos[newtile];            
 
             any_overrides = true;
             continue;

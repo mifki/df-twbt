@@ -9,7 +9,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     int mode = get_mode();
     if (!mode)
     {
-        *out2 << COLOR_RED << "TWBT: set PRINT_MODE to TWBT or TWBT_LEGACY in data/init/init.txt to activate the plugin" << std::endl;
+        *out2 << COLOR_RED << "TWBT: set PRINT_MODE to TWBT in data/init/init.txt to activate the plugin" << std::endl;
         *out2 << COLOR_RESET;
         return CR_OK;        
     }
@@ -29,19 +29,6 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 #endif
     }
     legacy_mode = (mode == -1);
-
-    /*auto dflags = init->display.flag;
-    if (dflags.is_set(init_display_flags::RENDER_2D) ||
-        dflags.is_set(init_display_flags::ACCUM_BUFFER) ||
-        dflags.is_set(init_display_flags::FRAME_BUFFER) ||
-        dflags.is_set(init_display_flags::TEXT) ||
-        dflags.is_set(init_display_flags::VBO) ||
-        dflags.is_set(init_display_flags::PARTIAL_PRINT))
-    {
-        *out2 << COLOR_RED << "TWBT: PRINT_MODE must be set to STANDARD in data/init/init.txt" << std::endl;
-        *out2 << COLOR_RESET;
-        return CR_OK;        
-    }*/
 
     #ifdef WIN32
         _load_multi_pdim = (LOAD_MULTI_PDIM) (A_LOAD_MULTI_PDIM + Core::getInstance().vinfo->getRebaseDelta());
@@ -69,29 +56,73 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 
     // Used only if rendering patch is not available
     skytile = d_init->sky_tile;
-    chasmtile = d_init->chasm_tile;    
+    chasmtile = d_init->chasm_tile;
 
-    // Graphics tileset - accessible at index 0
-    struct tileset ts;
-    memcpy(ts.small_texpos, init->font.small_font_texpos, sizeof(ts.small_texpos));
-    memcpy(ts.large_texpos, init->font.large_font_texpos, sizeof(ts.large_texpos));
-    tilesets.push_back(ts);
+    struct stat buf;    
 
-    // We will replace init->font with text font, so let's save graphics tile size
-    small_map_dispx = init->font.small_font_dispx, small_map_dispy = init->font.small_font_dispy;
-    large_map_dispx = init->font.large_font_dispx, large_map_dispy = init->font.large_font_dispy;
+    if (stat("data/art/white1px.png", &buf) == 0)
+    {
+        long dx, dy;        
+        load_tileset("data/art/white1px.png", &white_texpos, 1, 1, &dx, &dy);
+    }
+    else
+    {
+        *out2 << COLOR_RED << "TWBT: data/art/white1px.png not found, can not continue" << std::endl;
+        *out2 << COLOR_RESET;
 
-    has_textfont = load_text_font();
-    has_overrides = load_overrides();
+        return CR_FAILURE;
+    }
+
+    if (stat("data/art/transparent1px.png", &buf) == 0)
+    {
+        long dx, dy;        
+        load_tileset("data/art/transparent1px.png", &transparent_texpos, 1, 1, &dx, &dy);    
+    }
+    else
+    {
+        *out2 << COLOR_RED << "TWBT: data/art/transparent1px.png not found, can not continue" << std::endl;
+        *out2 << COLOR_RESET;
+
+        return CR_FAILURE;
+    }
+
+    if (init->display.flag.is_set(init_display_flags::USE_GRAPHICS))
+    {
+        // Graphics is enabled. Map tileset is already loaded, so use it. Then load text tileset.
+
+        // Existing map tileset - accessible at index 0
+        struct tileset ts;
+        memcpy(ts.small_texpos, init->font.small_font_texpos, sizeof(ts.small_texpos));
+        tilesets.push_back(ts);
+
+        // We will replace init->font with text font, so let's save graphics tile size
+        small_map_dispx = init->font.small_font_dispx, small_map_dispy = init->font.small_font_dispy;
+
+        has_textfont = load_text_font();
+    }
+    else
+    {
+        // Graphics is disabled. Text tileset is already loaded. Load map tileset.
+
+        has_textfont = load_map_font();
+
+        // Existing text tileset - accessible at index 1
+        struct tileset ts;
+        memcpy(ts.small_texpos, init->font.small_font_texpos, sizeof(ts.small_texpos));
+        tilesets.push_back(ts);
+    }        
 
     if (!has_textfont)
     {
+        tilesets.push_back(tilesets[0]);
+
         *out2 << COLOR_YELLOW << "TWBT: FONT and GRAPHICS_FONT are the same" << std::endl;
         *out2 << COLOR_RESET;
     }
 
+    has_overrides = load_overrides();    
+
     // Load shadows
-    struct stat buf;
     if (stat("data/art/shadows.png", &buf) == 0)
     {
         long dx, dy;        
@@ -100,12 +131,12 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     }
     else
     {
-        *out2 << COLOR_RED << "TWBT: shadows.png not found in data/art folder" << std::endl;
+        *out2 << COLOR_RED << "TWBT: data/art/shadows.png not found, shadows will not be rendered" << std::endl;
         *out2 << COLOR_RESET;
     }
 
-    map_texpos = enabler->fullscreen ? tilesets[0].large_texpos : tilesets[0].small_texpos;
-    text_texpos = enabler->fullscreen ? tilesets[1].large_texpos : tilesets[1].small_texpos;
+    map_texpos = tilesets[0].small_texpos;
+    text_texpos = tilesets[1].small_texpos;
 
     commands.push_back(PluginCommand(
         "mapshot", "Mapshot!",
@@ -142,17 +173,16 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 
         INTERPOSE_HOOK(dungeonmode_hook, render).apply(true);
         INTERPOSE_HOOK(dungeonmode_hook, logic).apply(true);
-        INTERPOSE_HOOK(dungeonmode_hook, feed).apply(true);        
+        INTERPOSE_HOOK(dungeonmode_hook, feed).apply(true); 
+
+        enable_building_hooks();       
+        enable_item_hooks();
     }
     else
     {
         hook_legacy();
         INTERPOSE_HOOK(dwarfmode_hook_legacy, render).apply(true);
     }
-
-#if defined(__APPLE__) && defined(DF_03411)
-    INTERPOSE_HOOK(traderesize_hook, render).apply(true);
-#endif    
 
     return CR_OK;
 }
@@ -164,6 +194,11 @@ DFhackCExport command_result plugin_onstatechange(color_ostream &out, state_chan
         update_custom_building_overrides();
         gmenu_w = -1;
         block_index_size = 0;
+    }
+    else if (event == SC_VIEWSCREEN_CHANGED)
+    {
+        gps->force_full_display_count = 2;
+        screen_map_type = 0;
     }
 
     return CR_OK;
@@ -181,10 +216,6 @@ DFhackCExport command_result plugin_shutdown ( color_ostream &out )
 
     /*if (enabled)
         restore_renderer();
-
-#if defined(__APPLE__) && defined(DF_03411)
-    INTERPOSE_HOOK(traderesize_hook, render).apply(false);
-#endif            
 
     return CR_OK;*/
 }

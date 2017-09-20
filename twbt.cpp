@@ -17,7 +17,7 @@
     #define WIN32_LEAN_AND_MEAN
     #define NOMINMAX
     #include <windows.h>
-  
+
     #define GLEW_STATIC
     #include "glew/glew.h"
     #include "glew/wglew.h"
@@ -89,6 +89,7 @@
 #include "df/ui_advmode.h"
 
 #include "renderer_twbt.h"
+#include "gui_hooks.hpp"
 
 using namespace DFHack;
 using df::global::world;
@@ -102,7 +103,7 @@ using df::global::d_init;
 using df::global::gview;
 
 struct texture_fullid {
-    unsigned int texpos;
+    unsigned int texpos, bg_texpos, top_texpos;
     float r, g, b;
     float br, bg, bb;
 };
@@ -112,13 +113,15 @@ struct gl_texpos {
 };
 
 struct tileset {
-    long small_texpos[16*16], large_texpos[16*16];
+    long small_texpos[16*16];
+    long bg_texpos[16*16];
+    long top_texpos[16*16];
 };
 static vector< struct tileset > tilesets;
 
 struct override {
     int type, subtype;
-    long small_texpos, large_texpos;
+    long small_texpos, bg_texpos, top_texpos;
     char bg, fg;
     std::string subtypename;
 };
@@ -138,10 +141,11 @@ struct tile_overrides {
 static struct tile_overrides *overrides[256];
 
 long *text_texpos, *map_texpos;
+long white_texpos, transparent_texpos;
 
-long cursor_small_texpos, cursor_large_texpos;
+long cursor_small_texpos;
 
-static bool enabled;
+DFHACK_PLUGIN_IS_ENABLED(enabled);
 static bool has_textfont, has_overrides;
 static color_ostream *out2;
 static df::item_flags bad_item_flags;
@@ -173,6 +177,11 @@ static uint8_t skytile;
 static uint8_t chasmtile;
 static bool always_full_update;
 
+//TODO: need double buffers?
+static uint8_t *gscreen_under, *mscreen_under;
+
+static uint8_t *screen_under_ptr, *screen_ptr;
+
 // Buffers for map rendering
 static uint8_t *_gscreen[2];
 static long *_gscreentexpos[2];
@@ -198,7 +207,7 @@ static long *gscreentexpos_old;
 static int8_t *gscreentexpos_addcolor_old;
 static uint8_t *gscreentexpos_grayscale_old, *gscreentexpos_cf_old, *gscreentexpos_cbr_old;
 
-// Buffers for rendering lower levels before merging    
+// Buffers for rendering lower levels before merging
 static uint8_t *mscreen;
 static uint8_t *mscreen_origin;
 static long *mscreentexpos;
@@ -207,6 +216,8 @@ static int8_t *mscreentexpos_addcolor;
 static int8_t *mscreentexpos_addcolor_origin;
 static uint8_t *mscreentexpos_grayscale, *mscreentexpos_cf, *mscreentexpos_cbr;
 static uint8_t *mscreentexpos_grayscale_origin, *mscreentexpos_cf_origin, *mscreentexpos_cbr_origin;
+
+static int screen_map_type;
 
 static df::map_block **my_block_index;
 static int block_index_size;
@@ -226,7 +237,7 @@ static int block_index_size;
     typedef void (*LOAD_MULTI_PDIM)(void *tex, const string &filename, long *tex_pos, long dimx, long dimy, bool convert_magenta, long *disp_x, long *disp_y);
 
     typedef void (*RENDER_MAP)(void*, int);
-    typedef void (*RENDER_UPDOWN)(void*);    
+    typedef void (*RENDER_UPDOWN)(void*);
 #endif
 
 LOAD_MULTI_PDIM _load_multi_pdim;
@@ -308,7 +319,7 @@ static void replace_renderer()
     void *get_mouse_coords_new = vtable_new[IDX_get_mouse_coords];
     void *draw_new             = vtable_new[IDX_draw];
     void *reshape_gl_new       = vtable_new[IDX_reshape_gl];
-    void *update_tile_new      = vtable_new[IDX_update_tile];    
+    void *update_tile_new      = vtable_new[IDX_update_tile];
     void *zoom_new             = vtable_new[IDX_zoom];
 
     p.verifyAccess(vtable_new, sizeof(void*)*IDX__last_vmethod, true);
@@ -327,7 +338,7 @@ static void replace_renderer()
 
     vtable_new[IDX_zoom] = zoom_new;
     vtable_new[IDX_zoom_old] = vtable_old[IDX_zoom];
-    
+
     memcpy(&newr->screen, &oldr->screen, (char*)&newr->dummy-(char*)&newr->screen);
 
     newr->reshape_graphics();
@@ -336,7 +347,7 @@ static void replace_renderer()
 
     // Disable original renderer::display
     #ifndef NO_DISPLAY_PATCH
-        apply_patch(&p, p_display);    
+        apply_patch(&p, p_display);
     #endif
 
     // On Windows original map rendering function must be called at least once to initialize something (?)
@@ -349,7 +360,12 @@ static void replace_renderer()
             apply_patch(&p, p_advmode_render[j]);
     #endif
 
-    enabled = true;   
+    twbt_gui_hooks::get_tile_hook.enable();
+    twbt_gui_hooks::set_tile_hook.enable();
+    twbt_gui_hooks::get_dwarfmode_dims_hook.enable();
+    twbt_gui_hooks::get_depth_at_hook.enable();
+
+    enabled = true;
 }
 
 static void restore_renderer()
@@ -404,4 +420,6 @@ static bool advmode_needs_map(int m)
 #include "legacy/twbt_legacy.hpp"
 #include "config.hpp"
 #include "commands.hpp"
+#include "buildings.hpp"
+#include "items.hpp"
 #include "plugin.hpp"
