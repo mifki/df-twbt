@@ -58,14 +58,32 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     skytile = d_init->sky_tile;
     chasmtile = d_init->chasm_tile;
 
+    struct stat buf;    
+
+    if (stat("data/art/white1px.png", &buf) == 0)
     {
         long dx, dy;        
         load_tileset("data/art/white1px.png", &white_texpos, 1, 1, &dx, &dy);
     }
+    else
+    {
+        *out2 << COLOR_RED << "TWBT: data/art/white1px.png not found, can not continue" << std::endl;
+        *out2 << COLOR_RESET;
 
+        return CR_FAILURE;
+    }
+
+    if (stat("data/art/transparent1px.png", &buf) == 0)
     {
         long dx, dy;        
         load_tileset("data/art/transparent1px.png", &transparent_texpos, 1, 1, &dx, &dy);    
+    }
+    else
+    {
+        *out2 << COLOR_RED << "TWBT: data/art/transparent1px.png not found, can not continue" << std::endl;
+        *out2 << COLOR_RESET;
+
+        return CR_FAILURE;
     }
 
     if (init->display.flag.is_set(init_display_flags::USE_GRAPHICS))
@@ -105,7 +123,6 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     has_overrides = load_overrides();    
 
     // Load shadows
-    struct stat buf;
     if (stat("data/art/shadows.png", &buf) == 0)
     {
         long dx, dy;        
@@ -114,7 +131,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
     }
     else
     {
-        *out2 << COLOR_RED << "TWBT: shadows.png not found in data/art folder" << std::endl;
+        *out2 << COLOR_RED << "TWBT: data/art/shadows.png not found, shadows will not be rendered" << std::endl;
         *out2 << COLOR_RESET;
     }
 
