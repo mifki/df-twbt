@@ -7,6 +7,7 @@ Originally I wrote a small plugin because I was tired seeing coffins instead of 
 *Note:* To activate the plugin, set PRINT_MODE to TWBT (or TWBT_LEGACY for legacy mode with text and map tiles of the same size) in your `data/init/init.txt` file. The installation package also includes several other plugins which required changes to be compatible with TWBT.
 
 ![Screenshot](http://i.imgur.com/Xdmv3JH.png)
+![Screenshot](http://mifki.com/assets/uploads/Screen-Shot-2017-03-20-at-12.25.29-AM.png)
 
 ## Features ##
 
