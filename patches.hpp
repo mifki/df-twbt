@@ -829,6 +829,28 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         };
     #endif
 
+#elif defined(DF_04402)
+    #ifdef WIN32
+        #error Unsupported DF version
+    #elif defined(__APPLE__)
+        #error Unsupported DF version
+    #else
+        #define A_RENDER_MAP 0xde8750
+        #define A_RENDER_UPDOWN 0xbbca30
+
+        #define NO_DISPLAY_PATCH
+
+        static patchdef p_dwarfmode_render = { 0x714185, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x69667a, 5+5+5 }, { 0x696c92, 5+5+5 }, { 0x696cd1, 5+5+5 }, { 0x696d2d, 5+5+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x1070150, 5, true, { 0x41, 0xc6, 0x00, 0x00, 0xC3 }
+        };
+    #endif
+
 #else
 
     #error Unsupported DF version
