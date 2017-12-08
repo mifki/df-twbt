@@ -25,7 +25,7 @@ INC = -I"$(DH)/library/include" -I"$(DH)/library/proto" -I"$(DH)/depends/protobu
 LIB = -L"$(DH)/build/library" -ldfhack -ldfhack-version
 
 CXX ?= c++
-CFLAGS = $(INC) -m64 -DLINUX_BUILD -O3
+CFLAGS = $(INC) -m64 -DLINUX_BUILD -O3 -D_GLIBCXX_USE_CXX11_ABI=0
 LDFLAGS = $(LIB) -shared 
 
 ifeq ($(shell uname -s), Darwin)
