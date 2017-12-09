@@ -829,11 +829,43 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         };
     #endif
 
+
 #elif defined(DF_04402)
     #ifdef WIN32
-        #error Unsupported DF version
+        #define A_LOAD_MULTI_PDIM 0x140ab8b20
+        #define A_RENDER_MAP      0x14088a3e0
+        #define A_RENDER_UPDOWN   0x1405dfa20
+
+        static patchdef p_display = { 0x14038a7cb, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x14034020a, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x14028c1db, 5+5 }, { 0x14028c22c, 5+5 }, { 0x14028c276, 5+5 }, { 0x14028c743, 5+5 },
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x140c04fc0, 9, true, { 0x48, 0x8B, 0x44, 0x24, 0x28,  0xC6, 0x00, 0x00,  0xC3 }
+        };
+
     #elif defined(__APPLE__)
-        #error Unsupported DF version
+        #define A_LOAD_MULTI_PDIM 0x1011474f0
+
+        #define A_RENDER_MAP      0x100ad96d0
+        #define A_RENDER_UPDOWN   0x1008633e0
+
+        static patchdef p_display = { 0x1010dbdbb, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x10046dee7, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x100416651, 5+3+5 }, { 0x1004166ea, 5+7+5 }, { 0x100416c4a, 5+3+5 }, { 0x100416f5b, 5+3+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x100d73840, 5, true, { 0x41, 0xc6, 0x00, 0x00, 0xC3 }
+        };
+    
     #else
         #define A_RENDER_MAP 0xde8750
         #define A_RENDER_UPDOWN 0xbbca30
