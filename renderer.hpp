@@ -237,7 +237,8 @@ void renderer_cool::draw(int vertex_count)
         initial_resize = true;
     }
 
-    display_new(screen_map_type);
+    // Only for fortress mode because adventure mode map is updated in render()
+    display_new(screen_map_type == 1);
 
 #ifdef WIN32
     // We can't do this in plugin_init() because OpenGL context isn't initialized by that time
