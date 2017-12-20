@@ -264,8 +264,16 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     {
         if (kind == 'B')
         {
-            if (!parse_enum_or_int<buildings_other_id::buildings_other_id>(tokens[2], id, buildings_other_id::IN_PLAY))
-                return false;
+            if (tokens[2] == "DISPLAY_CASE")
+                id = 31;
+            else
+            {
+                if (!parse_enum_or_int<buildings_other_id::buildings_other_id>(tokens[2], id, buildings_other_id::IN_PLAY))
+                    return false;
+
+                if (id >= 31)
+                    id++;
+            }
             if (!parse_enum_or_int<building_type::building_type>(tokens[3], o.type))
                 return false;
 
