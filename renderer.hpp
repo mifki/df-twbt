@@ -94,23 +94,22 @@ void renderer_cool::update_map_tile(int x, int y)
 {
     const int tile = x * gdimy + y;
 
-    GLfloat *_bg  = gfg + (tile*6+3) * 4 * 6;
-    GLfloat *_tex_bg = gtex + (tile*6+3) * 2 * 6;
-    GLfloat *_fg  = gfg + (tile*6+4) * 4 * 6;
-    GLfloat *_tex = gtex + (tile*6+4) * 2 * 6;
-    GLfloat *_fg_top  = gfg + (tile*6+5) * 4 * 6;
-    GLfloat *_tex_top = gtex + (tile*6+5) * 2 * 6;
+    GLfloat *_bg_under      = gfg  + (tile*6+0) * 4 * 6;
+    GLfloat *_tex_bg_under  = gtex + (tile*6+0) * 2 * 6;
+    GLfloat *_fg_under      = gfg  + (tile*6+1) * 4 * 6;
+    GLfloat *_tex_under     = gtex + (tile*6+1) * 2 * 6;
+    GLfloat *_fg_top_under  = gfg  + (tile*6+2) * 4 * 6;
+    GLfloat *_tex_top_under = gtex + (tile*6+2) * 2 * 6;
 
+    GLfloat *_bg            = gfg  + (tile*6+3) * 4 * 6;
+    GLfloat *_tex_bg        = gtex + (tile*6+3) * 2 * 6;
+    GLfloat *_fg            = gfg  + (tile*6+4) * 4 * 6;
+    GLfloat *_tex           = gtex + (tile*6+4) * 2 * 6;
+    GLfloat *_fg_top        = gfg  + (tile*6+5) * 4 * 6;
+    GLfloat *_tex_top       = gtex + (tile*6+5) * 2 * 6;
+
+    write_tile_arrays_under(this, x, y, _fg_under, _bg_under, _tex_under, _tex_bg_under, _fg_top_under, _tex_top_under);
     write_tile_arrays_map(this, x, y, _fg, _bg, _tex, _tex_bg, _fg_top, _tex_top);
-
-    GLfloat *_bg_over  = gfg + (tile*6+0) * 4 * 6;
-    GLfloat *_tex_bg_over = gtex + (tile*6+0) * 2 * 6;
-    GLfloat *_fg_over  = gfg + (tile*6+1) * 4 * 6;
-    GLfloat *_tex_over = gtex + (tile*6+1) * 2 * 6;
-    GLfloat *_fg_top_over  = gfg + (tile*6+2) * 4 * 6;
-    GLfloat *_tex_top_over = gtex + (tile*6+2) * 2 * 6;
-
-    write_tile_arrays_over(this, x, y, _fg_over, _bg_over, _tex_over, _tex_bg_over, _fg_top_over, _tex_top_over);
 
     if (maxlevels)
     {

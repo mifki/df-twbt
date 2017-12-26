@@ -78,7 +78,7 @@ static void screen_to_texid_map(renderer_cool *r, int tile, struct texture_fulli
     }
 }
 
-static void screen_to_texid_over(renderer_cool *r, int tile, struct texture_fullid &ret)
+static void screen_to_texid_under(renderer_cool *r, int tile, struct texture_fullid &ret)
 {
     const unsigned char *s = gscreen_under + tile*4;
 
@@ -314,11 +314,49 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
     }    
 }
 
-static void write_tile_arrays_over(renderer_cool *r, int x, int y, GLfloat *fg, GLfloat *bg, GLfloat *tex, GLfloat *tex_bg, GLfloat *fg_top, GLfloat *tex_top)
+static void write_tile_arrays_under(renderer_cool *r, int x, int y, GLfloat *fg, GLfloat *bg, GLfloat *tex, GLfloat *tex_bg, GLfloat *fg_top, GLfloat *tex_top)
 {
     struct texture_fullid ret;
     const int tile = x * r->gdimy + y;        
-    screen_to_texid_over(r, tile, ret);
+    screen_to_texid_under(r, tile, ret);
+
+    if (has_overrides && my_block_index)
+    {
+        const unsigned char *s = gscreen_under + tile*4;
+        int s0 = s[0];
+
+        if (overrides[s0])
+        {
+            int xx = gwindow_x + x;
+            int yy = gwindow_y + y;
+
+            if (xx >= 0 && yy >= 0 && xx < world->map.x_count && yy < world->map.y_count)
+            {
+                int zz = gwindow_z - ((s[3]&0xf0)>>4);
+
+                tile_overrides *to = overrides[s0];
+
+                // Tile types
+                df::map_block *block = my_block_index[(xx>>4)*world->map.y_count_block*world->map.z_count_block + (yy>>4)*world->map.z_count_block + zz];//[xx>>4][yy>>4][zz];
+                if (block)
+                {
+                    int tiletype = block->tiletype[xx&15][yy&15];
+
+                    for (auto it3 = to->tiletype_overrides.begin(); it3 != to->tiletype_overrides.end(); it3++)
+                    {
+                        override &o = *it3;
+
+                        if (tiletype == o.type)
+                        {
+                            apply_override(ret, o);
+                            goto matched;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    matched:;
     
     // Set colour
     for (int i = 0; i < 2; i++) {
