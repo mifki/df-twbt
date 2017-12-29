@@ -885,6 +885,21 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
 
 #elif defined(DF_04403)
     #ifdef WIN32
+        #define A_LOAD_MULTI_PDIM 0x140ab9a40
+        #define A_RENDER_MAP      0x14088b250
+        #define A_RENDER_UPDOWN   0x1405e0400
+
+        static patchdef p_display = { 0x14038b12b, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x140340b3a, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x14028cafb, 5+5 }, { 0x14028cb4c, 5+5 }, { 0x14028cb96, 5+5 }, { 0x14028d063, 5+5 },
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x140c05f20, 9, true, { 0x48, 0x8B, 0x44, 0x24, 0x28,  0xC6, 0x00, 0x00,  0xC3 }
+        };
 
     #elif defined(__APPLE__)
         #define A_LOAD_MULTI_PDIM 0x101149460
