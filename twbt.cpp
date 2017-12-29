@@ -176,6 +176,7 @@ static int gmenu_w;
 static uint8_t skytile;
 static uint8_t chasmtile;
 static bool always_full_update;
+static bool hide_stockpiles;
 
 //TODO: need double buffers?
 static uint8_t *gscreen_under, *mscreen_under;

@@ -116,6 +116,25 @@ OVER1(building_weaponst);
 OVER1(building_wellst);
 OVER1(building_workshopst);
 
+struct stockpile_hook : public df::building_stockpilest
+{
+   typedef df::building_stockpilest interpose_base;
+
+    DEFINE_VMETHOD_INTERPOSE(void, drawBuilding, (df::building_drawbuffer* dbuf, int16_t smth))
+    {
+        if (!hide_stockpiles ||
+            df::global::ui->main.mode == df::ui_sidebar_mode::QueryBuilding ||
+            df::global::ui->main.mode == df::ui_sidebar_mode::LookAround ||
+            df::global::ui->main.mode == df::ui_sidebar_mode::Stockpiles)
+            INTERPOSE_NEXT(drawBuilding)(dbuf, smth);
+        else
+        {
+            memset(dbuf->tile, 32, 31*31);
+        }
+    }
+}; 
+IMPLEMENT_VMETHOD_INTERPOSE(stockpile_hook, drawBuilding);
+
 void enable_building_hooks()
 {
     OVER1_ENABLE(building_animaltrapst);
@@ -154,4 +173,6 @@ void enable_building_hooks()
     OVER1_ENABLE(building_weaponst);
     OVER1_ENABLE(building_wellst);
     //OVER1_ENABLE(building_workshopst);
+
+    INTERPOSE_HOOK(stockpile_hook, drawBuilding).apply(true);
 }

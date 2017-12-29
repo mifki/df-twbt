@@ -218,7 +218,27 @@ command_result twbt_cmd (color_ostream &out, std::vector <std::string> & paramet
                 return CR_WRONG_USAGE;
 
             always_full_update = (on > 0);
-            *out2 << "Forced redraw mode set to " << always_full_update << std::endl;
+            *out2 << "Forced redraw mode " << (always_full_update ? "enabled" : "disabled") << std::endl;
+        }
+
+        else if (param0 == "hide_stockpiles")
+        {
+            if (!always_full_update)
+            {
+                *out2 << COLOR_RED << "Hiding stockpiles requires \"twbt redraw_all 1\"" << std::endl;
+                *out2 << COLOR_RESET;
+                return CR_WRONG_USAGE;
+            }
+
+            int on;
+            if (!parse_int(parameters[1], on))
+                return CR_WRONG_USAGE;
+
+            hide_stockpiles = (on > 0);
+            if (hide_stockpiles)
+                *out2 << "Hiding stockpiles unless in [q], [p] or [k] mode" << std::endl;
+            else
+                *out2 << "Always showing stockpiles" << std::endl;
         }
     }
 
