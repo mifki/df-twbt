@@ -10,7 +10,7 @@ struct unit_hook : public df::unit
 
         df::coord _pos = Units::getPosition(this);
         if (pos.x-gwindow_x >= 0 && pos.y-gwindow_y >= 0 && pos.x-gwindow_x < r->gdimx && pos.y-gwindow_y < r->gdimy)
-            if (!((uint32_t*)screen_under_ptr)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y])
+            // if (!((uint32_t*)screen_under_ptr)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y])
                 ((uint32_t*)screen_under_ptr)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y] = ((uint32_t*)screen_ptr)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y];
 
         return INTERPOSE_NEXT(getCreatureTile)();
@@ -22,7 +22,7 @@ struct unit_hook : public df::unit
 
         df::coord _pos = Units::getPosition(this);
         if (pos.x-gwindow_x >= 0 && pos.y-gwindow_y >= 0 && pos.x-gwindow_x < r->gdimx && pos.y-gwindow_y < r->gdimy)
-            if (!((uint32_t*)screen_under_ptr)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y])
+            // if (!((uint32_t*)screen_under_ptr)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y])
                 ((uint32_t*)screen_under_ptr)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y] = ((uint32_t*)screen_ptr)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y];
 
         return INTERPOSE_NEXT(getCorpseTile)();
@@ -34,7 +34,7 @@ struct unit_hook : public df::unit
 
         df::coord _pos = Units::getPosition(this);
         if (pos.x-gwindow_x >= 0 && pos.y-gwindow_y >= 0 && pos.x-gwindow_x < r->gdimx && pos.y-gwindow_y < r->gdimy)
-            if (!((uint32_t*)screen_under_ptr)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y])
+            // if (!((uint32_t*)screen_under_ptr)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y])
                 ((uint32_t*)screen_under_ptr)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y] = ((uint32_t*)screen_ptr)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y];
 
         return INTERPOSE_NEXT(getGlowTile)();
