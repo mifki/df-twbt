@@ -122,8 +122,7 @@ struct stockpile_hook : public df::building_stockpilest
 
     DEFINE_VMETHOD_INTERPOSE(void, drawBuilding, (df::building_drawbuffer* dbuf, int16_t smth))
     {
-        if (!hide_stockpiles ||
-            df::global::ui->main.mode == df::ui_sidebar_mode::QueryBuilding ||
+        if (df::global::ui->main.mode == df::ui_sidebar_mode::QueryBuilding ||
             df::global::ui->main.mode == df::ui_sidebar_mode::LookAround ||
             df::global::ui->main.mode == df::ui_sidebar_mode::Stockpiles)
             INTERPOSE_NEXT(drawBuilding)(dbuf, smth);
@@ -153,7 +152,6 @@ void enable_building_hooks()
     OVER1_ENABLE(building_chairst);    
     OVER1_ENABLE(building_coffinst);
     OVER1_ENABLE(building_doorst);
-    //OVER1_ENABLE(building_furnacest);
     OVER1_ENABLE(building_gear_assemblyst);
     OVER1_ENABLE(building_hatchst);
     OVER1_ENABLE(building_hivest);
@@ -172,7 +170,9 @@ void enable_building_hooks()
     OVER1_ENABLE(building_weaponrackst);
     OVER1_ENABLE(building_weaponst);
     OVER1_ENABLE(building_wellst);
-    //OVER1_ENABLE(building_workshopst);
 
-    INTERPOSE_HOOK(stockpile_hook, drawBuilding).apply(true);
+    INTERPOSE_HOOK(building_furnacest_hook, drawBuilding).apply(workshop_transparency);
+    INTERPOSE_HOOK(building_workshopst_hook, drawBuilding).apply(workshop_transparency);
+
+    INTERPOSE_HOOK(stockpile_hook, drawBuilding).apply(hide_stockpiles);
 }

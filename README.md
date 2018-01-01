@@ -56,6 +56,12 @@ This command controls the full redraw mode, in which all tiles are updated each 
 **`twbt hide_stockpiles 0|1`**
 If this option is enabled, stockpiles will be hidden unless in [q], [p] or [k] mode. Requires `redraw_all`.
 
+**`twbt workshop_transparency 0|1`**
+Toggles workshop transparency which is disabled by default.
+
+**`twbt unit_transparency 0|1`**
+Toggles unit transparency which is disabled by default.
+
 ## Overrides ##
 
 Commands described below are to be placed in `data/init/overrides.txt` file and allow to change tile images used for specific buildings, items and tile types.

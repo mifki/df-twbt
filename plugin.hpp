@@ -177,6 +177,7 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
 
         enable_building_hooks();       
         enable_item_hooks();
+        enable_unit_hooks();
     }
     else
     {

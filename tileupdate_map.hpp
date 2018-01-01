@@ -59,7 +59,7 @@ static void screen_to_texid_map(renderer_cool *r, int tile, struct texture_fulli
     }        
 
     ret.texpos = texpos;
-    ret.bg_texpos = white_texpos;
+    ret.bg_texpos = unit_transparency ? transparent_texpos : white_texpos;
     ret.top_texpos = transparent_texpos;
 
     if (gscreentexpos_grayscale[tile])

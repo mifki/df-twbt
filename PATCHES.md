@@ -82,4 +82,4 @@ Note: usually addresses don't change much, and usually they increase. So if some
     
     Address of that call instruction above is `p_display`. To check, go to the called function, and one of the last instructions should be `dec`.
     
-    `p_display` is not required `on Linux`. This may cause problems though, so better would be to build a special version of `libgraphics.so` with a call to `renderer->display()` removed.
+    `p_display` is not required on Linux. This may cause problems though, so better would be to build a special version of `libgraphics.so` with a call to `renderer->display()` removed.

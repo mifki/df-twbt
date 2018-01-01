@@ -239,6 +239,36 @@ command_result twbt_cmd (color_ostream &out, std::vector <std::string> & paramet
                 *out2 << "Hiding stockpiles unless in [q], [p] or [k] mode" << std::endl;
             else
                 *out2 << "Always showing stockpiles" << std::endl;
+
+            enable_building_hooks();
+        }
+
+        else if (param0 == "unit_transparency")
+        {
+            int on;
+            if (!parse_int(parameters[1], on))
+                return CR_WRONG_USAGE;
+
+            unit_transparency = (on > 0);
+            *out2 << "Unit transparency " << (always_full_update ? "enabled" : "disabled") << std::endl;
+
+            enable_unit_hooks();
+            gps->force_full_display_count = 1;
+            ((renderer_cool*)enabler->renderer)->needs_full_update = true;
+        }
+
+        else if (param0 == "workshop_transparency")
+        {
+            int on;
+            if (!parse_int(parameters[1], on))
+                return CR_WRONG_USAGE;
+
+            workshop_transparency = (on > 0);
+            *out2 << "Workshop transparency " << (always_full_update ? "enabled" : "disabled") << std::endl;
+
+            enable_building_hooks();
+            gps->force_full_display_count = 1;
+            ((renderer_cool*)enabler->renderer)->needs_full_update = true;
         }
     }
 

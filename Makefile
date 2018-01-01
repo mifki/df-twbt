@@ -1,14 +1,14 @@
-DFHACKVER ?= 0.44.02-alpha1
+DFHACKVER ?= 0.44.03-beta1
 
 DFVERNUM = `echo $(DFHACKVER) | sed -e s/-.*// -e s/\\\\.//g`
 
 TWBT_VER ?= "6.xx"
 
-DF ?= /Users/vit/Downloads/df_44_02_osx
+DF ?= /Users/vit/Downloads/df_44_03_osx
 DH ?= /Users/vit/Downloads/buildagent-2/workspace/root/dfhack/0.44
 
 SRC = twbt.cpp
-DEP = renderer.hpp config.hpp dungeonmode.hpp dwarfmode.hpp renderer_twbt.h commands.hpp plugin.hpp tileupdate_text.hpp tileupdate_map.hpp patches.hpp zoomfix.hpp buildings.hpp items.hpp Makefile legacy/renderer_legacy.hpp legacy/twbt_legacy.hpp
+DEP = renderer.hpp config.hpp dungeonmode.hpp dwarfmode.hpp renderer_twbt.h commands.hpp plugin.hpp tileupdate_text.hpp tileupdate_map.hpp patches.hpp zoomfix.hpp buildings.hpp items.hpp units.hpp Makefile legacy/renderer_legacy.hpp legacy/twbt_legacy.hpp
 
 ifeq ($(shell uname -s), Darwin)
 	ifneq (,$(findstring 0.34,$(DFHACKVER)))

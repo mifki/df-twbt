@@ -51,6 +51,8 @@
 #include "modules/Gui.h"
 #include "modules/Screen.h"
 #include "modules/Buildings.h"
+#include "modules/Items.h"
+#include "modules/Units.h"
 #include "df/construction.h"
 #include "df/block_square_event_frozen_liquidst.h"
 #include "df/tiletype.h"
@@ -177,6 +179,7 @@ static uint8_t skytile;
 static uint8_t chasmtile;
 static bool always_full_update;
 static bool hide_stockpiles;
+static bool workshop_transparency, unit_transparency;
 
 //TODO: need double buffers?
 static uint8_t *gscreen_under, *mscreen_under;
@@ -420,7 +423,8 @@ static bool advmode_needs_map(int m)
 #include "legacy/renderer_legacy.hpp"
 #include "legacy/twbt_legacy.hpp"
 #include "config.hpp"
-#include "commands.hpp"
 #include "buildings.hpp"
 #include "items.hpp"
+#include "units.hpp"
+#include "commands.hpp"
 #include "plugin.hpp"
