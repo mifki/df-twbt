@@ -250,7 +250,7 @@ command_result twbt_cmd (color_ostream &out, std::vector <std::string> & paramet
                 return CR_WRONG_USAGE;
 
             unit_transparency = (on > 0);
-            *out2 << "Unit transparency " << (always_full_update ? "enabled" : "disabled") << std::endl;
+            *out2 << "Unit transparency " << (unit_transparency ? "enabled" : "disabled") << std::endl;
 
             enable_unit_hooks();
             gps->force_full_display_count = 1;
@@ -264,7 +264,7 @@ command_result twbt_cmd (color_ostream &out, std::vector <std::string> & paramet
                 return CR_WRONG_USAGE;
 
             workshop_transparency = (on > 0);
-            *out2 << "Workshop transparency " << (always_full_update ? "enabled" : "disabled") << std::endl;
+            *out2 << "Workshop transparency " << (workshop_transparency ? "enabled" : "disabled") << std::endl;
 
             enable_building_hooks();
             gps->force_full_display_count = 1;
