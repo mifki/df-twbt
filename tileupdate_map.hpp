@@ -136,7 +136,6 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
 
             if (xx >= 0 && yy >= 0 && xx < world->map.x_count && yy < world->map.y_count)
             {
-
                 if (s0 == 88 && df::global::cursor->x == xx && df::global::cursor->y == yy)
                 {
                     long texpos = cursor_small_texpos;
