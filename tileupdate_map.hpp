@@ -2,8 +2,8 @@ static void resolve_color(int fg, int bg, int bold, struct texture_fullid &ret)
 {
     if (fg >= 100)
     {
-        fg = (fg-100) % df::global::world->raws.language.colors.size();
-        df::descriptor_color *fgdc = df::global::world->raws.language.colors[fg];
+        fg = (fg-100) % df::global::world->raws.descriptors.colors.size();
+        df::descriptor_color *fgdc = df::global::world->raws.descriptors.colors[fg];
 
         ret.r = fgdc->red;
         ret.g = fgdc->green;
@@ -20,8 +20,8 @@ static void resolve_color(int fg, int bg, int bold, struct texture_fullid &ret)
 
     if (bg >= 100)
     {
-        bg = (bg-100) % df::global::world->raws.language.colors.size();
-        df::descriptor_color *bgdc = df::global::world->raws.language.colors[bg];
+        bg = (bg-100) % df::global::world->raws.descriptors.colors.size();
+        df::descriptor_color *bgdc = df::global::world->raws.descriptors.colors[bg];
 
         ret.br = bgdc->red;
         ret.bg = bgdc->green;

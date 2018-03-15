@@ -1033,7 +1033,6 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
             0x100d75c60, 5, true, { 0x41, 0xc6, 0x00, 0x00, 0xc3 }
         };
 
-    
     #else
         #define A_RENDER_MAP      0xdeb760
         #define A_RENDER_UPDOWN   0xbbebe0
@@ -1051,6 +1050,61 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         };
 
     #endif
+
+#elif defined(DF_04407)
+    #ifdef WIN32
+        #define A_LOAD_MULTI_PDIM 0x140ad0290
+
+        #define A_RENDER_MAP      0x14089fc80
+        #define A_RENDER_UPDOWN   0x1405ef390
+
+        static patchdef p_dwarfmode_render = { 0x14034b05a, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x14029755b, 10 }, { 0x1402975ac, 10 }, { 0x1402975f6, 10 }, { 0x140297ac3, 10 },
+        };
+
+        static patchdef p_display = { 0x14039528b, 5 };
+
+        static patchdef p_render_lower_levels = {
+            0x140c1a900, 9, true, { 0x48, 0x8b, 0x44, 0x24, 0x28, 0xc6, 0x00, 0x00, 0xc3 }
+        };
+
+    #elif defined(__APPLE__)
+        #define A_LOAD_MULTI_PDIM 0x101170120
+
+        #define A_RENDER_MAP      0x100b027f0
+        #define A_RENDER_UPDOWN   0x10087f270
+
+        static patchdef p_dwarfmode_render = { 0x10048250a, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x10042a9c1, 13 }, { 0x10042aa5a, 17 }, { 0x10042afba, 13 }, { 0x10042b2cb, 13 },
+        };
+
+        static patchdef p_display = { 0x10110419b, 5 };
+
+        static patchdef p_render_lower_levels = {
+            0x100d9f490, 5, true, { 0x41, 0xc6, 0x00, 0x00, 0xc3 }
+        };
+    
+    #else
+        #define A_RENDER_MAP      0xdfad70
+        #define A_RENDER_UPDOWN   0xbcbcc0
+
+        #define NO_DISPLAY_PATCH
+
+        static patchdef p_dwarfmode_render = { 0x7108b5, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x6dfd5a, 5+5+5 }, { 0x6e0372, 5+5+5 }, { 0x6e03b1, 5+5+5 }, { 0x6e040d, 5+5+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x107d3f0, 5, true, { 0x41, 0xc6, 0x00, 0x00, 0xc3 }
+        };
+
+    #endif        
 
 #else
 
