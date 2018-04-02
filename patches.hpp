@@ -1108,29 +1108,45 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
 
 #elif defined(DF_04409)
     #ifdef WIN32
-        #define A_LOAD_MULTI_PDIM 0x140ad0a90	// Done
+        #define A_LOAD_MULTI_PDIM 0x140ad0a90	
 
-        #define A_RENDER_MAP      0x1408a03f0	// Done
-        #define A_RENDER_UPDOWN   0x1405efb00	// Done
+        #define A_RENDER_MAP      0x1408a03f0	
+        #define A_RENDER_UPDOWN   0x1405efb00	
 
-        static patchdef p_dwarfmode_render = { 0x14034b5ca, 5 };	// Done
+        static patchdef p_dwarfmode_render = { 0x14034b5ca, 5 };
 
-        static patchdef p_advmode_render[] = {	// Done
+        static patchdef p_advmode_render[] = {
             { 0x140297aab, 10 },         
             { 0x140297afc, 10 },
             { 0x140297b46, 10 },           
             { 0x140298013, 10 },
         };
 
-        static patchdef p_display = { 0x1403957FB, 5 };  // Done
+        static patchdef p_display = { 0x1403957FB, 5 };
 
         static patchdef p_render_lower_levels = {
-            0x140c1b1d0, 9, true, { 0x48, 0x8b, 0x44, 0x24, 0x28, 0xc6, 0x00, 0x00, 0xc3 } // Done
+            0x140c1b1d0, 9, true, { 0x48, 0x8b, 0x44, 0x24, 0x28, 0xc6, 0x00, 0x00, 0xc3 }
         };
     #elif defined(__APPLE__)
      	#error Mac OSX is not yet supported for DF 44.09    
     #else
-        #error Linux is not yet supported for DF 44.09
+        #define A_RENDER_MAP      0xdfb260
+        #define A_RENDER_UPDOWN   0xbcc1a0
+
+        #define NO_DISPLAY_PATCH
+
+        static patchdef p_dwarfmode_render = { 0x70fe95, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x6df33a, 5+5+5 },  
+            { 0x6df952, 5+5+5 },         
+            { 0x6df991, 5+5+5 },      
+            { 0x6df9ed, 5+5+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x107dae0, 5, true, { 0x41, 0xc6, 0x00, 0x00, 0xc3 }
+        };
     #endif 
 #else
 
