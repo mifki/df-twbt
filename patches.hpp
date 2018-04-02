@@ -1122,7 +1122,7 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
             { 0x140298013, 10 },
         };
 
-        static patchdef p_display = { 0x140394bd0, 5 };  // Done
+        static patchdef p_display = { 0x1403957FB, 5 };  // Done
 
         static patchdef p_render_lower_levels = {
             0x140c1b1d0, 9, true, { 0x48, 0x8b, 0x44, 0x24, 0x28, 0xc6, 0x00, 0x00, 0xc3 } // Done
