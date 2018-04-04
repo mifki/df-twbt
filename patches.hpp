@@ -1128,7 +1128,21 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
             0x140c1b1d0, 9, true, { 0x48, 0x8b, 0x44, 0x24, 0x28, 0xc6, 0x00, 0x00, 0xc3 }
         };
     #elif defined(__APPLE__)
-     	#error Mac OSX is not yet supported for DF 44.09    
+     	#define A_LOAD_MULTI_PDIM 0x101171010
+        #define A_RENDER_MAP      0x100b02b20
+        static patchdef p_dwarfmode_render = { 0x1004821da, 5 };
+        static patchdef p_advmode_render[] = {
+            { 0x10042a691, 13 },
+            { 0x10042a72a, 17 },
+            { 0x10042ac8a, 13 },
+            { 0x10042af9b, 13 },
+        };
+        #define A_RENDER_UPDOWN   0x10087f590
+        static patchdef p_display = { 0x10110508b, 5 };
+        static patchdef p_render_lower_levels = {
+            0x100da0100, 5, true, { 0x41, 0xc6, 0x00, 0x00, 0xc3 }
+        };
+                
     #else
         #define A_RENDER_MAP      0xdfb260
         #define A_RENDER_UPDOWN   0xbcc1a0
