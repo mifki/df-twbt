@@ -271,6 +271,11 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
 
             if (id == buildings_other_id::WORKSHOP_CUSTOM || id == buildings_other_id::FURNACE_CUSTOM)
                 o.subtypename = tokens[4];
+
+            if (tokens[4].length() > 0)
+                o.subtype = atoi(tokens[4].c_str());
+            else
+                o.subtype = -1;
         }
         else if (kind == 'I')
         {
@@ -278,14 +283,21 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
                 return false;
             if (!parse_enum_or_int<item_type::item_type>(tokens[3], o.type))
                 return false;
+
+            if (tokens[4].length() > 0)
+            {
+                ItemTypeInfo item_type_info;
+                if (item_type_info.find(tokens[3] + ":" + tokens[4]))
+                    o.subtype = item_type_info.subtype;
+                else
+                    o.subtype = atoi(tokens[4].c_str());
+            }
+            else
+                o.subtype = -1;
+
         }
         else
             return false;
-
-        if (tokens[4].length() > 0)
-            o.subtype = atoi(tokens[4].c_str());
-        else
-            o.subtype = -1;
 
         basetoken = 5;        
     }
