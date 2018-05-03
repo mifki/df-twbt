@@ -76,7 +76,7 @@ Commands described below are to be placed in `data/init/overrides.txt` file and 
 
 **Overrides for items and buildings**
     
-    [OVERRIDE:Tile:Kind:Id:Type:Subtype:Tileset:NewTile:NewFg:NewBg]
+    [OVERRIDE:Tile:Kind:Id:Type:Subtype:Tileset:NewTile:NewFg:NewBg:MatFlag]
     
 - `Tile` is the original tile number
 
@@ -96,13 +96,15 @@ Commands described below are to be placed in `data/init/overrides.txt` file and 
 
 - `NewBg` is a new background colour, `1-16`
 
+- `MatFlag` is a [material flag](#material-flags), or empty to match any material.
+
 **Note:** Any of `NewTile`, `NewFg` and `NewBg` parameters may be empty to use existing values without changes, but at least one of them must be present. Trailing colons may be omitted for empty parameters. 
 
 **Overrides for tile types**
     
     [OVERRIDE:Tile:T:Type:Tileset:NewTile:NewFg:NewBg]
     
-- `Tile`, `Tileset`, `NewTile`, `NewFg` and `NewBg` parameters are the same as for items/buildings overrides
+- `Tile`, `Tileset`, `NewTile`, `NewFg`, `NewBg` and `MatFlag` parameters are the same as for items/buildings overrides
 
 - `Type` is a [tile type](#tile-types). For convenience, you can use textual description that you see with live query mode of mousequery plugin, in this case include it in quotes (for example, "stone stair down").
     
@@ -219,3 +221,8 @@ This list comes from `df/tiletype.h` include file in DFHack source code.
 > *0.40:* UnderworldGateStairD, UnderworldGateStairU, UnderworldGateStairUD, 
 
 > Void, Waterfall
+
+### Material Flags ###
+This list comes from `df/material_flags.h` include file in DFHack source code.
+
+> BONE, MEAT, EDIBLE_VERMIN, EDIBLE_RAW, EDIBLE_COOKED, ALCOHOL, ITEMS_METAL, ITEMS_BARRED, ITEMS_SCALED, ITEMS_LEATHER, ITEMS_SOFT, ITEMS_HARD, IMPLIES_ANIMAL_KILL, ALCOHOL_PLANT, ALCOHOL_CREATURE, CHEESE_PLANT, CHEESE_CREATURE, POWDER_MISC_PLANT, POWDER_MISC_CREATURE, STOCKPILE_GLOB, LIQUID_MISC_PLANT, LIQUID_MISC_CREATURE, LIQUID_MISC_OTHER, WOOD, THREAD_PLANT, TOOTH, HORN, PEARL, SHELL, LEATHER, SILK, SOAP, ROTS, IS_DYE, POWDER_MISC, LIQUID_MISC, STRUCTURAL_PLANT_MAT, SEED_MAT, LEAF_MAT, CHEESE, ENTERS_BLOOD, BLOOD_MAP_DESCRIPTOR, ICHOR_MAP_DESCRIPTOR, GOO_MAP_DESCRIPTOR, SLIME_MAP_DESCRIPTOR, PUS_MAP_DESCRIPTOR, GENERATES_MIASMA, IS_METAL, IS_GEM, IS_GLASS, CRYSTAL_GLASSABLE, ITEMS_WEAPON, ITEMS_WEAPON_RANGED, ITEMS_ANVIL, ITEMS_AMMO, ITEMS_DIGGER, ITEMS_ARMOR, ITEMS_DELICATE, ITEMS_SIEGE_ENGINE, ITEMS_QUERN, IS_STONE, UNDIGGABLE, YARN, STOCKPILE_GLOB_PASTE, STOCKPILE_GLOB_PRESSED, DISPLAY_UNGLAZED, DO_NOT_CLEAN_GLOB, NO_STONE_STOCKPILE, STOCKPILE_THREAD_METAL, SWEAT_MAP_DESCRIPTOR, TEARS_MAP_DESCRIPTOR, SPIT_MAP_DESCRIPTOR, EVAPORATES
