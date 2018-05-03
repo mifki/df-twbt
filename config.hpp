@@ -400,21 +400,14 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     }
     else
         o.bg = -1;
-	
-	// Material Flags
-	if (tokens.size() > basetoken+4 && tokens[basetoken+4].length())
-	{
-		vector<string> flags = split(tokens[basetoken+4].c_str(), ',');
-		o.mat_flag = 0;
-		for(int i = 0; i < flags.size(); i++)
-		{
-			int flag = 0;
-			parse_enum_or_int<material_flags::material_flags>(flags[i], flag);
-			o.mat_flag |= flag;
-		}
-	}
-	else
-		o.mat_flag = 0xFFFFFFFF;
+
+    // Material Flags
+    if (tokens.size() > basetoken + 4 && tokens[basetoken + 4].length())
+    {
+        parse_enum_or_int<material_flags::material_flags>(tokens[basetoken + 4], o.mat_flag);
+    }
+    else
+        o.mat_flag = -1;
 
     if (!(o.small_texpos != -1 || o.fg != -1 || o.bg != -1))
         return false;

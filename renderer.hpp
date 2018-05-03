@@ -561,6 +561,18 @@ void renderer_cool::display_new(bool update_graphics)
 
 void renderer_cool::display_map()
 {
+    //trash the previous map cache, where materials, etc, are stored.
+    if (map_cache)
+    {
+        map_cache->trash();
+
+        //If the map size has changed, get rid of it entirely.
+        unsigned int x_bmax, y_bmax, z_max;
+        Maps::getSize(x_bmax, y_bmax, z_max);
+        if (map_cache->maxBlockX() != x_bmax || map_cache->maxBlockY() != y_bmax || map_cache->maxZ() != z_max)
+            delete(map_cache);
+    }
+
     if (needs_full_update || always_full_update)
     {
         needs_full_update = false;
