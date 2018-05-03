@@ -122,7 +122,7 @@ struct tileset {
 static vector< struct tileset > tilesets;
 
 struct override {
-    int type, subtype;
+    int type, subtype, mat_flag;
     long small_texpos, bg_texpos, top_texpos;
     char bg, fg;
     std::string subtypename;
