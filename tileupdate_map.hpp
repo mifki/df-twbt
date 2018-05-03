@@ -162,6 +162,9 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                             if (item->flags.whole & bad_item_flags.whole)
                                 continue;
 
+                            MaterialInfo mat_info(item->getMaterial(), item->getMaterialIndex());
+
+
                             for (auto it3 = og.overrides.begin(); it3 != og.overrides.end(); it3++)
                             {
                                 override &o = *it3;
@@ -170,6 +173,14 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                                     continue;
                                 if (o.subtype != -1 && item->getSubtype() != o.subtype)
                                     continue;
+
+                                if (o.mat_flag != -1)
+                                {
+                                    if (!mat_info.material)
+                                        continue;
+                                    if (!mat_info.material->flags.is_set((material_flags::material_flags)o.mat_flag))
+                                        continue;
+                                }
 
                                 apply_override(ret, o);
                                 goto matched;
@@ -189,6 +200,8 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                             if (zz != bld->z || xx < bld->x1 || xx > bld->x2 || yy < bld->y1 || yy > bld->y2)
                                 continue;
 
+                            MaterialInfo mat_info(bld->mat_type, bld->mat_index);
+
                             for (auto it3 = og.overrides.begin(); it3 != og.overrides.end(); it3++)
                             {
                                 override &o = *it3;
@@ -204,6 +217,14 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                                     if (subtype != o.subtype)
                                         continue;
                                 }
+                                if (o.mat_flag != -1)
+                                {
+                                    if (!mat_info.material)
+                                        continue;
+                                    if (!mat_info.material->flags.is_set((material_flags::material_flags)o.mat_flag))
+                                        continue;
+                                }
+
 
                                 apply_override(ret, o);
                                 goto matched;
