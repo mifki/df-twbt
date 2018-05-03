@@ -98,6 +98,22 @@
     <Library Include="$(dfhack)\build\win64\VC2015\library\Release\SDL.lib" />
     <Library Include="$(dfhack)\build\win64\VC2015\library\Release\dfhack-version.lib" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="buildings.hpp" />
+    <ClInclude Include="commands.hpp" />
+    <ClInclude Include="config.hpp" />
+    <ClInclude Include="dungeonmode.hpp" />
+    <ClInclude Include="dwarfmode.hpp" />
+    <ClInclude Include="gui_hooks.hpp" />
+    <ClInclude Include="items.hpp" />
+    <ClInclude Include="patches.hpp" />
+    <ClInclude Include="plugin.hpp" />
+    <ClInclude Include="renderer.hpp" />
+    <ClInclude Include="tileupdate_map.hpp" />
+    <ClInclude Include="tileupdate_text.hpp" />
+    <ClInclude Include="units.hpp" />
+    <ClInclude Include="zoomfix.hpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
