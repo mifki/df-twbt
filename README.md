@@ -102,7 +102,7 @@ Commands described below are to be placed in `data/init/overrides.txt` file and 
 
 **Overrides for tile types**
     
-    [OVERRIDE:Tile:T:Type:Tileset:NewTile:NewFg:NewBg]
+    [OVERRIDE:Tile:T:Type:Tileset:NewTile:NewFg:NewBg:MatFlag]
     
 - `Tile`, `Tileset`, `NewTile`, `NewFg`, `NewBg` and `MatFlag` parameters are the same as for items/buildings overrides
 
