@@ -372,6 +372,37 @@ static void write_tile_arrays_under(renderer_cool *r, int x, int y, GLfloat *fg,
                 {
                     int tiletype = block->tiletype[xx&15][yy&15];
 
+                    bool mat_overrides = false;
+                    for (int i = 0; i < to->tiletype_overrides.size(); i++)
+                    {
+                        if (to->tiletype_overrides[i].mat_flag != -1)
+                        {
+                            mat_overrides = true;
+                            break;
+                        }
+                    }
+
+                    df::tiletype tt = (df::tiletype)tiletype;
+
+                    t_matpair mat(-1, -1);
+
+                    if (mat_overrides)
+                    {
+                        if (tileMaterial(tt) == tiletype_material::FROZEN_LIQUID)
+                        {
+                            //material is ice.
+                            mat.mat_index = 6;
+                            mat.mat_type = -1;
+                        }
+                        else
+                        {
+                            if (!r->map_cache)
+                                r->map_cache = new MapExtras::MapCache();
+                            mat = r->map_cache->staticMaterialAt(DFCoord(xx, yy, zz));
+                        }
+                    }
+                    MaterialInfo mat_info(mat);
+
                     for (auto it3 = to->tiletype_overrides.begin(); it3 != to->tiletype_overrides.end(); it3++)
                     {
                         override &o = *it3;
