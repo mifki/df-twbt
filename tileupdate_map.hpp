@@ -182,13 +182,8 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                                         continue;
                                 }
 
-                                if (o.material.mat_type != -1 && o.material.mat_index != -1)
-                                {
-                                    if (mat_info.type != o.material.mat_type)
-                                        continue;
-                                    if (mat_info.index != o.material.mat_index)
-                                        continue;
-                                }
+                                if (!o.material_matches(mat_info.type, mat_info.index))
+                                    continue;
 
                                 apply_override(ret, o);
                                 goto matched;
