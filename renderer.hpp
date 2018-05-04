@@ -567,7 +567,9 @@ void renderer_cool::display_map()
         map_cache->trash();
 
         //If the map size has changed, get rid of it entirely.
-        if (map_cache->maxBlockX() != world->map.x_count_block || map_cache->maxBlockY() != world->map.y_count_block || map_cache->maxZ() != world->map.z_count_block)
+        unsigned int x_bmax, y_bmax, z_max;
+        Maps::getSize(x_bmax, y_bmax, z_max);
+        if (map_cache->maxBlockX() != x_bmax || map_cache->maxBlockY() != y_bmax || map_cache->maxZ() != z_max)
             delete(map_cache);
     }
 
