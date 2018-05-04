@@ -242,7 +242,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
 
                         t_matpair mat(-1,-1);
 
-                        if (to->has_tiletype_overides)
+                        if (to->has_tiletype_overides && Maps::IsValid())
                         {
                             if (tileMaterial(tt) == tiletype_material::FROZEN_LIQUID)
                             {
