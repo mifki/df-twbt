@@ -76,7 +76,7 @@ Commands described below are to be placed in `data/init/overrides.txt` file and 
 
 **Overrides for items and buildings**
     
-    [OVERRIDE:Tile:Kind:Id:Type:Subtype:Tileset:NewTile:NewFg:NewBg:MatFlag]
+    [OVERRIDE:Tile:Kind:Id:Type:Subtype:Tileset:NewTile:NewFg:NewBg:MatFlag:Mat1:Mat2:Mat3]
     
 - `Tile` is the original tile number
 
@@ -98,13 +98,17 @@ Commands described below are to be placed in `data/init/overrides.txt` file and 
 
 - `MatFlag` is a [material flag](#material-flags), or empty to match any material.
 
+- `Mat1:Mat2:Mat3` is a material token, as found in the raws. Example valid values are `WATER`, `INORGANIC:IRON`, and `PLANT:MANGO:WOOD`. Note that `WATER::`, etc, must be used if further parameters are used in the same override.
+
 **Note:** Any of `NewTile`, `NewFg` and `NewBg` parameters may be empty to use existing values without changes, but at least one of them must be present. Trailing colons may be omitted for empty parameters. 
+
+**Note 2:** Any overrides that use either `MatFlag` or `Mat1:Mat2:Mat3` must be listed before any matching overrides that don't use them, or they will not be applied.
 
 **Overrides for tile types**
     
-    [OVERRIDE:Tile:T:Type:Tileset:NewTile:NewFg:NewBg:MatFlag]
+    [OVERRIDE:Tile:T:Type:Tileset:NewTile:NewFg:NewBg:MatFlag:Mat1:Mat2:Mat3]
     
-- `Tile`, `Tileset`, `NewTile`, `NewFg`, `NewBg` and `MatFlag` parameters are the same as for items/buildings overrides
+- `Tile`, `Tileset`, `NewTile`, `NewFg`, `NewBg`, `MatFlag` and `Mat1:Mat2:Mat3` parameters are the same as for items/buildings overrides
 
 - `Type` is a [tile type](#tile-types). For convenience, you can use textual description that you see with live query mode of mousequery plugin, in this case include it in quotes (for example, "stone stair down").
     

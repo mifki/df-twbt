@@ -126,6 +126,28 @@ struct override {
     long small_texpos, bg_texpos, top_texpos;
     char bg, fg;
     std::string subtypename;
+    t_matpair material;
+    std::string material_token;
+
+    // Because the raws are not available when loading overrides, 
+    bool material_matches(int16_t mat_type, int32_t mat_index)
+    {
+        // If it's default, it matches with everything.
+        if (material.mat_type == -1 && material.mat_index == -1)
+            return true;
+
+        //This means that we have an unset material token.
+        if (material.mat_type == -2)
+        {
+            MaterialInfo mat_info;
+            if (mat_info.find(material_token))
+                material = t_matpair(mat_info.type, mat_info.index);
+            else
+                material.mat_type = -3; //This will never match up with anything.
+        }
+
+        return material.mat_type == mat_type && material.mat_index == mat_index;
+    }
 };
 
 struct override_group {
