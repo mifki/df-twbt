@@ -55,6 +55,7 @@ renderer_cool::renderer_cool()
     gdispx = 0, gdispy = 0;
     goff_x = 0, goff_y = 0, gsize_x = 0, gsize_y = 0;
     needs_reshape = needs_zoom = 0;
+    map_cache = 0;
 }
 
 void renderer_cool::update_all()
