@@ -138,6 +138,7 @@ struct tile_overrides {
     vector< struct override_group > item_overrides;
     vector< struct override_group > building_overrides;
     vector< struct override > tiletype_overrides;
+    bool has_tiletype_overides = false;
 };
 
 static struct tile_overrides *overrides[256];

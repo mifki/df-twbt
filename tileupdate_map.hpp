@@ -238,21 +238,11 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                     {
                         int tiletype = block->tiletype[xx&15][yy&15];
 
-                        bool mat_overrides = false;
-                        for (int i = 0; i < to->tiletype_overrides.size(); i++)
-                        {
-                            if (to->tiletype_overrides[i].mat_flag != -1)
-                            {
-                                mat_overrides = true;
-                                break;
-                            }
-                        }
-
                         df::tiletype tt = (df::tiletype)tiletype;
 
                         t_matpair mat(-1,-1);
 
-                        if (mat_overrides)
+                        if (to->has_tiletype_overides)
                         {
                             if (tileMaterial(tt) == tiletype_material::FROZEN_LIQUID)
                             {

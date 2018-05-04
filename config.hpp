@@ -418,6 +418,8 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     if (kind == 'T')
     {
         overrides[tile]->tiletype_overrides.push_back(o);
+        if (o.mat_flag != -1)
+            overrides[tile]->has_tiletype_overides = true;
         return true;
     }
 
