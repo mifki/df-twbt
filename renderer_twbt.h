@@ -30,12 +30,14 @@ struct renderer_cool : renderer_opengl
     int gdimx, gdimy, gdimxfull, gdimyfull;
     int gdispx, gdispy;
     float goff_x, goff_y, gsize_x, gsize_y;
-	bool needs_reshape;
+    bool needs_reshape;
     int needs_zoom;
     bool needs_full_update;
     unsigned char *gscreen;
     long *gscreentexpos;
     float goff_y_gl;
+
+    MapExtras::MapCache * map_cache;
 
     renderer_cool();
 

@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="twbt.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="$(dfhack)\build\win64\VC2015\library\Release\dfhack-version.lib">
+      <Filter>Libs</Filter>
+    </Library>
+    <Library Include="glew\glew32s.lib">
+      <Filter>Libs</Filter>
+    </Library>
+    <Library Include="opengl32.lib">
+      <Filter>Libs</Filter>
+    </Library>
+    <Library Include="$(dfhack)\build\win64\VC2015\library\Release\SDL.lib">
+      <Filter>Libs</Filter>
+    </Library>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Modules">
+      <UniqueIdentifier>{4dc12be4-5d9e-4890-92ea-9f45b044f2ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libs">
+      <UniqueIdentifier>{ca802e9d-dcde-4a7c-8da1-8c966057fe62}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="buildings.hpp">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="commands.hpp">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="config.hpp">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="dungeonmode.hpp">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="dwarfmode.hpp">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="gui_hooks.hpp">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="items.hpp">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="patches.hpp">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="plugin.hpp">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="renderer.hpp">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="tileupdate_map.hpp">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="tileupdate_text.hpp">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="units.hpp">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="zoomfix.hpp">
+      <Filter>Modules</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

@@ -162,6 +162,9 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                             if (item->flags.whole & bad_item_flags.whole)
                                 continue;
 
+                            MaterialInfo mat_info(item->getMaterial(), item->getMaterialIndex());
+
+
                             for (auto it3 = og.overrides.begin(); it3 != og.overrides.end(); it3++)
                             {
                                 override &o = *it3;
@@ -170,6 +173,14 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                                     continue;
                                 if (o.subtype != -1 && item->getSubtype() != o.subtype)
                                     continue;
+
+                                if (o.mat_flag != -1)
+                                {
+                                    if (!mat_info.material)
+                                        continue;
+                                    if (!mat_info.material->flags.is_set((material_flags::material_flags)o.mat_flag))
+                                        continue;
+                                }
 
                                 apply_override(ret, o);
                                 goto matched;
@@ -189,6 +200,8 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                             if (zz != bld->z || xx < bld->x1 || xx > bld->x2 || yy < bld->y1 || yy > bld->y2)
                                 continue;
 
+                            MaterialInfo mat_info(bld->mat_type, bld->mat_index);
+
                             for (auto it3 = og.overrides.begin(); it3 != og.overrides.end(); it3++)
                             {
                                 override &o = *it3;
@@ -204,6 +217,14 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                                     if (subtype != o.subtype)
                                         continue;
                                 }
+                                if (o.mat_flag != -1)
+                                {
+                                    if (!mat_info.material)
+                                        continue;
+                                    if (!mat_info.material->flags.is_set((material_flags::material_flags)o.mat_flag))
+                                        continue;
+                                }
+
 
                                 apply_override(ret, o);
                                 goto matched;
@@ -217,11 +238,32 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                     {
                         int tiletype = block->tiletype[xx&15][yy&15];
 
+                        df::tiletype tt = (df::tiletype)tiletype;
+
+                        t_matpair mat(-1,-1);
+
+                        if (to->has_tiletype_overides && Maps::IsValid())
+                        {
+                            if (tileMaterial(tt) == tiletype_material::FROZEN_LIQUID)
+                            {
+                                //material is ice.
+                                mat.mat_index = 6;
+                                mat.mat_type = -1;
+                            }
+                            else
+                            {
+                                if (!r->map_cache)
+                                    r->map_cache = new MapExtras::MapCache();
+                                mat = r->map_cache->staticMaterialAt(DFCoord(xx, yy, zz));
+                            }
+                        }
+                        MaterialInfo mat_info(mat);
+
                         for (auto it3 = to->tiletype_overrides.begin(); it3 != to->tiletype_overrides.end(); it3++)
                         {
                             override &o = *it3;
 
-                            if (tiletype == o.type)
+                            if (tiletype == o.type && (o.mat_flag == -1 || (mat_info.material != NULL && mat_info.material->flags.is_set((material_flags::material_flags)o.mat_flag))))
                             {
                                 apply_override(ret, o);
                                 goto matched;
@@ -340,6 +382,37 @@ static void write_tile_arrays_under(renderer_cool *r, int x, int y, GLfloat *fg,
                 if (block)
                 {
                     int tiletype = block->tiletype[xx&15][yy&15];
+
+                    bool mat_overrides = false;
+                    for (int i = 0; i < to->tiletype_overrides.size(); i++)
+                    {
+                        if (to->tiletype_overrides[i].mat_flag != -1)
+                        {
+                            mat_overrides = true;
+                            break;
+                        }
+                    }
+
+                    df::tiletype tt = (df::tiletype)tiletype;
+
+                    t_matpair mat(-1, -1);
+
+                    if (mat_overrides)
+                    {
+                        if (tileMaterial(tt) == tiletype_material::FROZEN_LIQUID)
+                        {
+                            //material is ice.
+                            mat.mat_index = 6;
+                            mat.mat_type = -1;
+                        }
+                        else
+                        {
+                            if (!r->map_cache)
+                                r->map_cache = new MapExtras::MapCache();
+                            mat = r->map_cache->staticMaterialAt(DFCoord(xx, yy, zz));
+                        }
+                    }
+                    MaterialInfo mat_info(mat);
 
                     for (auto it3 = to->tiletype_overrides.begin(); it3 != to->tiletype_overrides.end(); it3++)
                     {

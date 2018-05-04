@@ -35,9 +35,11 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="DFHack Dirs.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="DFHack Dirs.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -93,8 +95,24 @@
   <ItemGroup>
     <Library Include="glew\glew32s.lib" />
     <Library Include="opengl32.lib" />
-    <Library Include="$(dfhack)\build\VC2015\library\Release\SDL.lib" />
-    <Library Include="$(dfhack)\build\VC2015\library\Release\dfhack-version.lib" />
+    <Library Include="$(dfhack)\build\win64\VC2015\library\Release\SDL.lib" />
+    <Library Include="$(dfhack)\build\win64\VC2015\library\Release\dfhack-version.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="buildings.hpp" />
+    <ClInclude Include="commands.hpp" />
+    <ClInclude Include="config.hpp" />
+    <ClInclude Include="dungeonmode.hpp" />
+    <ClInclude Include="dwarfmode.hpp" />
+    <ClInclude Include="gui_hooks.hpp" />
+    <ClInclude Include="items.hpp" />
+    <ClInclude Include="patches.hpp" />
+    <ClInclude Include="plugin.hpp" />
+    <ClInclude Include="renderer.hpp" />
+    <ClInclude Include="tileupdate_map.hpp" />
+    <ClInclude Include="tileupdate_text.hpp" />
+    <ClInclude Include="units.hpp" />
+    <ClInclude Include="zoomfix.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

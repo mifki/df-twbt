@@ -401,6 +401,14 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     else
         o.bg = -1;
 
+    // Material Flags
+    if (tokens.size() > basetoken + 4 && tokens[basetoken + 4].length())
+    {
+        parse_enum_or_int<material_flags::material_flags>(tokens[basetoken + 4], o.mat_flag);
+    }
+    else
+        o.mat_flag = -1;
+
     if (!(o.small_texpos != -1 || o.fg != -1 || o.bg != -1))
         return false;
 
@@ -410,6 +418,8 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     if (kind == 'T')
     {
         overrides[tile]->tiletype_overrides.push_back(o);
+        if (o.mat_flag != -1)
+            overrides[tile]->has_tiletype_overides = true;
         return true;
     }
 
