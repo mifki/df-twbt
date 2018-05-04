@@ -570,7 +570,10 @@ void renderer_cool::display_map()
         unsigned int x_bmax, y_bmax, z_max;
         Maps::getSize(x_bmax, y_bmax, z_max);
         if (map_cache->maxBlockX() != x_bmax || map_cache->maxBlockY() != y_bmax || map_cache->maxZ() != z_max)
+        {
             delete(map_cache);
+            map_cache = NULL;
+        }
     }
 
     if (needs_full_update || always_full_update)
