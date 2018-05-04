@@ -143,7 +143,12 @@ struct override {
             if (mat_info.find(material_token))
                 material = t_matpair(mat_info.type, mat_info.index);
             else
+            {
+                *out2 << COLOR_YELLOW << "TWBT: invalid material flag " << material_token << std::endl;
+                *out2 << COLOR_RESET;
+
                 material.mat_type = -3; //This will never match up with anything.
+            }
         }
 
         return material.mat_type == mat_type && material.mat_index == mat_index;
