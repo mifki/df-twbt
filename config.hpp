@@ -404,10 +404,30 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     // Material Flags
     if (tokens.size() > basetoken + 4 && tokens[basetoken + 4].length())
     {
-        parse_enum_or_int<material_flags::material_flags>(tokens[basetoken + 4], o.mat_flag);
+        if (!parse_enum_or_int<material_flags::material_flags>(tokens[basetoken + 4], o.mat_flag))
+        {
+            *out2 << COLOR_YELLOW << "TWBT: invalid material flag " << tokens[basetoken + 4] << std::endl;
+            *out2 << COLOR_RESET;
+            return false;
+        }
     }
     else
         o.mat_flag = -1;
+
+    // Single material token
+    if (tokens.size() > basetoken + 5 && tokens[basetoken + 5].length())
+    {
+        string material_token = tokens[basetoken + 5];
+        if (tokens.size() > basetoken + 6 && tokens[basetoken + 6].length())
+            material_token = material_token + ":" + tokens[basetoken + 6];
+        if (tokens.size() > basetoken + 7 && tokens[basetoken + 7].length())
+            material_token = material_token + ":" + tokens[basetoken + 7];
+
+        o.material = t_matpair(-2, -2);
+        o.material_token = material_token;
+    }
+    else
+        o.material = t_matpair(-1, -1);
 
     if (!(o.small_texpos != -1 || o.fg != -1 || o.bg != -1))
         return false;
@@ -418,7 +438,7 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     if (kind == 'T')
     {
         overrides[tile]->tiletype_overrides.push_back(o);
-        if (o.mat_flag != -1)
+        if (o.mat_flag != -1 || o.material.mat_type != -2)
             overrides[tile]->has_tiletype_overides = true;
         return true;
     }
@@ -699,4 +719,29 @@ void update_custom_building_overrides()
             }
         }
     }
+}
+
+// Because the raws are not available when loading overrides, 
+bool override::material_matches(int16_t mat_type, int32_t mat_index)
+{
+    // If it's default, it matches with everything.
+    if (material.mat_type == -1 && material.mat_index == -1)
+        return true;
+
+    //This means that we have an unset material token.
+    if (material.mat_type == -2)
+    {
+        MaterialInfo mat_info;
+        if (mat_info.find(material_token))
+            material = t_matpair(mat_info.type, mat_info.index);
+        else
+        {
+            *out2 << COLOR_YELLOW << "TWBT: invalid material flag " << material_token << std::endl;
+            *out2 << COLOR_RESET;
+
+            material.mat_type = -3; //This will never match up with anything.
+        }
+    }
+
+    return material.mat_type == mat_type && material.mat_index == mat_index;
 }

@@ -126,6 +126,11 @@ struct override {
     long small_texpos, bg_texpos, top_texpos;
     char bg, fg;
     std::string subtypename;
+    t_matpair material;
+    std::string material_token;
+
+    // Because the raws are not available when loading overrides, 
+    bool material_matches(int16_t mat_type, int32_t mat_index);
 };
 
 struct override_group {
