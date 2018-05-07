@@ -286,11 +286,8 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
 
             if (tokens[4].length() > 0)
             {
-                ItemTypeInfo item_type_info;
-                if (item_type_info.find(tokens[3] + ":" + tokens[4]))
-                    o.subtype = item_type_info.subtype;
-                else
-                    o.subtype = atoi(tokens[4].c_str());
+                if (!parse_int(tokens[4], o.subtype))
+                    o.subtypename = tokens[4];
             }
             else
                 o.subtype = -1;
@@ -682,6 +679,7 @@ void update_custom_building_overrides()
         if (!overrides[j])
             continue;
 
+        //Custom building overrides.
         for (auto it = overrides[j]->building_overrides.begin(); it != overrides[j]->building_overrides.end(); it++)
         {
             override_group &og = *it;
@@ -715,6 +713,22 @@ void update_custom_building_overrides()
                             continue;
                         }                    
                     }
+                }
+            }
+        }
+        //Handle item token names.
+        for (auto it = overrides[j]->item_overrides.begin(); it != overrides[j]->item_overrides.end(); it++)
+        {
+            override_group &og = *it;
+            for (auto it3 = og.overrides.begin(); it3 != og.overrides.end(); it3++)
+            {
+                override &o = *it3;
+                if (o.subtypename.length())
+                {
+                    ItemTypeInfo item_type_info;
+                    if (item_type_info.find((string)enum_item_key_str<item_type::item_type>((item_type::item_type)o.type) + ":" + o.subtypename))
+                        o.subtype = item_type_info.subtype;
+
                 }
             }
         }
