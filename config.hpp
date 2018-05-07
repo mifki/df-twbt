@@ -439,7 +439,7 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     {
         overrides[tile]->tiletype_overrides.push_back(o);
         if (o.mat_flag != -1 || o.material.mat_type != -2)
-            overrides[tile]->has_tiletype_overides = true;
+            overrides[tile]->has_material_overrides = true;
         return true;
     }
 
