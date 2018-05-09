@@ -275,7 +275,7 @@ static void write_tile_arrays_legacy(df::renderer *r, int x, int y, GLfloat *fg,
                                 if (o.subtype != -1 && item->getSubtype() != o.subtype)
                                     continue;
 
-                                ret.texpos = o.small_texpos;
+                                ret.texpos = o.get_small_texpos(item->id);
                                 goto matched;
                             }
                         }
@@ -309,7 +309,7 @@ static void write_tile_arrays_legacy(df::renderer *r, int x, int y, GLfloat *fg,
                                         continue;
                                 }
 
-                                ret.texpos = o.small_texpos;
+                                ret.texpos = o.get_small_texpos(bld->id);
                                 goto matched;
                             }
                         }
@@ -327,7 +327,7 @@ static void write_tile_arrays_legacy(df::renderer *r, int x, int y, GLfloat *fg,
 
                             if (tiletype == o.type)
                             {
-                                ret.texpos = o.small_texpos;
+                                ret.texpos = o.get_small_texpos(coord_hash(xx, yy, zz));
                                 goto matched;
                             }
                         }
