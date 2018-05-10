@@ -354,7 +354,7 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
         int tsidx = tilesetnames[tsname];
 
         char multi = tokens[basetoken + 1][0];
-        if (multi == 'R' || multi == 'A')
+        if (multi == 'R' || multi == 'A' || multi == 'S')
         {
             switch (multi)
             {
