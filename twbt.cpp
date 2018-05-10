@@ -125,7 +125,8 @@ enum multi_tile_type
 {
     multi_none,
     multi_animation,
-    multi_random
+    multi_random,
+    multi_synchronized
 };
 
 struct override {
@@ -145,7 +146,7 @@ struct override {
     long get_top_texpos(unsigned int seed) { return get_texpos(top_texpos, seed); }
 };
 
-int coord_hash(int x, int y, int z) {
+int coord_hash(int x, int y = 0, int z = 0) {
     int h = x * 374761393 + y * 668265263 + z * 15487313; //all constants are prime
     h = (h ^ (h >> 13)) * 1274126177;
     return h ^ (h >> 16);

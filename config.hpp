@@ -364,6 +364,9 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
             case 'A':
                 o.multi = multi_animation;
                 break;
+            case 'S':
+                o.multi = multi_synchronized;
+                break;
             default:
                 o.multi = multi_none;
                 break;
@@ -798,11 +801,13 @@ long override::get_texpos(vector<long>&collection, unsigned int seed)
     switch (multi)
     {
     case multi_animation:
-        return collection[(Core::getInstance().p->getTickCount()/600) % small_texpos.size()];
+        return collection[(Core::getInstance().p->getTickCount() / 200 + coord_hash(seed)) % small_texpos.size()];
+        break;
+    case multi_synchronized:
+        return collection[(Core::getInstance().p->getTickCount() / 200) % small_texpos.size()];
         break;
     case multi_random:
-        srand(seed);
-        return collection[rand() % small_texpos.size()];
+        return collection[coord_hash(seed) % small_texpos.size()];
         break;
     case multi_none:
     default:
