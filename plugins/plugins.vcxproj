@@ -93,8 +93,8 @@
     <ClCompile Include="mousequery.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="$(dfhack)\build\VC2015\library\Release\SDL.lib" />
-    <Library Include="$(dfhack)\build\VC2015\library\Release\dfhack-version.lib" />
+    <Library Include="$(dfhack)\build\win64\VC2015\library\Release\SDL.lib" />
+    <Library Include="$(dfhack)\build\win64\VC2015\library\Release\dfhack-version.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
