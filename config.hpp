@@ -286,11 +286,8 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
 
             if (tokens[4].length() > 0)
             {
-                ItemTypeInfo item_type_info;
-                if (item_type_info.find(tokens[3] + ":" + tokens[4]))
-                    o.subtype = item_type_info.subtype;
-                else
-                    o.subtype = atoi(tokens[4].c_str());
+                if (!parse_int(tokens[4], o.subtype))
+                    o.subtypename = tokens[4];
             }
             else
                 o.subtype = -1;
@@ -341,18 +338,12 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     else
         return false;          
 
-    // New tile number
-    if (tokens.size() > basetoken+1 && tokens[basetoken+1].length())
-    {
-        int newtile = atoi(tokens[basetoken+1].c_str());
-        if (newtile < 0 || newtile > 255)
-        {
-            *out2 << COLOR_YELLOW << "TWBT: invalid new tile number " << tokens[basetoken+1] << std::endl;
-            *out2 << COLOR_RESET;
-            return false;        
-        }
+    int new_base_token = basetoken + 2;
 
-        string &tsname = tokens[basetoken+0];
+    // New tile number
+    if (tokens.size() > basetoken + 1 && tokens[basetoken + 1].length())
+    {
+        string &tsname = tokens[basetoken + 0];
         if (!tilesetnames.count(tsname))
         {
             *out2 << COLOR_YELLOW << "TWBT: no tileset with id " << tsname << std::endl;
@@ -362,22 +353,64 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
         }
         int tsidx = tilesetnames[tsname];
 
-        o.small_texpos = tilesets[tsidx].small_texpos[newtile];
-        o.bg_texpos = tilesets[tsidx].bg_texpos[newtile];
-        o.top_texpos = tilesets[tsidx].top_texpos[newtile];
+        char multi = tokens[basetoken + 1][0];
+        if (multi == 'R' || multi == 'A' || multi == 'S')
+        {
+            switch (multi)
+            {
+            case 'R':
+                o.multi = multi_random;
+                break;
+            case 'A':
+                o.multi = multi_animation;
+                break;
+            case 'S':
+                o.multi = multi_synchronized;
+                break;
+            default:
+                o.multi = multi_none;
+                break;
+            }
+            int num_variants = atoi(tokens[basetoken + 2].c_str());
+            new_base_token = basetoken + num_variants + 3;
+            for (int i = 0; i < num_variants; i++)
+            {
+                int newtile = atoi(tokens[basetoken + i + 3].c_str());
+                if (newtile < 0 || newtile > 255)
+                {
+                    *out2 << COLOR_YELLOW << "TWBT: invalid new tile number " << tokens[basetoken + i + 3] << std::endl;
+                    *out2 << COLOR_RESET;
+                    return false;
+                }
+                o.small_texpos.push_back(tilesets[tsidx].small_texpos[newtile]);
+                o.bg_texpos.push_back(tilesets[tsidx].bg_texpos[newtile]);
+                o.top_texpos.push_back(tilesets[tsidx].top_texpos[newtile]);
+            }
+        }
+        else
+        {
+            int newtile = atoi(tokens[basetoken + 1].c_str());
+            if (newtile < 0 || newtile > 255)
+            {
+                *out2 << COLOR_YELLOW << "TWBT: invalid new tile number " << tokens[basetoken + 1] << std::endl;
+                *out2 << COLOR_RESET;
+                return false;
+            }
+            o.small_texpos.push_back(tilesets[tsidx].small_texpos[newtile]);
+            o.bg_texpos.push_back(tilesets[tsidx].bg_texpos[newtile]);
+            o.top_texpos.push_back(tilesets[tsidx].top_texpos[newtile]);
+        }
     }
-    else
-        o.small_texpos = 0;
 
     // New foreground colour
-    if (tokens.size() > basetoken+2 && tokens[basetoken+2].length())
+    if (tokens.size() > new_base_token + 0 && tokens[new_base_token + 0].length())
     {
-        int newfg = atoi(tokens[basetoken+2].c_str());
+        int newfg = atoi(tokens[new_base_token + 0].c_str());
         if (newfg < 1 || newfg > 16)
         {
-            *out2 << COLOR_YELLOW << "TWBT: invalid new fg " << tokens[basetoken+2] << std::endl;
+            *out2 << COLOR_YELLOW << "TWBT: invalid new fg " << tokens[basetoken + 0] << std::endl;
             *out2 << COLOR_RESET;
-            return false;        
+            return false;
         }
 
         o.fg = newfg - 1;
@@ -386,14 +419,14 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
         o.fg = -1;
 
     // New background colour
-    if (tokens.size() > basetoken+3 && tokens[basetoken+3].length())
+    if (tokens.size() > new_base_token + 1 && tokens[new_base_token + 1].length())
     {
-        int newbg = atoi(tokens[basetoken+3].c_str());
+        int newbg = atoi(tokens[new_base_token + 1].c_str());
         if (newbg < 1 || newbg > 16)
         {
-            *out2 << COLOR_YELLOW << "TWBT: invalid new bg " << tokens[basetoken+3] << std::endl;
+            *out2 << COLOR_YELLOW << "TWBT: invalid new bg " << tokens[new_base_token + 1] << std::endl;
             *out2 << COLOR_RESET;
-            return false;        
+            return false;
         }
 
         o.bg = newbg - 1;
@@ -402,11 +435,11 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
         o.bg = -1;
 
     // Material Flags
-    if (tokens.size() > basetoken + 4 && tokens[basetoken + 4].length())
+    if (tokens.size() > new_base_token + 2 && tokens[new_base_token + 2].length())
     {
-        if (!parse_enum_or_int<material_flags::material_flags>(tokens[basetoken + 4], o.mat_flag))
+        if (!parse_enum_or_int<material_flags::material_flags>(tokens[new_base_token + 2], o.mat_flag))
         {
-            *out2 << COLOR_YELLOW << "TWBT: invalid material flag " << tokens[basetoken + 4] << std::endl;
+            *out2 << COLOR_YELLOW << "TWBT: invalid material flag " << tokens[new_base_token + 2] << std::endl;
             *out2 << COLOR_RESET;
             return false;
         }
@@ -415,13 +448,13 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
         o.mat_flag = -1;
 
     // Single material token
-    if (tokens.size() > basetoken + 5 && tokens[basetoken + 5].length())
+    if (tokens.size() > new_base_token + 3 && tokens[new_base_token + 3].length())
     {
-        string material_token = tokens[basetoken + 5];
-        if (tokens.size() > basetoken + 6 && tokens[basetoken + 6].length())
-            material_token = material_token + ":" + tokens[basetoken + 6];
-        if (tokens.size() > basetoken + 7 && tokens[basetoken + 7].length())
-            material_token = material_token + ":" + tokens[basetoken + 7];
+        string material_token = tokens[new_base_token + 3];
+        if (tokens.size() > basetoken + 6 && tokens[new_base_token + 4].length())
+            material_token = material_token + ":" + tokens[new_base_token + 4];
+        if (tokens.size() > basetoken + 7 && tokens[new_base_token + 5].length())
+            material_token = material_token + ":" + tokens[new_base_token + 5];
 
         o.material = t_matpair(-2, -2);
         o.material_token = material_token;
@@ -429,7 +462,7 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     else
         o.material = t_matpair(-1, -1);
 
-    if (!(o.small_texpos != -1 || o.fg != -1 || o.bg != -1))
+    if (!((o.small_texpos.size() && o.small_texpos[0] != -1) || o.fg != -1 || o.bg != -1))
         return false;
 
     if (!overrides[tile])
@@ -439,7 +472,7 @@ static bool handle_override_command(vector<string> &tokens, std::map<string, int
     {
         overrides[tile]->tiletype_overrides.push_back(o);
         if (o.mat_flag != -1 || o.material.mat_type != -2)
-            overrides[tile]->has_tiletype_overides = true;
+            overrides[tile]->has_material_overrides = true;
         return true;
     }
 
@@ -682,6 +715,7 @@ void update_custom_building_overrides()
         if (!overrides[j])
             continue;
 
+        //Custom building overrides.
         for (auto it = overrides[j]->building_overrides.begin(); it != overrides[j]->building_overrides.end(); it++)
         {
             override_group &og = *it;
@@ -718,6 +752,22 @@ void update_custom_building_overrides()
                 }
             }
         }
+        //Handle item token names.
+        for (auto it = overrides[j]->item_overrides.begin(); it != overrides[j]->item_overrides.end(); it++)
+        {
+            override_group &og = *it;
+            for (auto it3 = og.overrides.begin(); it3 != og.overrides.end(); it3++)
+            {
+                override &o = *it3;
+                if (o.subtypename.length())
+                {
+                    ItemTypeInfo item_type_info;
+                    if (item_type_info.find((string)enum_item_key_str<item_type::item_type>((item_type::item_type)o.type) + ":" + o.subtypename))
+                        o.subtype = item_type_info.subtype;
+
+                }
+            }
+        }
     }
 }
 
@@ -744,4 +794,24 @@ bool override::material_matches(int16_t mat_type, int32_t mat_index)
     }
 
     return material.mat_type == mat_type && material.mat_index == mat_index;
+}
+
+long override::get_texpos(vector<long>&collection, unsigned int seed)
+{
+    switch (multi)
+    {
+    case multi_animation:
+        return collection[(Core::getInstance().p->getTickCount() / 200 + coord_hash(seed)) % small_texpos.size()];
+        break;
+    case multi_synchronized:
+        return collection[(Core::getInstance().p->getTickCount() / 200) % small_texpos.size()];
+        break;
+    case multi_random:
+        return collection[coord_hash(seed) % small_texpos.size()];
+        break;
+    case multi_none:
+    default:
+        return collection[0];
+        break;
+    }
 }

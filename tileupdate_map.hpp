@@ -94,13 +94,19 @@ static void screen_to_texid_under(renderer_cool *r, int tile, struct texture_ful
     resolve_color(fg, bg, bold, ret);
 }
 
-static void apply_override (texture_fullid &ret, override &o)
+static void apply_override (texture_fullid &ret, override &o, unsigned int seed)
 {
-    if (o.small_texpos)
+    if (o.small_texpos.size())
     {
-        ret.texpos = o.small_texpos;
-        ret.bg_texpos = o.bg_texpos;
-        ret.top_texpos = o.top_texpos;
+        switch (o.multi)
+        {
+        case multi_none:
+        default:
+            ret.texpos = o.get_small_texpos(seed);
+            ret.bg_texpos = o.get_bg_texpos(seed);
+            ret.top_texpos = o.get_top_texpos(seed);
+            break;
+        }
     }
 
     if (o.bg != -1)
@@ -185,7 +191,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                                 if (!o.material_matches(mat_info.type, mat_info.index))
                                     continue;
 
-                                apply_override(ret, o);
+                                apply_override(ret, o, item->id);
                                 goto matched;
                             }
                         }
@@ -231,7 +237,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                                 if (!o.material_matches(mat_info.type, mat_info.index))
                                     continue;
 
-                                apply_override(ret, o);
+                                apply_override(ret, o, bld->id);
                                 goto matched;
                             }
                         }
@@ -247,7 +253,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
 
                         t_matpair mat(-1,-1);
 
-                        if (to->has_tiletype_overides && Maps::IsValid())
+                        if (to->has_material_overrides && Maps::IsValid())
                         {
                             if (tileMaterial(tt) == tiletype_material::FROZEN_LIQUID)
                             {
@@ -282,7 +288,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
                             if (!o.material_matches(mat_info.type, mat_info.index))
                                 continue;
 
-                            apply_override(ret, o);
+                            apply_override(ret, o, coord_hash(xx,yy,zz));
                             goto matched;
                         }
                     }
@@ -403,7 +409,7 @@ static void write_tile_arrays_under(renderer_cool *r, int x, int y, GLfloat *fg,
 
                     t_matpair mat(-1, -1);
 
-                    if (to->has_tiletype_overides && Maps::IsValid())
+                    if (to->has_material_overrides && Maps::IsValid())
                     {
                         if (tileMaterial(tt) == tiletype_material::FROZEN_LIQUID)
                         {
@@ -438,7 +444,7 @@ static void write_tile_arrays_under(renderer_cool *r, int x, int y, GLfloat *fg,
                         if (!o.material_matches(mat_info.type, mat_info.index))
                             continue;
 
-                        apply_override(ret, o);
+                        apply_override(ret, o, coord_hash(xx,yy,zz));
                         goto matched;
                     }
                 }

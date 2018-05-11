@@ -121,17 +121,36 @@ struct tileset {
 };
 static vector< struct tileset > tilesets;
 
+enum multi_tile_type
+{
+    multi_none,
+    multi_animation,
+    multi_random,
+    multi_synchronized
+};
+
 struct override {
     int type, subtype, mat_flag;
-    long small_texpos, bg_texpos, top_texpos;
+    vector<long> small_texpos, bg_texpos, top_texpos;
     char bg, fg;
     std::string subtypename;
     t_matpair material;
     std::string material_token;
+    multi_tile_type multi = multi_none;
 
     // Because the raws are not available when loading overrides, 
     bool material_matches(int16_t mat_type, int32_t mat_index);
+    long get_texpos(vector<long>&collection, unsigned int seed);
+    long get_small_texpos(unsigned int seed) { return get_texpos(small_texpos, seed); }
+    long get_bg_texpos(unsigned int seed) { return get_texpos(bg_texpos, seed); }
+    long get_top_texpos(unsigned int seed) { return get_texpos(top_texpos, seed); }
 };
+
+int coord_hash(int x, int y = 0, int z = 0) {
+    int h = x * 374761393 + y * 668265263 + z * 15487313; //all constants are prime
+    h = (h ^ (h >> 13)) * 1274126177;
+    return h ^ (h >> 16);
+}
 
 struct override_group {
     int other_id;
@@ -143,7 +162,7 @@ struct tile_overrides {
     vector< struct override_group > item_overrides;
     vector< struct override_group > building_overrides;
     vector< struct override > tiletype_overrides;
-    bool has_tiletype_overides = false;
+    bool has_material_overrides = false;
 };
 
 static struct tile_overrides *overrides[256];

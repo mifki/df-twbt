@@ -90,7 +90,13 @@ Commands described below are to be placed in `data/init/overrides.txt` file and 
 
 - `Tileset` is a tileset identifier specified previously in `TILESET` command. Two predefined values are `map` for the main graphics font and `text` for the text font.
 
-- `NewTile` is a new tile number
+- `NewTile` is a new tile number, or, optionally, a multi-tile set, which follows the format `MultiType:NumTiles:NewTiles`.
+
+ - `MultiType` is `R` for random tiles, `A` for random animation, and `S` for synchronized animation.
+
+ - `NumTiles` is the number of tiles you have defined in the set.
+
+ - `NewTiles` is a list of tiles, from the same page, in the set, separated by `:`.
 
 - `NewFg` is a new foreground colour, `1-16`
 
