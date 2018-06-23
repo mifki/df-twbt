@@ -1,4 +1,4 @@
-DFHACKVER ?= 0.44.10-alpha1
+DFHACKVER ?= 0.44.10-r2
 
 DFVERNUM = `echo $(DFHACKVER) | sed -e s/-.*// -e s/\\\\.//g`
 
