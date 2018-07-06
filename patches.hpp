@@ -1210,7 +1210,57 @@ static void apply_patch(MemoryPatcher *mp, patchdef &p)
         static patchdef p_render_lower_levels = {
             0x1099fd0, 5, true, { 0x41, 0xc6, 0x00, 0x00, 0xc3 }
         };
-        #endif        
+        #endif      
+
+
+#elif defined(DF_04411)
+    #ifdef WIN32
+        #define A_LOAD_MULTI_PDIM  0x140aeaae0
+        #define A_RENDER_MAP       0x1408b9830
+        #define A_RENDER_UPDOWN    0x1406005d0
+
+        static patchdef p_display = { 0x1403a0d2b, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x14035601a, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x14029c6cb, 5+5 }, { 0x14029c71c, 5+5 }, { 0x14029c766, 5+5 }, { 0x14029cc33, 5+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x140c37650, 9, true, { 0x48, 0x8b, 0x44, 0x24, 0x28, 0xc6, 0x00, 0x00, 0xc3 }
+        };
+    #elif defined(__APPLE__)
+        #define A_LOAD_MULTI_PDIM  0x1011a9560
+        #define A_RENDER_MAP       0x100b2fa80
+        #define A_RENDER_UPDOWN    0x10089d270
+
+        static patchdef p_display = { 0x10113cf0b, 5 };
+
+        static patchdef p_dwarfmode_render = { 0x100494fda, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x10043b8f1, 5+3+5 }, { 0x10043b98a, 5+7+5 }, { 0x10043beea, 5+3+5 }, { 0x10043c1fb, 5+3+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x100dd0770, 5, true, { 0x41, 0xc6, 0x00, 0x00, 0xc3 }
+        };
+    #else
+        #define A_RENDER_MAP       0xe1e7f0
+        #define A_RENDER_UPDOWN    0xbe9530
+        #define NO_DISPLAY_PATCH
+
+        static patchdef p_dwarfmode_render = { 0x720175, 5 };
+
+        static patchdef p_advmode_render[] = {
+            { 0x6ee7ea, 5+5+5 }, { 0x6eee02, 5+5+5 }, { 0x6eee41, 5+5+5 }, { 0x6eee9d, 5+5+5 }
+        };
+
+        static patchdef p_render_lower_levels = {
+            0x10a17a0, 5, true, { 0x41, 0xc6, 0x00, 0x00, 0xc3 }
+        };
+        #endif      
 
 #else
     #error Unsupported DF version
