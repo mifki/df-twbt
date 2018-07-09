@@ -4,52 +4,23 @@ I use [Hopper Disassembler](http://www.hopperapp.com), it's available for OS X a
 
 Note: usually addresses don't change much, and usually they increase. So if some address you found is completely different from the address in previous version, it's likely incorrect.
 
-1. Find the address for `A_LOAD_MULTI_PDIM`:
+1. **Windows & macOS only** Find a function that references string "Tileset not found". The address of this function is `A_LOAD_MULTI_PDIM`.
 
-    **Windows & macOS:** find a function that references string "Tileset not found" and use its address.
-    **Linux:** not required.
+2. Find a function that references string "Here we have". Rename it to `render_map`. Its address is `A_RENDER_MAP`.
 
-2. Go to the address of vtable for `viewscreen_dwarfmodest` (from symbols.xml), you need the *third* QWORD at that address, it's the address of viewscreen's `render()` method. Go to that function.
+3. Find a function that references string "Following". Rename it to `dwarfmode_render_main`. 
 
-    Look for the first `call` instruction, go to that function, rename it to `dwarfmode_render_main` for convenience.
+4. Find a call of `render_map` from `dwarfmode_render_main`. The address of the call instruction is `p_dwarfmode_render`.
 
-    **Windows:** There will be the following code in the beginning (these should be the first `call` instructions):
+5. Open a list of references to `render_map`. There will be a function referencing it four times. The addresses of the four call instructions are `p_advmode_render`.
 
-        lea   rcx, ...
-        call  SOME_ADDRESS
-        xor   edx, edx
-        call  ...    <---- You need this instruction 
+5+. At each of the four addresses there are either `call, call` (Windows) or `call, mov, call` / `call, lea, call` (Linux and macOS) instructions. Make sure that the total length of these instructions matches values specified for each address in `p_advmode_render`.
 
-    **macOS:** There will be jump over one or two instructions close to the beginning (easily visible in UI), and then the following code:
+6. Go to any of the four call instructions from the last step. The address of a function called right after `render_map` is `A_RENDER_UPDOWN` (use function address, not a call instruction address). 
 
-        mov   esi, 0x1
-        call  SOME_ADDRESS
-        lea   ...
-        xor   esi, esi
-        call  ...    <---- You need this instruction
+7. Look for `0x30000000` in disassembly in the second half of the code, closer to the end.
 
-    **Linux:** Look for a call to `drawborder()` in the beginning, there will be the following code:
-    
-        call  drawborder
-        xor   esi, esi
-        mov   ...
-        call  ...    <---- You need this instruction
-    
-    **All platforms:** Address of the call instruction is `p_dwarfmode_render`. Rename the called function to `render_map`, its address is `A_RENDER_MAP`.
-
-3. The same way go to the `render()` method of `viewscreen_dungeonmodest`, rename it to `advmode_render`.
-
-4. Find calls of `render_map()` from `advmode_render()`, there should be four of them. Go to any of them. Rename the very next called function to `render_updown`, its address is `A_RENDER_UPDOWN`.
-
-5. Visit all calls of `render_map()` and `render_updown()` in `advmode_render()`.
-
-    **Windows:** each if them is `xor, call, call`. Addresses of the first `call` instructions are `p_advmode_render`.
-    
-    **macOS & Linux:** each of them is `mov, call, mov, call` or `mov, call, lea, call`. Addresses of the first call instruction are `p_advmode_render`. Adjust the patch length depending on whether `mov` or `lea` instruction is used.
-
-6. Look for `0x30000000` in disassembly in the second half of the code, closes to the end.
-
-    You're looking for the pattern
+    You need to find the following code:
     
         compare with 0x7
         jump ADDR
@@ -60,9 +31,7 @@ Note: usually addresses don't change much, and usually they increase. So if some
     
     Go to the address after the comparison with `0x30000000`. Look for the first `call` instruction after that point, address of the called function is `p_render_lower_levels`. **On Windows** it may be a `jmp` instruction instead.
     
-7. The last one is `p_display`, which is only needed on Windows and OS X.
-
-    First, find references to `SDL_GetTicks`. Look for a function that calls `SDL_GetTicks` in its very beginning and then again after some time. Go to its end, and look for the following code:
+7. **Windows & macOS only** Find references to `SDL_GetTicks`, look for a function that calls `SDL_GetTicks` in its very beginning and then again after some time. Go to its end, and look for the following code:
     
         call  SDL_SemPost
         ...
@@ -80,6 +49,6 @@ Note: usually addresses don't change much, and usually they increase. So if some
         ...
         call  SDL_SemPost
     
-    Address of that call instruction above is `p_display`. To check, go to the called function, and one of the last instructions should be `dec`.
+    Address of that call instruction above is `p_display`.
     
     `p_display` is not required on Linux. This may cause problems though, so better would be to build a special version of `libgraphics.so` with a call to `renderer->display()` removed.
