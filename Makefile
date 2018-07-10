@@ -1,10 +1,10 @@
-DFHACKVER ?= 0.44.11-alpha1
+DFHACKVER ?= 0.44.12-alpha1
 
 DFVERNUM = `echo $(DFHACKVER) | sed -e s/-.*// -e s/\\\\.//g`
 
 TWBT_VER ?= "6.xx"
 
-DF ?= /Users/vit/Downloads/df_44_11_osx
+DF ?= /Users/vit/Downloads/df_44_12_osx
 DH ?= /Users/vit/Downloads/buildagent/workspace/root/dfhack/0.44
 
 SRC = twbt.cpp
@@ -30,7 +30,7 @@ LDFLAGS = $(LIB) -shared
 
 ifeq ($(shell uname -s), Darwin)
 	export MACOSX_DEPLOYMENT_TARGET=10.6
-	CXX = g++-4.8
+	CXX = g++-7
 	CFLAGS += -std=gnu++0x #-stdlib=libstdc++
 	CFLAGS += -Wno-tautological-compare
 	LDFLAGS += -framework OpenGL -mmacosx-version-min=10.6 -undefined dynamic_lookup
