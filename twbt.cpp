@@ -171,6 +171,8 @@ static uint8_t skytile;
 static uint8_t chasmtile;
 static bool always_full_update;
 
+static uint8_t gscreen_over[256*256*4];
+
 // Buffers for map rendering
 static uint8_t *_gscreen[2];
 static int32_t *_gscreentexpos[2];

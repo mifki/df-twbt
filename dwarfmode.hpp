@@ -1,3 +1,90 @@
+#include "df/building_drawbuffer.h"
+
+#include "df/building_armorstandst.h"
+#include "df/building_bedst.h"
+#include "df/building_cabinetst.h"
+#include "df/building_slabst.h"
+#include "df/building_coffinst.h"
+#include "df/building_statuest.h"
+#include "df/building_trapst.h"
+#include "df/building_tablest.h"
+#include "df/building_chairst.h"
+
+#include "df/item_armorstandst.h"
+#include "df/item_bedst.h"
+#include "df/item_cabinetst.h"
+#include "df/item_slabst.h"
+#include "df/item_coffinst.h"
+#include "df/item_statuest.h"
+#include "df/item_woodst.h"
+#include "df/item_barrelst.h"
+#include "df/item_binst.h"
+#include "df/item_tablest.h"
+#include "df/item_chairst.h"
+
+#define OVER1(cls) \
+struct cls##_hook : public df::cls \
+{ \
+   typedef df::cls interpose_base; \
+\
+    DEFINE_VMETHOD_INTERPOSE(void, drawBuilding, (df::building_drawbuffer* dbuf, int16_t smth)) \
+    { \
+        INTERPOSE_NEXT(drawBuilding)(dbuf, smth); \
+\
+        renderer_cool *r = (renderer_cool*)enabler->renderer; \
+\
+        for (int x = dbuf->x1-gwindow_x; x <= dbuf->x2-gwindow_x; x++) \
+            for (int y = dbuf->y1-gwindow_y; y <= dbuf->y2-gwindow_y; y++) \
+                ((uint32_t*)gscreen_over)[x*r->gdimy + y] = ((uint32_t*)gscreen)[x*r->gdimy + y]; \
+    } \
+}; \
+IMPLEMENT_VMETHOD_INTERPOSE(cls##_hook, drawBuilding);
+
+#define OVER1_ENABLE(cls) INTERPOSE_HOOK(cls##_hook, drawBuilding).apply(true);
+
+#define OVER2(cls) \
+struct cls##_hook : public df::cls \
+{ \
+   typedef df::cls interpose_base; \
+\
+    DEFINE_VMETHOD_INTERPOSE(uint8_t, drawSelf, ()) \
+    { \
+        renderer_cool *r = (renderer_cool*)enabler->renderer; \
+\
+        df::coord _pos = Items::getPosition(this); \
+        if (!gscreen_over[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y]) \
+            ((uint32_t*)gscreen_over)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y] = ((uint32_t*)gscreen)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y]; \
+\
+        return INTERPOSE_NEXT(drawSelf)(); \
+\
+    } \
+}; \
+IMPLEMENT_VMETHOD_INTERPOSE(cls##_hook, drawSelf);
+
+#define OVER2_ENABLE(cls) INTERPOSE_HOOK(cls##_hook, drawSelf).apply(true);
+
+OVER1(building_armorstandst);
+OVER1(building_bedst);
+OVER1(building_cabinetst);
+OVER1(building_slabst);
+OVER1(building_coffinst);
+OVER1(building_statuest);
+OVER1(building_trapst);
+OVER1(building_tablest);
+OVER1(building_chairst);
+
+OVER2(item_armorstandst);
+OVER2(item_bedst);
+OVER2(item_cabinetst);
+OVER2(item_slabst);
+OVER2(item_coffinst);
+OVER2(item_statuest);
+OVER2(item_woodst);
+OVER2(item_barrelst);
+OVER2(item_binst);
+OVER2(item_chairst);
+OVER2(item_tablest);
+
 struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 {
     typedef df::viewscreen_dwarfmodest interpose_base;
@@ -77,6 +164,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 #endif
 
         renderer_cool *r = (renderer_cool*)enabler->renderer;        
+        memset(gscreen_over, 0, 256*256*sizeof(uint32_t));
 
         if (gmenu_w < 0)
         {

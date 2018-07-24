@@ -143,6 +143,28 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         INTERPOSE_HOOK(dungeonmode_hook, render).apply(true);
         INTERPOSE_HOOK(dungeonmode_hook, logic).apply(true);
         INTERPOSE_HOOK(dungeonmode_hook, feed).apply(true);        
+
+        OVER1_ENABLE(building_armorstandst);
+        OVER1_ENABLE(building_bedst);
+        OVER1_ENABLE(building_cabinetst);
+        OVER1_ENABLE(building_slabst);
+        OVER1_ENABLE(building_coffinst);
+        OVER1_ENABLE(building_statuest);
+        OVER1_ENABLE(building_trapst);
+        OVER1_ENABLE(building_tablest);
+        OVER1_ENABLE(building_chairst);
+
+        OVER2_ENABLE(item_armorstandst);
+        OVER2_ENABLE(item_bedst);
+        OVER2_ENABLE(item_cabinetst);
+        OVER2_ENABLE(item_slabst);
+        OVER2_ENABLE(item_coffinst);
+        OVER2_ENABLE(item_statuest);
+        OVER2_ENABLE(item_woodst);
+        OVER2_ENABLE(item_barrelst);
+        OVER2_ENABLE(item_binst);
+        OVER2_ENABLE(item_chairst);
+        OVER2_ENABLE(item_tablest);
     }
     else
     {

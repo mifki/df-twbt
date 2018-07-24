@@ -34,19 +34,57 @@ void renderer_cool::update_tile(int x, int y)
     write_tile_arrays_text(this, x, y, _fg, _bg, _tex);
 }
 
+static void write_tile_vertexes_oblique(GLfloat x, GLfloat y, GLfloat *vertex, float d)
+{
+    vertex[0]  = x;   // Upper left
+    vertex[1]  = y/2.5 + d*0.1;
+    vertex[2]  = x + 1; // Upper right
+    vertex[3]  = y/2.5 + d*0.1;
+    vertex[4]  = x;   // Lower left
+    vertex[5]  = y/2.5 + d*0.1 + 1;
+    vertex[6]  = x;   // Lower left again (triangle 2)
+    vertex[7]  = y/2.5 + d*0.1 + 1;
+    vertex[8]  = x + 1; // Upper right
+    vertex[9]  = y/2.5 + d*0.1;
+    vertex[10] = x + 1; // Lower right
+    vertex[11] = y/2.5 + d*0.1 + 1;
+}
+
+static void write_tile_vertexes(GLfloat x, GLfloat y, GLfloat *vertex, float d)
+{
+    vertex[0]  = x;   // Upper left
+    vertex[1]  = y;
+    vertex[2]  = x + 1; // Upper right
+    vertex[3]  = y;
+    vertex[4]  = x;   // Lower left
+    vertex[5]  = y + 1;
+    vertex[6]  = x;   // Lower left again (triangle 2)
+    vertex[7]  = y + 1;
+    vertex[8]  = x + 1; // Upper right
+    vertex[9]  = y;
+    vertex[10] = x + 1; // Lower right
+    vertex[11] = y + 1;
+}
+
 void renderer_cool::update_map_tile(int x, int y)
 {
     const int tile = x * gdimy + y;
 
-    GLfloat *_fg  = gfg + tile * 4 * 6;
+    GLfloat *_fg  = gfg + (tile*2+1) * 4 * 6;
     GLfloat *_bg  = gbg + tile * 4 * 6;
-    GLfloat *_tex = gtex + tile * 2 * 6;
+    GLfloat *_tex = gtex + (tile*2+1) * 2 * 6;
+
+    GLfloat *_fg_over  = gfg + (tile*2) * 4 * 6;
+    GLfloat *_tex_over = gtex + (tile*2) * 2 * 6;
 
     write_tile_arrays_map(this, x, y, _fg, _bg, _tex);
+    write_tile_arrays_over(this, x, y, _fg_over, _bg, _tex_over);
 
     if (maxlevels)
     {
         float d = (float)((gscreen[tile * 4 + 3] & 0xf0) >> 4);
+
+        write_tile_vertexes(x, y, gvertexes + 6 * 2 * tile, d);
 
         depth[tile] = !gscreen[tile*4] ? 0x7f : d; //TODO: no need for this in fort mode
 
@@ -80,22 +118,6 @@ void renderer_cool::update_map_tile(int x, int y)
     *(tex++) = txt[tt].right; \
     *(tex++) = txt[tt].top;
 
-static void write_tile_vertexes(GLfloat x, GLfloat y, GLfloat *vertex)
-{
-    vertex[0]  = x;   // Upper left
-    vertex[1]  = y/2;
-    vertex[2]  = x + 1; // Upper right
-    vertex[3]  = y/2;
-    vertex[4]  = x;   // Lower left
-    vertex[5]  = y/2 + 1;
-    vertex[6]  = x;   // Lower left again (triangle 2)
-    vertex[7]  = y/2 + 1;
-    vertex[8]  = x + 1; // Upper right
-    vertex[9]  = y/2;
-    vertex[10] = x + 1; // Lower right
-    vertex[11] = y/2 + 1;
-}
-
 void renderer_cool::reshape_graphics()
 {
     float tsx = (float)size_x / gps->dimx, tsy = (float)size_y / gps->dimy;
@@ -123,7 +145,7 @@ void renderer_cool::reshape_graphics()
     }
 
     float dimx = std::min(gsize_x / gdispx, 256.0f);
-    float dimy = std::min(gsize_y / gdispy*2, 256.0f);
+    float dimy = std::min(gsize_y / gdispy, 256.0f); //*3 if oblique
     gdimx = ceilf(dimx);
     gdimy = ceilf(dimy);
     gdimxfull = floorf(dimx);
@@ -141,16 +163,21 @@ void renderer_cool::reshape_graphics()
     allocate_buffers(tiles);
 
     // Recreate OpenGL buffers
-    gvertexes = (GLfloat*)realloc(gvertexes, sizeof(GLfloat) * tiles * 2 * 6);
-    gfg = (GLfloat*)realloc(gfg, sizeof(GLfloat) * tiles * 4 * 6);
+    gvertexes = (GLfloat*)realloc(gvertexes, sizeof(GLfloat) * tiles * 2 * 6*2);
+    gfg = (GLfloat*)realloc(gfg, sizeof(GLfloat) * tiles * 4 * 6*2);
     gbg = (GLfloat*)realloc(gbg, sizeof(GLfloat) * tiles * 4 * 6);
-    gtex = (GLfloat*)realloc(gtex, sizeof(GLfloat) * tiles * 2 * 6);
+    gtex = (GLfloat*)realloc(gtex, sizeof(GLfloat) * tiles * 2 * 6*2);
 
     // Initialise vertex coords
     int tile = 0;   
     for (GLfloat x = 0; x < gdimx; x++)
+    {
         for (GLfloat y = 0; y < gdimy; y++, tile++)
-            write_tile_vertexes(x, y, gvertexes + 6 * 2 * tile);
+        {
+            write_tile_vertexes(x, y, gvertexes + 6 * 2 * (tile*2), 0);
+            write_tile_vertexes(x, y, gvertexes + 6 * 2 * (tile*2+1), 0);
+        }
+    }
 
     needs_full_update = true;
 }
@@ -303,8 +330,8 @@ void renderer_cool::draw(int vertex_count)
 
             //glScissor(off_x+(float)size_x/gps->dimx, off_y+(float)size_y/gps->dimy, gsize_x, gsize_y);
             //glEnable(GL_SCISSOR_TEST);
-            //glClearColor(1,0,0,1);
-            //glClear(GL_COLOR_BUFFER_BIT);
+            glClearColor(enabler->ccolor[0][0],enabler->ccolor[0][1],enabler->ccolor[0][2],1);
+            glClear(GL_COLOR_BUFFER_BIT);
 
             if (multi_rendered && fogdensity > 0)
             {
@@ -323,7 +350,7 @@ void renderer_cool::draw(int vertex_count)
             glDisableClientState(GL_TEXTURE_COORD_ARRAY);
             glDisable(GL_BLEND);
             glColorPointer(4, GL_FLOAT, 0, gbg);
-            glDrawArrays(GL_TRIANGLES, 0, gdimx * gdimy * 6);
+            // glDrawArrays(GL_TRIANGLES, 0, gdimx * gdimy * 6);
 
             // Render foreground
             glEnable(GL_TEXTURE_2D);
@@ -332,7 +359,7 @@ void renderer_cool::draw(int vertex_count)
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glTexCoordPointer(2, GL_FLOAT, 0, gtex);
             glColorPointer(4, GL_FLOAT, 0, gfg);
-            glDrawArrays(GL_TRIANGLES, 0, gdimx * gdimy * 6);
+            glDrawArrays(GL_TRIANGLES, 0, gdimx * gdimy * 6*2);
 
             if (multi_rendered)
             {

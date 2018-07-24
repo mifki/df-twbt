@@ -4,8 +4,8 @@ DFVERNUM = `echo $(DFHACKVER) | sed -e s/-r.*// -e s/\\\\.//g`
 
 TWBT_VER ?= "5.xx"
 
-DF ?= /Users/vit/Downloads/df_40_24_osx
-DH ?= /Users/vit/Downloads/buildagent-2/workspace/root/dfhack/master
+DF ?= /Users/vit/df/df_40_24_osx
+DH ?= /Users/vit/df/dfhack4024
 
 SRC = twbt.cpp
 DEP = renderer.hpp config.hpp dungeonmode.hpp dwarfmode.hpp renderer_twbt.h commands.hpp plugin.hpp tileupdate_text.hpp tileupdate_map.hpp patches.hpp zoomfix.hpp Makefile legacy/renderer_legacy.hpp legacy/twbt_legacy.hpp
@@ -30,7 +30,7 @@ LDFLAGS = $(LIB) -shared
 
 ifeq ($(shell uname -s), Darwin)
 	export MACOSX_DEPLOYMENT_TARGET=10.6
-	CXX = g++-4.6
+	CXX = g++-4.8
 	CFLAGS += -std=gnu++0x #-stdlib=libstdc++
 	CFLAGS += -Wno-tautological-compare
 	LDFLAGS += -framework OpenGL -mmacosx-version-min=10.6 -undefined dynamic_lookup
