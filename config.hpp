@@ -140,16 +140,25 @@ static bool load_map_font()
 
         long dx, dy;
         load_tileset(gsmall_font_path, (long*)ts.small_texpos, 16, 16, &dx, &dy);
-        load_tileset_layers(ts, gsmall_font_path);
+        small_map_dispx = dx, small_map_dispy = dy;
 
-        small_map_dispx = dx;
-        small_map_dispy = dy;
+        load_tileset_layers(ts, gsmall_font_path);
 
         tilesets.push_back(ts);        
         return true;
     }
+    else
+    {
+        struct tileset ts;
 
-    return false;
+        memcpy(ts.small_texpos, init->font.small_font_texpos, sizeof(ts.small_texpos));
+        small_map_dispx = init->font.small_font_dispx, small_map_dispy = init->font.small_font_dispy;
+
+        load_tileset_layers(ts, gsmall_font_path);
+
+        tilesets.push_back(ts);
+        return false;
+    }
 }
 
 static bool load_text_font()

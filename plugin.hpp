@@ -99,6 +99,8 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         small_map_dispx = init->font.small_font_dispx, small_map_dispy = init->font.small_font_dispy;
 
         has_textfont = load_text_font();
+        if (!has_textfont)
+            tilesets.push_back(tilesets[0]);
     }
     else
     {
@@ -107,15 +109,18 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         has_textfont = load_map_font();
 
         // Existing text tileset - accessible at index 1
-        struct tileset ts;
-        memcpy(ts.small_texpos, init->font.small_font_texpos, sizeof(ts.small_texpos));
-        tilesets.push_back(ts);
+        if (has_textfont)
+        {
+            struct tileset ts;
+            memcpy(ts.small_texpos, init->font.small_font_texpos, sizeof(ts.small_texpos));
+            tilesets.push_back(ts);
+        }
+        else
+            tilesets.push_back(tilesets[0]);
     }        
 
     if (!has_textfont)
     {
-        tilesets.push_back(tilesets[0]);
-
         *out2 << COLOR_YELLOW << "TWBT: FONT and GRAPHICS_FONT are the same" << std::endl;
         *out2 << COLOR_RESET;
     }
