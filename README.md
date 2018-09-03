@@ -169,7 +169,7 @@ This list comes from typing `@df.items_other_id` in the lua interpreter.
 ### Item Types ###
 This list comes from typing `@df.item_type` in the lua interpreter.
 
-> AMMO, AMULET, ANIMALTRAP, ANVIL, ARMOR, ARMORSTAND, BACKPACK, BALLISTAARROWHEAD, BALLISTAPARTS, BAR, BARREL, BED, BIN, BLOCKS, BOOK, BOULDER, BOX, BRACELET, BRANCH, BUCKET, CABINET, CAGE, CATAPULTPARTS, CHAIN, CHAIR, CHEESE, CLOTH, COFFIN, COIN, CORPSE, CORPSEPIECE, CROWN, CRUTCH, DOOR, DRINK, EARRING, EGG, FIGURINE, FISH, FISH_RAW, FLASK, FLOODGATE, FOOD, GEM, GLOB, GLOVES, GOBLET, GRATE, HATCH_COVER, HELM, INSTRUMENT, LIQUID_MISC, MEAT, MILLSTONE, NONE, ORTHOPEDIC_CAST, PANTS, PET, PIPE_SECTION, PLANT, PLANT_GROWTH, POWDER_MISC, QUERN, QUIVER, REMAINS, RING, ROCK, ROUGH, SCEPTER, SEEDS, SHEET, SHIELD, SHOES, SIEGEAMMO, SKIN_TANNED, SLAB, SMALLGEM, SPLINT, STATUE, TABLE, THREAD, TOOL, TOTEM, TOY, TRACTION_BENCH, TRAPCOMP, TRAPPARTS, VERMIN, WEAPON, WEAPONRACK, WINDOW, WOOD
+> AMMO, AMULET, ANIMALTRAP, ANVIL, ARMOR, ARMORSTAND, BACKPACK, BALLISTAARROWHEAD, BALLISTAPARTS, BAR, BARREL, BED, BIN, BLOCKS, BOOK, BOULDER, BOX, BRACELET, BRANCH, BUCKET, CABINET, CAGE, CATAPULTPARTS, CHAIN, CHAIR, CHEESE, CLOTH, COFFIN, COIN, CORPSE, CORPSEPIECE, CROWN, CRUTCH, DOOR, DRINK, EARRING, EGG, FIGURINE, FISH, FISH_RAW, FLASK, FLOODGATE, FOOD, GEM, GLOB, GLOVES, GOBLET, GRATE, HATCH_COVER, HELM, INSTRUMENT, LIQUID_MISC, MEAT, MILLSTONE, ORTHOPEDIC_CAST, PANTS, PET, PIPE_SECTION, PLANT, PLANT_GROWTH, POWDER_MISC, QUERN, QUIVER, REMAINS, RING, ROCK, ROUGH, SCEPTER, SEEDS, SHEET, SHIELD, SHOES, SIEGEAMMO, SKIN_TANNED, SLAB, SMALLGEM, SPLINT, STATUE, TABLE, THREAD, TOOL, TOTEM, TOY, TRACTION_BENCH, TRAPCOMP, TRAPPARTS, VERMIN, WEAPON, WEAPONRACK, WINDOW, WOOD
 
 ### Building IDs ###
 This list comes from typing `@df.buildings_other_id` in the lua interpreter.
@@ -179,7 +179,7 @@ This list comes from typing `@df.buildings_other_id` in the lua interpreter.
 ### Building Types
 This list comes from typing `@df.building_type` in the lua interpreter.
 
-> AnimalTrap, ArcheryTarget, Armorstand, AxleHorizontal, AxleVertical, BarsFloor, BarsVertical, Bed, Bookcase, Box, Bridge, Cabinet, Cage, Chain, Chair, Civzone, Coffin, Construction, DisplayFurniture, Door, FarmPlot, Floodgate, Furnace, GearAssembly, GrateFloor, GrateWall, Hatch, Hive, Instrument, Nest, NestBox, NONE, RoadDirt, RoadPaved, Rollers, ScrewPump, Shop, SiegeEngine, Slab, Statue, Stockpile, Support, Table, TractionBench, TradeDepot, Trap, Wagon, WaterWheel, Weapon, Weaponrack, Well, Windmill, WindowGem, WindowGlass, Workshop
+> AnimalTrap, ArcheryTarget, Armorstand, AxleHorizontal, AxleVertical, BarsFloor, BarsVertical, Bed, Bookcase, Box, Bridge, Cabinet, Cage, Chain, Chair, Civzone, Coffin, Construction, DisplayFurniture, Door, FarmPlot, Floodgate, Furnace, GearAssembly, GrateFloor, GrateWall, Hatch, Hive, Instrument, Nest, NestBox, RoadDirt, RoadPaved, Rollers, ScrewPump, Shop, SiegeEngine, Slab, Statue, Stockpile, Support, Table, TractionBench, TradeDepot, Trap, Wagon, WaterWheel, Weapon, Weaponrack, Well, Windmill, WindowGem, WindowGlass, Workshop
 
 ### Tile Types ###
 This list comes from typing `@df.tiletype` in the lua interpreter.
