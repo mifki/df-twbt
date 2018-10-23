@@ -1,8 +1,8 @@
 command_result mapshot_cmd (color_ostream &out, std::vector <std::string> & parameters)
 {
-    if (!legacy_mode)
+    if (legacy_mode)
     {
-        *out2 << COLOR_RED << "This command currently works in legacy mode only" << std::endl;
+        *out2 << COLOR_RED << "This command is not supported in legacy mode" << std::endl;
         *out2 << COLOR_RESET;
         return CR_FAILURE;
     }

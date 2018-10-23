@@ -1,3 +1,6 @@
+#include "png++/png.hpp"
+#include "png++/solid_pixel_buffer_inverted.hpp"
+
 static volatile int domapshot = 0;
 
 #define SETTEX(tt) \
@@ -172,29 +175,7 @@ void renderer_cool::reshape_graphics()
     *df::global::window_y = std::max(0, cy - gdimy / 2);
 
     int tiles = gdimx * gdimy;
-
-    // Recreate tile buffers
-    allocate_buffers(tiles, gdimy + 1);
-
-    // Recreate OpenGL buffers
-    gvertexes = (GLfloat*)realloc(gvertexes, sizeof(GLfloat) * tiles * 2 * 6 * 6);
-    gfg = (GLfloat*)realloc(gfg, sizeof(GLfloat) * tiles * 4 * 6 * 6);
-    gtex = (GLfloat*)realloc(gtex, sizeof(GLfloat) * tiles * 2 * 6 * 6);
-
-    // Initialise vertex coords
-    int tile = 0;   
-    for (GLfloat x = 0; x < gdimx; x++)
-    {
-        for (GLfloat y = 0; y < gdimy; y++, tile++)
-        {
-            write_tile_vertexes(x, y, gvertexes + 6 * 2 * (tile*6+0), 0);
-            write_tile_vertexes(x, y, gvertexes + 6 * 2 * (tile*6+1), 0);
-            write_tile_vertexes(x, y, gvertexes + 6 * 2 * (tile*6+2), 0);
-            write_tile_vertexes(x, y, gvertexes + 6 * 2 * (tile*6+3), 0);
-            write_tile_vertexes(x, y, gvertexes + 6 * 2 * (tile*6+4), 0);
-            write_tile_vertexes(x, y, gvertexes + 6 * 2 * (tile*6+5), 0);
-        }
-    }
+    init_buffers_and_coords(tiles, gdimy + 1);
 
     needs_full_update = true;
 }
@@ -262,11 +243,18 @@ void renderer_cool::draw(int vertex_count)
             old_winx = *df::global::window_x;
             old_winy = *df::global::window_y;
 
-            grid_resize(world->map.x_count + 36, world->map.y_count + 2);
+            goff_x = goff_y = goff_y_gl = 0;
+            gdimx = world->map.x_count;
+            gdimy = world->map.y_count;
             *df::global::window_x = 0;
             *df::global::window_y = 0;
-            gps->force_full_display_count = 1;
+
+            int tiles = gdimx * gdimy;
+            init_buffers_and_coords(tiles, gdimy + 1);
+
+            needs_full_update = true;            
         }
+
         domapshot--;
     }
 
@@ -275,8 +263,8 @@ void renderer_cool::draw(int vertex_count)
     if (domapshot == 5)
     {
         // Set the width and height appropriately for your image
-        GLuint imageWidth = gps->dimx * dispx,
-               imageHeight = gps->dimy * dispy;
+        GLuint imageWidth = gdimx * gdispx,
+               imageHeight = gdimy * gdispy;
         //Set up a FBO with one renderbuffer attachment
         glGenFramebuffers(1, &framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -285,7 +273,7 @@ void renderer_cool::draw(int vertex_count)
         glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, imageWidth, imageHeight);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                                   GL_RENDERBUFFER, renderbuffer);
-        glViewport(0, 0, gps->dimx * dispx, gps->dimy * dispy);
+        glViewport(0, 0, gdimx * gdispx, gdimy * gdispy);
 
         /*glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
@@ -448,6 +436,8 @@ void renderer_cool::draw(int vertex_count)
             glOrtho(0, tdimx, tdimy, 0, -1, 1);            
         }
     }
+
+    if (!domapshot)
     {
         glVertexPointer(2, GL_FLOAT, 0, vertexes);
 
@@ -468,57 +458,23 @@ void renderer_cool::draw(int vertex_count)
         glDrawArrays(GL_TRIANGLES, 0, tdimx*tdimy*6);
     }
 
-
     if (domapshot == 1)
     {
-        int w = world->map.x_count * dispx;
-        int h = world->map.y_count * dispy;
+        int w = world->map.x_count * gdispx;
+        int h = world->map.y_count * gdispy;
 
-        unsigned char *data = (unsigned char *) malloc(w * h * 3);
+        png::image<png::rgb_pixel, png::solid_pixel_buffer_inverted<png::rgb_pixel> > image(w, h);
+
+        unsigned char *data = (unsigned char*)&image.get_pixbuf().get_bytes().at(0);
 
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glPixelStorei(GL_PACK_ROW_LENGTH, 0);
-        glReadPixels(dispx, dispy, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
+        glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, data);
 
-
-#pragma pack(push,1)
-        typedef struct _TgaHeader
-        {
-            unsigned char IDLength;        /* 00h  Size of Image ID field */
-            unsigned char ColorMapType;    /* 01h  Color map type */
-            unsigned char ImageType;       /* 02h  Image type code */
-            unsigned short CMapStart;       /* 03h  Color map origin */
-            unsigned short CMapLength;      /* 05h  Color map length */
-            unsigned char CMapDepth;       /* 07h  Depth of color map entries */
-            unsigned short XOffset;         /* 08h  X origin of image */
-            unsigned short YOffset;         /* 0Ah  Y origin of image */
-            unsigned short Width;           /* 0Ch  Width of image */
-            unsigned short Height;          /* 0Eh  Height of image */
-            unsigned char PixelDepth;      /* 10h  Image pixel size */
-            unsigned char ImageDescriptor; /* 11h  Image descriptor byte */
-        } TGAHEAD;
-#pragma pop
-
-        TGAHEAD hdr;
-        memset(&hdr, 0, sizeof(hdr));
-        hdr.ImageType = 2;
-        hdr.Width = w;
-        hdr.Height = h;
-        hdr.PixelDepth = 24;
-
-        *out2 << w << " " << h << std::endl;
-        std::ofstream img("mapshot.tga", std::ofstream::binary);
-        img.write((const char *)&hdr, sizeof(hdr));
-        /*        for (int j = 0; j<w*h*3; j++)
-                {
-                    unsigned char c = data[j+0];
-                    data[0] = data[j+2];
-                    data[j+2] = c;
-                }*/
-        img.write((const char *)data, w * h * 3);
+        image.write("mapshot.png");
+        *out2 << "Saved a " << w << "x" << h << " image to mapshot.png in DF folder." << std::endl;
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        // Delete the renderbuffer attachment
         glDeleteRenderbuffers(1, &renderbuffer);
 
         grid_resize(old_dimx, old_dimy);
@@ -692,6 +648,32 @@ void renderer_cool::allocate_buffers(int tiles, int extra_tiles)
     memset(_gscreentexpos_cf[0],        0, tiles * 2 + extra_tiles);
     memset(_gscreentexpos_cbr[0],       0, tiles * 2 + extra_tiles);
     memset(mscreentexpos,               0, tiles * sizeof(long));
+}
+
+void renderer_cool::init_buffers_and_coords(int tiles, int extra_tiles)
+{
+    // Recreate tile buffers
+    allocate_buffers(tiles, gdimy + 1);
+
+    // Recreate OpenGL buffers
+    gvertexes = (GLfloat*)realloc(gvertexes, sizeof(GLfloat) * tiles * 2 * 6 * 6);
+    gfg = (GLfloat*)realloc(gfg, sizeof(GLfloat) * tiles * 4 * 6 * 6);
+    gtex = (GLfloat*)realloc(gtex, sizeof(GLfloat) * tiles * 2 * 6 * 6);
+
+    // Initialise vertex coords
+    int tile = 0;   
+    for (GLfloat x = 0; x < gdimx; x++)
+    {
+        for (GLfloat y = 0; y < gdimy; y++, tile++)
+        {
+            write_tile_vertexes(x, y, gvertexes + 6 * 2 * (tile*6+0), 0);
+            write_tile_vertexes(x, y, gvertexes + 6 * 2 * (tile*6+1), 0);
+            write_tile_vertexes(x, y, gvertexes + 6 * 2 * (tile*6+2), 0);
+            write_tile_vertexes(x, y, gvertexes + 6 * 2 * (tile*6+3), 0);
+            write_tile_vertexes(x, y, gvertexes + 6 * 2 * (tile*6+4), 0);
+            write_tile_vertexes(x, y, gvertexes + 6 * 2 * (tile*6+5), 0);
+        }
+    }    
 }
 
 void renderer_cool::reshape_zoom_swap()

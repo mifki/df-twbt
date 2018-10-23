@@ -26,7 +26,7 @@ See multiple terrain levels in mountainous areas and caverns.
 Change and reload colours without restarting the game.
 
 [Mapshot!](#mapshot)  
-A command to save full-size screenshot of the map.
+Save a full-size screenshot of the map. This command is asynchronous, it will print a message once the operation is complete.
 
 [Other Improvements](#other-improvements)
 

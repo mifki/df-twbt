@@ -46,6 +46,7 @@ struct renderer_cool : renderer_opengl
     void display_map();
     void gswap_arrays();
     void allocate_buffers(int tiles, int extra_tiles);
+    void init_buffers_and_coords(int tiles, int extra_tiles);
     void update_map_tile(int x, int y);
     void reshape_zoom_swap();
 
