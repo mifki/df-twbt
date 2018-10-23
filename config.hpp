@@ -81,6 +81,16 @@ static void load_tileset_layers(tileset &ts, string &path)
     }
 }
 
+static void init_text_tileset_layers()
+{
+    tileset &ts = tilesets[1];
+    
+    for (int i = 0; i < 256; i++)
+        ts.bg_texpos[i] = white_texpos;
+    for (int i = 0; i < 256; i++)
+        ts.top_texpos[i] = transparent_texpos;
+}
+
 static bool load_map_font()
 {
     string small_font_path, gsmall_font_path;

@@ -117,8 +117,10 @@ DFhackCExport command_result plugin_init ( color_ostream &out, vector <PluginCom
         }
         else
             tilesets.push_back(tilesets[0]);
-    }        
+    }
 
+    init_text_tileset_layers();
+    
     if (!has_textfont)
     {
         *out2 << COLOR_YELLOW << "TWBT: FONT and GRAPHICS_FONT are the same" << std::endl;
