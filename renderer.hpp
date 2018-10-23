@@ -1,5 +1,5 @@
 #include "png++/png.hpp"
-#include "png++/solid_pixel_buffer_inverted.hpp"
+#include "png++/solid_pixel_buffer_rev.hpp"
 
 static volatile int domapshot = 0;
 
@@ -463,7 +463,7 @@ void renderer_cool::draw(int vertex_count)
         int w = world->map.x_count * gdispx;
         int h = world->map.y_count * gdispy;
 
-        png::image<png::rgb_pixel, png::solid_pixel_buffer_inverted<png::rgb_pixel> > image(w, h);
+        png::image<png::rgb_pixel, png::solid_pixel_buffer_rev<png::rgb_pixel> > image(w, h);
 
         unsigned char *data = (unsigned char*)&image.get_pixbuf().get_bytes().at(0);
 

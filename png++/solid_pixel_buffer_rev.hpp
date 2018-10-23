@@ -28,8 +28,8 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef PNGPP_SOLID_PIXEL_BUFFER_INVERTED_HPP_INCLUDED
-#define PNGPP_SOLID_PIXEL_BUFFER_INVERTED_HPP_INCLUDED
+#ifndef PNGPP_SOLID_PIXEL_BUFFER_REV_HPP_INCLUDED
+#define PNGPP_SOLID_PIXEL_BUFFER_REV_HPP_INCLUDED
 
 #include <cassert>
 #include <cstddef>
@@ -51,7 +51,7 @@ namespace png
      * changes and fetch to buffer to draw (as texture for example).
      */
     template< typename pixel >
-    class solid_pixel_buffer_inverted
+    class solid_pixel_buffer_rev
     {
     public:
         typedef pixel_traits< pixel > pixel_traits_t;
@@ -77,7 +77,7 @@ namespace png
         /**
          * \brief Constructs an empty 0x0 pixel buffer object.
          */
-        solid_pixel_buffer_inverted()
+        solid_pixel_buffer_rev()
             : m_width(0),
               m_height(0),
               m_stride(0)
@@ -87,7 +87,7 @@ namespace png
         /**
          * \brief Constructs an empty pixel buffer object.
          */
-        solid_pixel_buffer_inverted(uint_32 width, uint_32 height)
+        solid_pixel_buffer_rev(uint_32 width, uint_32 height)
             : m_width(0),
               m_height(0),
               m_stride(0)
@@ -239,8 +239,8 @@ namespace png
      * useless bits in last byte in buffer?
      */
     template< int bits >
-    class solid_pixel_buffer_inverted< packed_pixel< bits > >;
+    class solid_pixel_buffer_rev< packed_pixel< bits > >;
 
 } // namespace png
 
-#endif // PNGPP_solid_pixel_buffer_inverted_HPP_INCLUDED
+#endif // PNGPP_solid_pixel_buffer_rev_HPP_INCLUDED
