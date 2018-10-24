@@ -96,7 +96,7 @@ namespace png
 #define ERRBUF_SIZE 512
             char buf[ERRBUF_SIZE] = { 0 };
 
-#ifdef HAVE_STRERROR_S
+#ifdef _WIN32
             strerror_s(buf, ERRBUF_SIZE, errnum);
             return std::string(buf);
 #else
