@@ -10,7 +10,7 @@ command_result mapshot_cmd (color_ostream &out, std::vector <std::string> & para
     if (!enabled)
         return CR_FAILURE;
 
-    CoreSuspender suspend;
+    // CoreSuspender suspend;
 
     domapshot = 10;
 
@@ -22,7 +22,7 @@ command_result multilevel_cmd (color_ostream &out, std::vector <std::string> & p
     if (!enabled)
         return CR_FAILURE;
 
-    CoreSuspender suspend;
+    // CoreSuspender suspend;
 
     int pcnt = parameters.size();
 
@@ -134,7 +134,7 @@ command_result twbt_cmd (color_ostream &out, std::vector <std::string> & paramet
     if (!enabled)
         return CR_FAILURE;
 
-    CoreSuspender suspend;
+    // CoreSuspender suspend;
 
     int pcnt = parameters.size();
 
@@ -280,7 +280,7 @@ command_result colormap_cmd (color_ostream &out, std::vector <std::string> & par
     if (!enabled)
         return CR_FAILURE;
 
-    CoreSuspender suspend;
+    // CoreSuspender suspend;
 
     int pcnt = parameters.size();
 

@@ -258,7 +258,7 @@ void renderer_cool::draw(int vertex_count)
         domapshot--;
     }
 
-    GLuint framebuffer, renderbuffer;
+    static GLuint framebuffer, renderbuffer;
     GLenum status;
     if (domapshot == 5)
     {
@@ -266,19 +266,15 @@ void renderer_cool::draw(int vertex_count)
         GLuint imageWidth = gdimx * gdispx,
                imageHeight = gdimy * gdispy;
         //Set up a FBO with one renderbuffer attachment
-        glGenFramebuffers(1, &framebuffer);
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glGenRenderbuffers(1, &renderbuffer);
         glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, imageWidth, imageHeight);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                                  GL_RENDERBUFFER, renderbuffer);
+
+        glGenFramebuffers(1, &framebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderbuffer);
+
         glViewport(0, 0, gdimx * gdispx, gdimy * gdispy);
-
-        /*glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-
-        glOrtho(0,gps->dimx,gps->dimy,0,-1,1);*/
     }
 
     if (screen_map_type)
@@ -460,19 +456,27 @@ void renderer_cool::draw(int vertex_count)
 
     if (domapshot == 1)
     {
-        int w = world->map.x_count * gdispx;
-        int h = world->map.y_count * gdispy;
+        int w = gdimx * gdispx;
+        int h = gdimy * gdispy;
 
         png::image<png::rgb_pixel, png::solid_pixel_buffer_rev<png::rgb_pixel> > image(w, h);
 
         unsigned char *data = (unsigned char*)&image.get_pixbuf().get_bytes().at(0);
 
+        glReadBuffer(GL_COLOR_ATTACHMENT0);
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glPixelStorei(GL_PACK_ROW_LENGTH, 0);
         glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, data);
 
-        image.write("mapshot.png");
-        *out2 << "Saved a " << w << "x" << h << " image to mapshot.png in DF folder." << std::endl;
+        try
+        {
+            image.write("mapshot.png");
+            *out2 << "Saved a " << w << "x" << h << " image to mapshot.png in DF folder." << std::endl;
+        }
+        catch(...)
+        {
+            *out2 << "Failed to write to mapshot.png in DF folder." << std::endl;
+        }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDeleteRenderbuffers(1, &renderbuffer);

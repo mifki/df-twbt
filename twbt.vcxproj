@@ -174,7 +174,8 @@
     <Library Include="opengl32.lib" />
     <Library Include="$(dfhack)\build\win64\VC2015\library\Release\SDL.lib" />
     <Library Include="$(dfhack)\build\win64\VC2015\library\Release\dfhack-version.lib" />
-    <Library Include="libpng\libpng15-15.lib" />
+    <Library Include="libpng\libpng_static.lib" />
+    <Library Include="libpng\zlibstatic.lib" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="buildings.hpp" />
