@@ -60,7 +60,7 @@ struct dungeonmode_hook : public df::viewscreen_dungeonmodest
         static bool patched = false;
         if (!patched)
         {
-            MemoryPatcher p(Core::getInstance().p);
+            MemoryPatcher p(Core::getInstance().p.get());
 
             for (int j = 0; j < sizeof(p_advmode_render)/sizeof(patchdef); j++)
                 apply_patch(&p, p_advmode_render[j]);

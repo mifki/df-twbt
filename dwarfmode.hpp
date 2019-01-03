@@ -86,7 +86,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         static bool patched = false;
         if (!patched)
         {
-            MemoryPatcher p(Core::getInstance().p);
+            MemoryPatcher p(Core::getInstance().p.get());
             apply_patch(&p, p_dwarfmode_render);
             patched = true;
             //*out2 << *(int*)p_dwarfmode_render.addr << std::endl;
