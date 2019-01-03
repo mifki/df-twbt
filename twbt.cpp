@@ -296,7 +296,7 @@ static void patch_rendering(bool enable_lower_levels)
 
     if (!ready)
     {
-        (new MemoryPatcher(Core::getInstance().p))->makeWritable((void*)addr, sizeof(p_render_lower_levels.len));
+        (new MemoryPatcher(Core::getInstance().p.get()))->makeWritable((void*)addr, sizeof(p_render_lower_levels.len));
         memcpy(orig, (void*)addr, p_render_lower_levels.len);
         ready = true;
     }
@@ -313,7 +313,7 @@ static void replace_renderer()
     if (enabled)
         return;
 
-    MemoryPatcher p(Core::getInstance().p);
+    MemoryPatcher p(Core::getInstance().p.get());
 
     //XXX: This is a crazy work-around for vtable address for df::renderer not being available yet
     //in dfhack for 0.40.xx, which prevents its subclasses form being instantiated. We're overwriting

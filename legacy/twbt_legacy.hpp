@@ -6,7 +6,7 @@ static void hook_legacy()
     if (enabled)
         return;
 
-    MemoryPatcher p(Core::getInstance().p);    
+    MemoryPatcher p(Core::getInstance().p.get());    
 
     //XXX: This is a crazy work-around for vtable address for df::renderer not being available yet
     //in dfhack for 0.40.xx, which prevents its subclasses form being instantiated. We're overwriting
