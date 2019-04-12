@@ -63,7 +63,6 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
     DEFINE_VMETHOD_INTERPOSE(void, render, ())
     {
-        //clock_t c1 = clock();
         screen_map_type = 1;
 
         renderer_cool *r = (renderer_cool*)enabler->renderer;
@@ -89,7 +88,6 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
             MemoryPatcher p(Core::getInstance().p.get());
             apply_patch(&p, p_dwarfmode_render);
             patched = true;
-            //*out2 << *(int*)p_dwarfmode_render.addr << std::endl;
         }
 #endif
 
@@ -164,10 +162,10 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
             screen_under_ptr = mscreen_under;
             screen_ptr = mscreen;
 
-            bool empty_tiles_left, rendered1st = false;
+            bool lower_level_rendered = false;
             int p = 1;
             int x0 = 0;
-            int zz0 = *df::global::window_z;
+            int zz0 = *df::global::window_z; // Current "top" zlevel
             int maxp = std::min(maxlevels, zz0);
 
             do
@@ -177,20 +175,9 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
                 (*df::global::window_z)--;
 
-                if (p > 1)
-                {
-                    (*df::global::window_x) += x0;
-                    init->display.grid_x -= x0;
-
-                    render_map();
-
-                    (*df::global::window_x) -= x0;
-                    init->display.grid_x += x0;
-                }
-
-                empty_tiles_left = false;
+                lower_level_rendered = false;
                 int x00 = x0;
-                int zz = zz0 - p + 1;
+                int zz = zz0 - p + 1; // Last rendered zlevel in gscreen, the tiles of which we're checking below
 
                 int x1 = std::min(r->gdimx, world->map.x_count-*df::global::window_x);
                 int y1 = std::min(r->gdimy, world->map.y_count-*df::global::window_y);
@@ -199,15 +186,9 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                     for (int y = 0; y < y1; y++)
                     {
                         const int tile = x * r->gdimy + y, stile = tile * 4;
-
-#ifndef NO_RENDERING_PATCH
-                        // Fast path. When rendering patch is available, tiles that are empty on the current level
-                        // (and only them) will have symbol 00. We only also check for 31 which is a down ramp.
-
-                        //if ((gscreen[stile+3]&0xf0))
-                        //    continue;
-
                         unsigned char ch = gscreen[stile+0];
+
+                        // Continue if the tile is not empty and doesn't look like a ramp
                         if (ch != 0 && ch != 31)
                             continue;
 
@@ -219,17 +200,22 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                         int xxquot = xx >> 4, xxrem = xx & 15;
                         int yyquot = yy >> 4, yyrem = yy & 15;
 
+                        // If the tile looks like a ramp, check that it's really a ramp
+                        // Also, no need to go deeper if the ramp is covered with water
                         if (ch == 31)
                         {
-                            //TODO: zz0 or zz ??
-                            df::map_block *block0 = world->map.block_index[xxquot][yyquot][zz0];
+                            df::map_block *block0 = world->map.block_index[xxquot][yyquot][zz];
                             if (block0->tiletype[xxrem][yyrem] != df::tiletype::RampTop || block0->designation[xxrem][yyrem].bits.flow_size)
                                 continue;
                         }
 
-                        if (p == 1 && !rendered1st)
+                        // If the tile is empty, render the next zlevel (if not rendered already)
+                        if (!lower_level_rendered)
                         {
                             multi_rendered = true;
+
+                            // All tiles to the left were not empty, so skip them
+                            x0 = x;
 
                             (*df::global::window_x) += x0;
                             init->display.grid_x -= x0;
@@ -241,117 +227,10 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
                             x00 = x0;
 
-                            rendered1st = true;
+                            lower_level_rendered = true;
                         }
 
                         const int tile2 = (x-(x00)) * r->gdimy + y, stile2 = tile2 * 4;
-
-                        int d = p;
-                        ch = mscreen[stile2+0];
-                        if (p < maxp)
-                        {
-                            if (ch == 0)
-                            {
-                                empty_tiles_left = true;
-                                continue;
-                            }
-                            else if (ch == 31)
-                            {
-                                df::map_block *block1 = world->map.block_index[xxquot][yyquot][zz-1];
-                                df::tiletype t1 = block1->tiletype[xxrem][yyrem];
-                                if (t1 == df::tiletype::RampTop && !block1->designation[xxrem][yyrem].bits.flow_size)
-                                {
-                                    empty_tiles_left = true;
-                                    continue;
-                                }
-                            }
-                        }
-
-#else
-                        // Slow path. Without rendering patch we have to check all symbols that the game
-                        // may render for lower levels if a tile is empty on the current level.
-
-                        if ((gscreen[stile+3]&0xf0))
-                            continue;
-
-                        unsigned char ch = gscreen[stile+0];
-                        if (ch != 31 && ch != 249 && ch != 250 && ch != 254 && ch != skytile && ch != chasmtile && !(ch >= '1' && ch <= '7'))
-                            continue;
-
-                        int xx = *df::global::window_x + x;
-                        int yy = *df::global::window_y + y;
-                        if (xx < 0 || yy < 0)
-                            continue;
-
-                        int xxquot = xx >> 4, xxrem = xx & 15;
-                        int yyquot = yy >> 4, yyrem = yy & 15;
-
-                        //TODO: check for z=0 (?)
-                        bool e0,h,h0;
-                        //*out2 << xx << " " << world->map.x_count << " " << yy << " " << world->map.y_count << " " << *df::global::window_x << " " << *df::global::window_y << std::endl;
-                        df::map_block *block0 = world->map.block_index[xxquot][yyquot][zz0];
-                        h0 = block0 && block0->designation[xxrem][yyrem].bits.hidden;
-                        if (h0)
-                            continue;
-                        e0 = !block0 || ((block0->tiletype[xxrem][yyrem] == df::tiletype::OpenSpace || block0->tiletype[xxrem][yyrem] == df::tiletype::RampTop) && !block0->designation[xxrem][yyrem].bits.flow_size);
-                        if (!(e0))
-                            continue;
-
-                        if (p == 1 && !rendered1st)
-                        {
-                            multi_rendered = true;
-
-                            (*df::global::window_x) += x0;
-                            init->display.grid_x -= x0;
-
-                            render_map();
-
-                            (*df::global::window_x) -= x0;
-                            init->display.grid_x += x0;
-
-                            x00 = x0;
-
-                            rendered1st = true;
-                        }
-
-                        const int tile2 = (x-(x00)) * r->gdimy + y, stile2 = tile2 * 4;
-
-                        int d = p;
-                        ch = mscreen[stile2+0];
-                        if (!(ch!=31&&ch != 249 && ch != 250 && ch != 254 && ch != skytile && ch != chasmtile && !(ch >= '1' && ch <= '7')))
-                        {
-                            df::map_block *block1 = world->map.block_index[xxquot][yyquot][zz-1];
-                            if (!block1)
-                            {
-                                //TODO: skip all other y's in this block
-                                if (p < maxp)
-                                {
-                                    empty_tiles_left = true;
-                                    continue;
-                                }
-                                else
-                                    d = p+1;
-                            }
-                            else
-                            {
-                                //TODO: check for hidden also
-                                df::tiletype t1 = block1->tiletype[xxrem][yyrem];
-                                if ((t1 == df::tiletype::OpenSpace || t1 == df::tiletype::RampTop) && !block1->designation[xxrem][yyrem].bits.flow_size)
-                                {
-                                    if (p < maxp)
-                                    {
-                                        empty_tiles_left = true;
-                                        continue;
-                                    }
-                                    else
-                                    {
-                                        if (t1 != df::tiletype::RampTop)
-                                            d = p+1;
-                                    }
-                                }
-                            }
-                        }
-    #endif
 
                         *((uint32_t*)gscreen + tile) = *((uint32_t*)mscreen + tile2);
                         *((uint32_t*)gscreen_under + tile) = *((uint32_t*)mscreen_under + tile2);
@@ -363,16 +242,13 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
                             *(gscreentexpos_cf + tile) = *(mscreentexpos_cf + tile2);
                             *(gscreentexpos_cbr + tile) = *(mscreentexpos_cbr + tile2);
                         }
-                        gscreen[stile+3] = (0x10*d) | (gscreen[stile+3]&0x0f);
+                        gscreen[stile+3] = (0x10*p) | (gscreen[stile+3]&0x0f);
                     }
-
-                    if (!empty_tiles_left)
-                        x0 = x + 1;
                 }
 
                 if (p++ >= maxp)
                     break;
-            } while(empty_tiles_left);
+            } while(lower_level_rendered);
 
             (*df::global::window_z) = zz0;
         }
@@ -389,9 +265,6 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         gps->screentexpos_grayscale = screentexpos_grayscaletop;
         gps->screentexpos_cf        = screentexpos_cftop;
         gps->screentexpos_cbr       = screentexpos_cbrtop;
-
-        //clock_t c2 = clock();
-        //*out2 << (c2-c1) << std::endl;
 
         if (block_index_size != world->map.x_count_block*world->map.y_count_block*world->map.z_count_block)
         {
