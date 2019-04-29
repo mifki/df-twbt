@@ -32,7 +32,7 @@ ifeq ($(shell uname -s), Darwin)
 	export MACOSX_DEPLOYMENT_TARGET=10.6
 	CXX = g++-7
 	CFLAGS += -std=gnu++0x #-stdlib=libstdc++
-	CFLAGS += -Wno-tautological-compare
+	CFLAGS += -Wno-tautological-compare -I/usr/local/include
 	LDFLAGS += -framework OpenGL -mmacosx-version-min=10.6 -undefined dynamic_lookup
 else
 	CFLAGS += -std=c++0x -fPIC
