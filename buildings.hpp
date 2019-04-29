@@ -66,10 +66,10 @@ struct cls##_hook : public df::cls \
 \
         renderer_cool *r = (renderer_cool*)enabler->renderer; \
 \
-        int xmax = std::min(dbuf->x2-gwindow_x, r->gdimx-1); \
+        int xmax = std::min(dbuf->x2-mwindow_x, r->gdimx-1); \
         int ymax = std::min(dbuf->y2-gwindow_y, r->gdimy-1); \
 \
-        for (int x = dbuf->x1-gwindow_x; x <= xmax; x++) \
+        for (int x = dbuf->x1-mwindow_x; x <= xmax; x++) \
             for (int y = dbuf->y1-gwindow_y; y <= ymax; y++) \
                 if (x >= 0 && y >= 0 && x < r->gdimx && y < r->gdimy) \
                     ((uint32_t*)screen_under_ptr)[x*r->gdimy + y] = ((uint32_t*)screen_ptr)[x*r->gdimy + y]; \

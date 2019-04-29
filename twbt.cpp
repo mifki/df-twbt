@@ -190,6 +190,7 @@ static int large_map_dispx, large_map_dispy;
 
 static int tdimx, tdimy;
 static int gwindow_x, gwindow_y, gwindow_z;
+static int mwindow_x;
 
 static float addcolors[][3] = { {1,0,0} };
 
@@ -435,7 +436,8 @@ static bool advmode_needs_map(int m)
             m == df::ui_advmode_menu::SleepConfirm ||
             m == df::ui_advmode_menu::Companions ||
             m == df::ui_advmode_menu::Get ||
-            m == 46                                                 // build
+            m == df::ui_advmode_menu::Build ||
+            m == 44 || m == 45 // performance
             );
 }
 

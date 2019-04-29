@@ -105,9 +105,9 @@ struct cls##_hook : public df::cls \
         renderer_cool *r = (renderer_cool*)enabler->renderer; \
 \
         df::coord _pos = Items::getPosition(this); \
-        if (pos.x-gwindow_x >= 0 && pos.y-gwindow_y >= 0 && pos.x-gwindow_x < r->gdimx && pos.y-gwindow_y < r->gdimy) \
-            if (!((uint32_t*)screen_under_ptr)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y]) \
-                ((uint32_t*)screen_under_ptr)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y] = ((uint32_t*)screen_ptr)[(_pos.x-gwindow_x)*r->gdimy + _pos.y-gwindow_y]; \
+        if (_pos.x-mwindow_x >= 0 && _pos.y-gwindow_y >= 0 && _pos.x-mwindow_x < r->gdimx && _pos.y-gwindow_y < r->gdimy) \
+            if (!((uint32_t*)screen_under_ptr)[(_pos.x-mwindow_x)*r->gdimy + _pos.y-gwindow_y]) \
+                ((uint32_t*)screen_under_ptr)[(_pos.x-mwindow_x)*r->gdimy + _pos.y-gwindow_y] = ((uint32_t*)screen_ptr)[(_pos.x-mwindow_x)*r->gdimy + _pos.y-gwindow_y]; \
 \
         return INTERPOSE_NEXT(drawSelf)(); \
 \

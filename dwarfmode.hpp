@@ -78,6 +78,7 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         memset(gscreen_under, 0, r->gdimx*r->gdimy*sizeof(uint32_t));
         screen_under_ptr = gscreen_under;
         screen_ptr = gscreen;
+        mwindow_x = gwindow_x;
 
         INTERPOSE_NEXT(render)();
 
@@ -158,7 +159,6 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
             gps->screentexpos_cf        = mscreentexpos_cf        - r->gdimy - 1;
             gps->screentexpos_cbr       = mscreentexpos_cbr       - r->gdimy - 1;
 
-            memset(mscreen_under, 0, r->gdimx*r->gdimy*sizeof(uint32_t));
             screen_under_ptr = mscreen_under;
             screen_ptr = mscreen;
 
@@ -219,7 +219,9 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
 
                             (*df::global::window_x) += x0;
                             init->display.grid_x -= x0;
+                            mwindow_x = gwindow_x + x0;
 
+                            memset(mscreen_under, 0, (r->gdimx-x0)*r->gdimy*sizeof(uint32_t));
                             render_map();
 
                             (*df::global::window_x) -= x0;
